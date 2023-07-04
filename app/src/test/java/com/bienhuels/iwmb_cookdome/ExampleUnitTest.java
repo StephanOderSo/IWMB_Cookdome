@@ -1,4 +1,4 @@
-package com.bienhuels.cookdome;
+package com.bienhuels.iwmb_cookdome;
 
 import org.junit.Test;
 

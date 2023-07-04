@@ -1,4 +1,4 @@
-package com.bienhuels.cookdome;
+package com.bienhuels.iwmb_cookdome;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.bienhuels.cookdome", appContext.getPackageName());
+        assertEquals("com.bienhuels.iwmb_cookdome", appContext.getPackageName());
     }
 }
