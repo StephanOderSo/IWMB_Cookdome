@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">IWMB_Cookdome</string>
+    <string name="profile">Profile</string>
+    <string name="ownRecipes">own recipes</string>
+    <string name="likedRecipes">liked one</string>
+    <string name="logout">logout</string>
+    <string name="menue">Burgermenue</string>
+    <string name="logo">Cookdome Logo</string>
+    <string name="search">Search</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+
 </resources>
