@@ -1,29 +1,23 @@
 package com.bienhuels.iwmb_cookdome.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.bienhuels.iwmb_cookdome.ViewModel.MainActivityVM;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.squareup.picasso.Picasso;
 
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
@@ -41,11 +35,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         viewmodel = new MainActivityVM();
 
-        //Burgermenu Navigation
-        dlMainActivity=findViewById(R.id.dlMainActivity);
-        NavigationView navView=findViewById(R.id.navView);
-        navView.bringToFront();
-        navView.setNavigationItemSelectedListener(this);
+        //Search Button (click leads to SearchActivity)
+        View search = findViewById(R.id.search);
+        search.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                intent.putExtra("search","search");
+                startActivity(intent);
+                finish();
+            }
+        });
+
+
         ImageButton burgermenu=findViewById(R.id.burgermenu);
         burgermenu.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,9 +55,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 dlMainActivity.open();
             }
         });
+        //Burgermenu Navigation (Change Front (clickable) layout from main activity to Drawer to make Drawer-Items clickable)
+        dlMainActivity=findViewById(R.id.dlMainActivity);
+        NavigationView navView=findViewById(R.id.navView);
+        navView.bringToFront();
+        navView.setNavigationItemSelectedListener(this);
 
-
-        //Burgermenu header
+        //Burgermenu header (Load users Profile image and name from firebase to display in Drawer header)
         ImageView profileImage=navView.getHeaderView(0).findViewById(R.id.profileImage);
         TextView nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
         auth=FirebaseAuth.getInstance();
