@@ -35,5 +35,12 @@
     <string name="cancel">cancel</string>
     <string name="recipe_name">Recipe Name</string>
     <string name="remove">remove item</string>
+    <string name="image">Image</string>
+    <string name="category">Category</string>
+    <string name="portions">Portions</string>
+    <string name="ingredients">Ingredients</string>
+    <string name="steps">Steps</string>
+    <string name="amount">Amount</string>
+    <string name="unit">Unit</string>
 
 </resources>

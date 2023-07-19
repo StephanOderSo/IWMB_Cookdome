@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.Model.Search;
+package com.bienhuels.iwmb_cookdome.viewmodel.Search;
 
 import static android.content.ContentValues.TAG;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bienhuels.iwmb_cookdome.R;
 import com.bienhuels.iwmb_cookdome.View.RecipeView;
 import com.bienhuels.iwmb_cookdome.Model.Recipe;
-import com.bienhuels.iwmb_cookdome.Model.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.viewmodel.RecyclerViewHolder;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;

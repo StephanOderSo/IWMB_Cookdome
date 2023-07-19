@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.Model.Search;
+package com.bienhuels.iwmb_cookdome.viewmodel.Search;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,22 +8,25 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.bienhuels.iwmb_cookdome.Model.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.viewmodel.RecyclerViewHolder;
 
 import java.util.ArrayList;
 
-public class RecyclerAdapterDietary extends RecyclerView.Adapter<RecyclerViewHolder>{
+public class RecyclerAdapterCat extends RecyclerView.Adapter<RecyclerViewHolder> {
     private Context context;
-    private ArrayList<String> list;
+    private static ArrayList<String>list;
 
-    public RecyclerAdapterDietary(Context context, ArrayList<String> list) {
+    public RecyclerAdapterCat(Context context, ArrayList<String> list) {
         this.context=context;
         this.list=list;
     }
+
     @NonNull
     @Override
     public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new RecyclerViewHolder(LayoutInflater.from(context).inflate(R.layout.removable_cell,parent,false));
+
+
     }
 
     @Override
@@ -35,4 +38,9 @@ public class RecyclerAdapterDietary extends RecyclerView.Adapter<RecyclerViewHol
     public int getItemCount() {
         return list.size();
     }
+
+
+
+
+
 }

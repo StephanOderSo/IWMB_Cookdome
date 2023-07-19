@@ -13,6 +13,9 @@
         android:theme="@style/Theme.IWMB_Cookdome"
         tools:targetApi="31">
         <activity
+            android:name=".CreateRecipe"
+            android:exported="false" />
+        <activity
             android:name=".View.RecipeView"
             android:exported="false" />
         <activity
@@ -20,7 +23,7 @@
             android:exported="false" />
         <activity
             android:name=".View.LoginActivity"
-            android:exported="false"></activity>
+            android:exported="false" />
         <activity
             android:name=".View.MainActivity"
             android:exported="true">
@@ -30,6 +33,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
     </application>
 
 </manifest>
