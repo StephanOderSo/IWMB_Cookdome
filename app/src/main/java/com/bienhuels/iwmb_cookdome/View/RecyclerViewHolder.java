@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.viewmodel;
+package com.bienhuels.iwmb_cookdome.View;
 
 import android.view.View;
 import android.widget.EditText;

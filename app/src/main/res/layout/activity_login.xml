@@ -68,7 +68,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
-                android:drawableLeft="@drawable/baseline_email_24"
+                android:drawableLeft="@drawable/email"
                 android:layout_marginTop="50dp"
                 android:id="@+id/editTextTextEmailAddress"
                 android:layout_width="wrap_content"
@@ -86,7 +86,7 @@
                 />
 
             <EditText
-                android:drawableLeft="@drawable/baseline_lock_24"
+                android:drawableLeft="@drawable/lock"
                 android:textSize="18sp"
                 android:id="@+id/editTextTextPassword"
                 android:layout_width="wrap_content"

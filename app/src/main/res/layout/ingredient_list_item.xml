@@ -52,7 +52,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/lavender_btn"
         android:layout_gravity="center"
-        app:srcCompat="@drawable/baseline_remove_24"
+        app:srcCompat="@drawable/remove"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginRight="5dp"

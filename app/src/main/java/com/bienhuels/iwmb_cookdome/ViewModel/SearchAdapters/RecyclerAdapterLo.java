@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.viewmodel.Search;
+package com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters;
 
 import android.content.Context;
 import android.util.Log;
@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.bienhuels.iwmb_cookdome.viewmodel.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.View.RecyclerViewHolder;
 
 import java.util.ArrayList;
 
@@ -36,7 +36,7 @@ public class RecyclerAdapterLo extends RecyclerView.Adapter<RecyclerViewHolder>{
         String rest=list.get(position);
         Log.d("TAG", rest);
         holder.textView2.setText(rest);
-        holder.remove.setImageResource(R.drawable.baseline_remove_24);
+        holder.remove.setImageResource(R.drawable.remove);
         holder.remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -16,7 +16,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.SearchView;
+import androidx.appcompat.widget.SearchView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,10 +24,10 @@ import android.widget.Toast;
 import com.bienhuels.iwmb_cookdome.R;
 import com.bienhuels.iwmb_cookdome.Model.Ingredient;
 import com.bienhuels.iwmb_cookdome.Model.Recipe;
-import com.bienhuels.iwmb_cookdome.viewmodel.Search.RecipeAdapter;
-import com.bienhuels.iwmb_cookdome.viewmodel.Search.RecyclerAdapterCat;
-import com.bienhuels.iwmb_cookdome.viewmodel.Search.RecyclerAdapterDietary;
-import com.bienhuels.iwmb_cookdome.viewmodel.Search.RecyclerAdapterLo;
+import com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters.RecipeAdapter;
+import com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters.RecyclerAdapterCat;
+import com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters.RecyclerAdapterDietary;
+import com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters.RecyclerAdapterLo;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -158,12 +158,12 @@ public class SearchActivity extends AppCompatActivity {
         extendBtn1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                extendBtn1.setImageResource(R.drawable.baseline_keyboard_arrow_up_24);
+                extendBtn1.setImageResource(R.drawable.arrow_up);
                 if (clickCount2 % 2 != 0) {
                     catSelect.setVisibility(View.VISIBLE);
 
                 } else {
-                    extendBtn1.setImageResource(R.drawable.baseline_keyboard_arrow_down_24);
+                    extendBtn1.setImageResource(R.drawable.arrow_down);
                     catSelect.setVisibility(View.GONE);
                 }
                 clickCount2++;
@@ -175,10 +175,10 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (clickCount % 2 != 0) {
-                    extendBtn2.setImageResource(R.drawable.baseline_keyboard_arrow_up_24);
+                    extendBtn2.setImageResource(R.drawable.arrow_up);
                     diatarySelect.setVisibility(View.VISIBLE);
                 } else {
-                    extendBtn2.setImageResource(R.drawable.baseline_keyboard_arrow_down_24);
+                    extendBtn2.setImageResource(R.drawable.arrow_down);
                     diatarySelect.setVisibility(View.GONE);
                 }
                 clickCount++;

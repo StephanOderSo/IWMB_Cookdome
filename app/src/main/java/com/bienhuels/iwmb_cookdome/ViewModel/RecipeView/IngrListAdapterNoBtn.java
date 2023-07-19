@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.viewmodel.RecipeView;
+package com.bienhuels.iwmb_cookdome.Viewmodel.RecipeView;
 
 import android.content.Context;
 import android.view.LayoutInflater;

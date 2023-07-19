@@ -44,7 +44,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/baseline_remove_24"
+            app:srcCompat="@drawable/remove"
             android:layout_marginRight="5dp"
             android:padding="10dp"
             />

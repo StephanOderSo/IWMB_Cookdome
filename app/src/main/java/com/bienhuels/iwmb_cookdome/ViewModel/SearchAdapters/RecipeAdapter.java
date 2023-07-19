@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.viewmodel.Search;
+package com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters;
 
 import static android.content.ContentValues.TAG;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
@@ -17,9 +17,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.bienhuels.iwmb_cookdome.View.RecipeView;
+import com.bienhuels.iwmb_cookdome.View.RecipeViewActivity;
 import com.bienhuels.iwmb_cookdome.Model.Recipe;
-import com.bienhuels.iwmb_cookdome.viewmodel.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.View.RecyclerViewHolder;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -60,15 +60,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         databaseReference=database.getReference("/Cookdome/Users");
         Recipe recipe = (Recipe) list.get(position);
         holder.recipe_name.setText(recipe.getRecipeName());
-        holder.time_show.setImageResource(R.drawable.baseline_access_time_filled_24);
-        holder.diet_show.setImageResource(R.drawable.baseline_check_circle_24);
+        holder.time_show.setImageResource(R.drawable.time_white);
+        holder.diet_show.setImageResource(R.drawable.check_white);
         holder.recipe_time.setText(String.valueOf(recipe.getPrepTime()));
         if(favlist.contains(recipe.getKey())){
             Log.d("FAVLIST", "Key in list");
-            holder.favourite.setImageResource(R.drawable.baseline_favorite_24);
+            holder.favourite.setImageResource(R.drawable.liked);
             holder.favourite.setContentDescription(liked);
         }else{
-            holder.favourite.setImageResource(R.drawable.baseline_favorite_border_24);
+            holder.favourite.setImageResource(R.drawable.unliked);
             holder.favourite.setContentDescription(unliked);
         }
         holder.favourite.setOnClickListener(new View.OnClickListener() {
@@ -134,7 +134,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         holder.recipeItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(context, RecipeView.class);
+                Intent intent = new Intent(context, RecipeViewActivity.class);
                 intent.setFlags(FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("key", recipe.getKey());
                 context.startActivity(intent);
@@ -163,7 +163,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
                                 if (task.isSuccessful()) {
                                     favlist.remove(id);
                                     view.setContentDescription(unliked);
-                                    view.setImageResource(R.drawable.baseline_favorite_border_24);
+                                    view.setImageResource(R.drawable.unliked);
                                     Toast.makeText(context, "removed from favourites", Toast.LENGTH_SHORT).show();
                                 } else {
                                     Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show();
@@ -182,7 +182,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
                                     if (task.isSuccessful()) {
                                         favlist.add(id);
                                         view.setContentDescription(liked);
-                                        view.setImageResource(R.drawable.baseline_favorite_24);
+                                        view.setImageResource(R.drawable.liked);
                                         Toast.makeText(context, "Added to favourites", Toast.LENGTH_SHORT).show();
                                     } else {
                                         Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show();

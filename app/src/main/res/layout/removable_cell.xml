@@ -40,7 +40,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView2"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/baseline_remove_24"
+        app:srcCompat="@drawable/remove"
         android:contentDescription="@string/remove"
         android:layout_marginLeft="5dp"
         />

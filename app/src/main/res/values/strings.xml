@@ -42,5 +42,8 @@
     <string name="steps">Steps</string>
     <string name="amount">Amount</string>
     <string name="unit">Unit</string>
+    <string name="leftovers">Leftovers</string>
+    <string name="randomRecipe">random recipe</string>
+    <string name="addRecipe">add recipe</string>
 
 </resources>

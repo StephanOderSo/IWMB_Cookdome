@@ -17,12 +17,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bienhuels.iwmb_cookdome.CreateRecipe;
 import com.bienhuels.iwmb_cookdome.Model.Ingredient;
 import com.bienhuels.iwmb_cookdome.Model.Recipe;
 import com.bienhuels.iwmb_cookdome.R;
-import com.bienhuels.iwmb_cookdome.viewmodel.RecipeView.IngrListAdapterNoBtn;
-import com.bienhuels.iwmb_cookdome.viewmodel.RecipeView.StepListAdapterNoBtn;
+import com.bienhuels.iwmb_cookdome.Viewmodel.RecipeView.IngrListAdapterNoBtn;
+import com.bienhuels.iwmb_cookdome.Viewmodel.RecipeView.StepListAdapterNoBtn;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -35,7 +34,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class RecipeView extends AppCompatActivity {
+public class RecipeViewActivity extends AppCompatActivity {
     DatabaseReference databaseReference;
     String dBImage;
     FirebaseDatabase database;
@@ -121,7 +120,7 @@ public class RecipeView extends AppCompatActivity {
                         setValues(selectedRecipe);
 
                     } else {
-                        Toast.makeText(RecipeView.this, "data retrieval failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RecipeViewActivity.this, "data retrieval failed", Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -218,8 +217,8 @@ public class RecipeView extends AppCompatActivity {
         auth= FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(RecipeView.this, "You're not logged in", Toast.LENGTH_SHORT).show();
-            Intent loginIntent = new Intent(RecipeView.this, LoginActivity.class);
+            Toast.makeText(RecipeViewActivity.this, "You're not logged in", Toast.LENGTH_SHORT).show();
+            Intent loginIntent = new Intent(RecipeViewActivity.this, LoginActivity.class);
             startActivity(loginIntent);
         } else {
             id = currentUser.getUid();
@@ -237,16 +236,16 @@ public class RecipeView extends AppCompatActivity {
                         Log.d("FAVLIST", favlist.toString());
                         if(favlist.contains(selectedRecipe.getKey())){
                             Log.d("FAVLIST", "Key in list");
-                            favView.setImageResource(R.drawable.baseline_favorite_24);
+                            favView.setImageResource(R.drawable.liked);
                         }else{
-                            favView.setImageResource(R.drawable.baseline_favorite_border_24);
+                            favView.setImageResource(R.drawable.unliked);
                         }
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(RecipeView.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -258,17 +257,17 @@ public class RecipeView extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        favView.setImageResource(R.drawable.baseline_favorite_border_24);
+                        favView.setImageResource(R.drawable.unliked);
                         favlist.remove(recipe.getKey());
-                        Toast.makeText(RecipeView.this, "removed from favourites", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RecipeViewActivity.this, "removed from favourites", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(RecipeView.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RecipeViewActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(RecipeView.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }else{
@@ -277,17 +276,17 @@ public class RecipeView extends AppCompatActivity {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        favView.setImageResource(R.drawable.baseline_favorite_24);
+                        favView.setImageResource(R.drawable.liked);
                         favlist.add(recipe.getKey());
-                        Toast.makeText(RecipeView.this, "Added to favourites", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RecipeViewActivity.this, "Added to favourites", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(RecipeView.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(RecipeViewActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(RecipeView.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -297,8 +296,8 @@ public class RecipeView extends AppCompatActivity {
         FirebaseUser currentUser = auth.getCurrentUser();
         ownlist=new ArrayList<>();
         if (currentUser == null) {
-            Toast.makeText(RecipeView.this, "You're not logged in", Toast.LENGTH_SHORT).show();
-            Intent loginIntent = new Intent(RecipeView.this, LoginActivity.class);
+            Toast.makeText(RecipeViewActivity.this, "You're not logged in", Toast.LENGTH_SHORT).show();
+            Intent loginIntent = new Intent(RecipeViewActivity.this, LoginActivity.class);
             startActivity(loginIntent);
         } else {
             id = currentUser.getUid();
@@ -320,7 +319,7 @@ public class RecipeView extends AppCompatActivity {
                             edit.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    Intent toEditIntent=new Intent(RecipeView.this, CreateRecipe.class);
+                                    Intent toEditIntent=new Intent(RecipeViewActivity.this, CreateRecipeActivity.class);
                                     toEditIntent.putExtra("Edit",key);
                                     startActivity(toEditIntent);
                                 }

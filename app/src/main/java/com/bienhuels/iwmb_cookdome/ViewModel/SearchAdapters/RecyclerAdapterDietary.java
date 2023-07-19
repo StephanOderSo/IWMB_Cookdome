@@ -1,4 +1,4 @@
-package com.bienhuels.iwmb_cookdome.viewmodel.Search;
+package com.bienhuels.iwmb_cookdome.Viewmodel.SearchAdapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.bienhuels.iwmb_cookdome.viewmodel.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.View.RecyclerViewHolder;
 
 import java.util.ArrayList;
 
