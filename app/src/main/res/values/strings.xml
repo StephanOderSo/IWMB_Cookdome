@@ -45,5 +45,10 @@
     <string name="leftovers">Leftovers</string>
     <string name="randomRecipe">random recipe</string>
     <string name="addRecipe">add recipe</string>
+    <string name="soup">Soup</string>
+    <string name="diet">Diet</string>
+    <string name="details">Details</string>
+    <string name="all">All</string>
+    <string name="chooseDiet">Choose Diet</string>
 
 </resources>
