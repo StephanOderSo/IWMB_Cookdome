@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:bind="http://schemas.android.com/tools">
 
     <data>
         <variable
@@ -46,7 +47,9 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/logo" />
+                app:srcCompat="@drawable/logo"
+                bind:login="@{() -> viewmodel.user}"
+                />
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
@@ -128,7 +131,7 @@
             android:background="@drawable/lavender_btn"
             android:text="@string/login"
             android:layout_margin="30dp"
-            android:onClick="@{(view) -> viewmodel.onClickLogin(view, editTextTextEmailAddress.getText().toString(), editTextTextPassword.getText().toString())}"
+            android:onClick="@{() -> viewmodel.onClickLogin(editTextTextEmailAddress.getText().toString(), editTextTextPassword.getText().toString())}"
             />
 
         <Button
