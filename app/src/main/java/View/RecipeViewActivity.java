@@ -182,7 +182,14 @@ public class RecipeViewActivity extends AppCompatActivity {
             }
         }
         Log.d("DIETARYTEXT", dietaryTxt.toString());
-        dietary.setText(dietaryTxt.toString());
+        if(dietaryTxt.toString().equals("")){
+            dietary.setVisibility(View.GONE);
+            ImageView dietaryIcon=findViewById(R.id.dietaryIcon);
+            dietaryIcon.setVisibility(View.GONE);
+        }else{
+            dietary.setText(dietaryTxt.toString());
+        }
+
         ArrayList<Ingredient> dBingredientList;
         dBingredientList=(ArrayList<Ingredient>) selectedRecipe.getIngredientList();
         IngrListAdapterInclShoppingList ingredientAdapter = new IngrListAdapterInclShoppingList(getApplicationContext(), 0,dBingredientList);

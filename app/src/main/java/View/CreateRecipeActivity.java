@@ -243,7 +243,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
                             if(j!=dietList.size()-1){
                                 dietSb.append(" | ");
                             }
-                        }dietaryBtn.setText(dietSb.toString());
+                        }
+                        if(dietSb.toString().equals("")){
+                            dietaryBtn.setText(R.string.none);
+                        }else{
+                        dietaryBtn.setText(dietSb.toString());}
+
                     }
                 });
                 builder.setNeutralButton("Clear", new DialogInterface.OnClickListener() {
@@ -522,6 +527,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
             if (diet.equals(lof)) {
                 dietShort = "LF";
+            }
+            if(diet.equals("None")){
+                dietShort="None";
             }
             dietaryTxt.append(dietShort);
             Integer i;
