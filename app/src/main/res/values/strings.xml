@@ -50,5 +50,28 @@
     <string name="details">Details</string>
     <string name="all">All</string>
     <string name="chooseDiet">Choose Diet</string>
+    <string name="step">Step</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="update">Update Ingredient</string>
+    <string name="edit">edit</string>
+    <string name="sc_added">added to Shoppingcart</string>
+    <string name="sc_updated">updated shoppinglist</string>
+    <string name="sc_empty">shoppingList is empty</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="no_image_selected">No Image selected</string>
+    <string name="choosePhoto">Please choose a photo</string>
+    <string name="enterName">Please enter a Name</string>
+    <string name="enterMail">Please ebter an Email adress</string>
+    <string name="invalidMail">The Email-adress you entered is not valid</string>
+    <string name="enterPassword">Please enter a password</string>
+    <string name="passwordLength">The password needs to be at least 8 characters long</string>
+    <string name="repeatPasword">Please repeat the password</string>
+    <string name="wrongPassword">The paswords dont match</string>
+    <string name="userExists">A user with this email already exists</string>
+    <string name="uploadSuccess">Upload successful</string>
+    <string name="authFailed">Authentication failed</string>
 
 </resources>

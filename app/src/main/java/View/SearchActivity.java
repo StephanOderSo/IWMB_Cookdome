@@ -1,5 +1,7 @@
 package View;
 
+import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -351,7 +353,7 @@ public class SearchActivity extends AppCompatActivity {
                 recipeSearchView.setVisibility(View.VISIBLE);
             }
         });
-//Search
+//Search Function
         //pass entered String to Method typeFilter() at each text-change
         searchView = findViewById(R.id.search);
         searchView.clearFocus();
@@ -387,6 +389,7 @@ public class SearchActivity extends AppCompatActivity {
     private void fetchList(String catFilter,String source){
         currentList=new ArrayList<>();
         recyclerconfig(currentList);
+        Log.d("FETCH", "fetchList: started ");
         databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -437,6 +440,7 @@ public class SearchActivity extends AppCompatActivity {
                 }else{
                     Toast.makeText(SearchActivity.this,"data retrieval failed",Toast.LENGTH_SHORT).show();
                 }
+                Log.d(TAG, currentList.toString());
             }
         });
     }

@@ -20,7 +20,7 @@ import android.widget.Toast;
 import Model.Ingredient;
 import Model.Recipe;
 import com.bienhuels.iwmb_cookdome.R;
-import Viewmodel.RecipeViewAdapters.IngrListAdapterNoBtn;
+import Viewmodel.RecipeViewAdapters.IngrListAdapterInclShoppingList;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -31,25 +31,27 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
-
 import java.util.ArrayList;
 
 public class RecipeViewActivity extends AppCompatActivity {
-    DatabaseReference databaseReference;
-    String dBImage;
+    DatabaseReference databaseReference, dbRefShoppingList,databaseReferenceFav;
+    String dBImage, id;
     FirebaseDatabase database;
     FirebaseAuth auth;
     ArrayList<String> favlist,ownlist;
-    String id;
     ImageView favView;
+    ArrayList<Ingredient> shoppingList;
+
     Recipe selectedRecipe;
-    DatabaseReference databaseReferenceFav;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_view);
-        databaseReferenceFav = database.getInstance().getReference("/Cookdome/Users");
+        database=FirebaseDatabase.getInstance();
+        databaseReferenceFav = database.getReference("/Cookdome/Users");
         getSelectedRecipe();
         favView=findViewById(R.id.favourite);
         favView.setOnClickListener(new View.OnClickListener() {
@@ -58,6 +60,8 @@ public class RecipeViewActivity extends AppCompatActivity {
                 updateFavouritesList(selectedRecipe);
             }
         });
+        shoppingList=new ArrayList<Ingredient>();
+
 
 
     }
@@ -181,7 +185,7 @@ public class RecipeViewActivity extends AppCompatActivity {
         dietary.setText(dietaryTxt.toString());
         ArrayList<Ingredient> dBingredientList;
         dBingredientList=(ArrayList<Ingredient>) selectedRecipe.getIngredientList();
-        IngrListAdapterNoBtn ingredientAdapter = new IngrListAdapterNoBtn(getApplicationContext(), 0,dBingredientList);
+        IngrListAdapterInclShoppingList ingredientAdapter = new IngrListAdapterInclShoppingList(getApplicationContext(), 0,dBingredientList);
         ingredientList.setAdapter(ingredientAdapter);
         Integer totalHeight=0;
         for (int i = 0; i < ingredientAdapter.getCount(); i++) {

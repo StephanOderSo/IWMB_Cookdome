@@ -76,6 +76,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
     ArrayList<Integer>dietList=new ArrayList<>();
     ArrayList<String>dietaryRecList=new ArrayList<>();
+    ArrayList<String>shoppingList;
     StringBuilder dietSb;
     TextView catBtn,unitBtn;
     TextView detailsHeader;
@@ -90,6 +91,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_recipe);
+
         String[] dietArray={getResources().getString(R.string.none),getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.vegan),getResources().getString(R.string.vegetar),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)};
         String[] catArray={getResources().getString(R.string.breakki),getResources().getString(R.string.mainMeal),getResources().getString(R.string.dessert),getResources().getString(R.string.snack),getResources().getString(R.string.soup),getResources().getString(R.string.salad)};
         String[] unitArray={" ","cup","tsp","tbsp","ml","l","g","kg","mg","oz","pound"};

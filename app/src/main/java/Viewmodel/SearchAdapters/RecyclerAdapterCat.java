@@ -25,8 +25,6 @@ public class RecyclerAdapterCat extends RecyclerView.Adapter<RecyclerViewHolder>
     @Override
     public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new RecyclerViewHolder(LayoutInflater.from(context).inflate(R.layout.removable_cell,parent,false));
-
-
     }
 
     @Override

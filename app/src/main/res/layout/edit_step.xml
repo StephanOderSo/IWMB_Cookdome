@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".EditStep"
     >
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -19,21 +18,23 @@ app:layout_constraintEnd_toEndOf="parent"
 app:layout_constraintStart_toStartOf="parent">
     <ImageButton
         android:id="@+id/editstepBtn"
+        android:contentDescription="@string/image"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginTop="4dp"
         android:layout_marginEnd="4dp"
         android:layout_marginBottom="4dp"
-        app:srcCompat="@drawable/baseline_edit_24"
+        app:srcCompat="@drawable/edit"
         android:background="@drawable/lavender_btn"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 <ImageButton
+    android:contentDescription="@string/image"
     android:id="@+id/updateStepbtn"
     android:layout_width="50dp"
     android:layout_height="50dp"
-    app:srcCompat="@drawable/baseline_remove_24"
+    app:srcCompat="@drawable/remove"
     android:background="@drawable/lavender_btn"
     android:layout_marginTop="4dp"
     android:layout_marginEnd="4dp"
@@ -43,10 +44,11 @@ app:layout_constraintStart_toStartOf="parent">
     android:visibility="gone"
      />
     <ImageButton
+        android:contentDescription="@string/image"
         android:id="@+id/removeStepbtn"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:srcCompat="@drawable/baseline_sync_24"
+        app:srcCompat="@drawable/sync"
         android:background="@drawable/lavender_btn"
         android:layout_marginTop="4dp"
         android:layout_marginEnd="4dp"
@@ -60,7 +62,6 @@ app:layout_constraintStart_toStartOf="parent">
         android:textSize="17sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="1"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginHorizontal="5dp"
@@ -76,13 +77,15 @@ app:layout_constraintStart_toStartOf="parent">
     android:background="@color/lightblue"
     android:hint="@string/step"
     android:inputType="textLongMessage"
+    android:ems="15"
     android:paddingHorizontal="10dp"
-    android:paddingVertical="10dp"
+    android:paddingVertical="12dp"
     android:layout_margin="4dp"
     app:layout_constraintStart_toEndOf="@+id/counter"
     app:layout_constraintTop_toTopOf="parent"
     app:layout_constraintBottom_toBottomOf="parent"/>
     <ImageView
+        android:contentDescription="@string/image"
         android:id="@+id/up"
         android:layout_width="50dp"
         android:layout_height="50dp"
@@ -94,6 +97,7 @@ app:layout_constraintStart_toStartOf="parent">
         android:visibility="gone"
         />
     <ImageView
+        android:contentDescription="@string/image"
         android:id="@+id/down"
         android:layout_width="50dp"
         android:layout_height="50dp"
