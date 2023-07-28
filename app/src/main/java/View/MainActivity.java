@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import com.bienhuels.iwmb_cookdome.R;
 
-import com.bienhuels.iwmb_cookdome.ShoppinglistActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
