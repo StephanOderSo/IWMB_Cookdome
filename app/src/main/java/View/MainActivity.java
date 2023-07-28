@@ -17,7 +17,7 @@ import android.widget.Toast;
 
 import com.bienhuels.iwmb_cookdome.R;
 
-import Viewmodel.MainActivityVM;
+import com.bienhuels.iwmb_cookdome.ShoppinglistActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -29,19 +29,21 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import java.util.Objects;
+
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     FloatingActionButton fab;
     DrawerLayout drawerLayout;
     FirebaseAuth auth;
-    private MainActivityVM viewmodel;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        viewmodel = new MainActivityVM();
 //Create-Recipe Button
         fab=findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener(){
@@ -110,7 +112,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ImageView profileImage=navView.getHeaderView(0).findViewById(R.id.profileImage);
         TextView nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
         auth=FirebaseAuth.getInstance();
-        String id=auth.getCurrentUser().getUid();
+        String id=new String();
+        try{id= auth.getCurrentUser().getUid();
+        }catch (NullPointerException e){
+            Intent toLoginIntent=new Intent(MainActivity.this,LoginActivity.class);
+                    startActivity(toLoginIntent);
+        }
         FirebaseDatabase database=FirebaseDatabase.getInstance();
         DatabaseReference ref=database.getReference("/Cookdome/Users");
         ref.child(id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -177,6 +184,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent signoutIntent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(signoutIntent);
         }
+        if(item.getItemId()==R.id.shoppingList){
+            Intent toSlIntent = new Intent(MainActivity.this, ShoppinglistActivity.class);
+            startActivity(toSlIntent);}
         return false;
     }
 

@@ -187,7 +187,7 @@ public class SearchActivity extends AppCompatActivity {
             }
         });
 
-//Kategory Checkboxes (Add selected categories to displayed list)
+//Category Checkboxes (Add selected categories to displayed list)
         GridLayoutManager layoutManager = new GridLayoutManager(this, 3);
         layoutManager.setOrientation(layoutManager.VERTICAL);
         chosenCat = findViewById(R.id.chosenCat);

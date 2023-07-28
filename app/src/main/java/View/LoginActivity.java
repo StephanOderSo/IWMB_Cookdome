@@ -114,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                         enterpassword.setError("User doesnt exist");
                         Toast.makeText(LoginActivity.this, "User doesnt exist", Toast.LENGTH_SHORT).show();
                     }catch (Exception e){
-                        Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
             }

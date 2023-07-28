@@ -20,7 +20,7 @@ import android.widget.Toast;
 import Model.Ingredient;
 import Model.Recipe;
 import com.bienhuels.iwmb_cookdome.R;
-import Viewmodel.RecipeViewAdapters.IngrListAdapterInclShoppingList;
+import Viewmodel.RecipeViewAdapters.IngrListAdapterwSLBtn;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -34,7 +34,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 public class RecipeViewActivity extends AppCompatActivity {
-    DatabaseReference databaseReference, dbRefShoppingList,databaseReferenceFav;
+    DatabaseReference databaseReference,databaseReferenceFav;
     String dBImage, id;
     FirebaseDatabase database;
     FirebaseAuth auth;
@@ -192,7 +192,7 @@ public class RecipeViewActivity extends AppCompatActivity {
 
         ArrayList<Ingredient> dBingredientList;
         dBingredientList=(ArrayList<Ingredient>) selectedRecipe.getIngredientList();
-        IngrListAdapterInclShoppingList ingredientAdapter = new IngrListAdapterInclShoppingList(getApplicationContext(), 0,dBingredientList);
+        IngrListAdapterwSLBtn ingredientAdapter = new IngrListAdapterwSLBtn(getApplicationContext(), 0,dBingredientList);
         ingredientList.setAdapter(ingredientAdapter);
         Integer totalHeight=0;
         for (int i = 0; i < ingredientAdapter.getCount(); i++) {
@@ -315,7 +315,7 @@ public class RecipeViewActivity extends AppCompatActivity {
         FirebaseUser currentUser = auth.getCurrentUser();
         ownlist=new ArrayList<>();
         if (currentUser == null) {
-            Toast.makeText(RecipeViewActivity.this, "You're not logged in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(RecipeViewActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
             Intent loginIntent = new Intent(RecipeViewActivity.this, LoginActivity.class);
             startActivity(loginIntent);
         } else {

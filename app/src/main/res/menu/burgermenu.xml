@@ -10,9 +10,13 @@
         <item android:id="@+id/likedRecipes"
             android:icon="@drawable/liked"
             android:title="@string/likedRecipes"/>
+        <item android:id="@+id/shoppingList"
+            android:icon="@drawable/shoppinglist"
+            android:title="@string/shoppingList"/>
         <item android:id="@+id/logout"
             android:icon="@drawable/logout"
             android:title="@string/logout"/>
+
 
     </group>
 

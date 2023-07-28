@@ -14,4 +14,5 @@
     <color name="transparent_black">#D68692f7</color>
     <color name="lightblue">#d7e3fc</color>
     <color name="lightpink">#f5e1fd</color>
+    <color name="transparent">#00000000</color>
 </resources>
