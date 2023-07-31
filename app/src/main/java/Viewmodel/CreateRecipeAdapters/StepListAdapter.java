@@ -24,6 +24,7 @@ public class StepListAdapter extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
         String stepItem = (String) getItem(position);
 
         if(convertView==null) {
@@ -40,7 +41,7 @@ public class StepListAdapter extends ArrayAdapter {
         removeStepBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Step toBeRemoved=(Step) getItem(position);
+                String toBeRemoved=(String) getItem(position);
                 remove(toBeRemoved);
                 notifyDataSetChanged();
             }

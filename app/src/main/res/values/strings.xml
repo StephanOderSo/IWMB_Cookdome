@@ -78,5 +78,14 @@
     <string name="shoppingList">Shoppinglist</string>
     <string name="slEmpty">Your Shoppinglist is empty</string>
     <string name="removed">removed</string>
+    <string name="no_name_selected">Please enter recipe name</string>
+    <string name="chooseCat">choose category</string>
+    <string name="enterPreptime">Please enter prep time</string>
+    <string name="enterPortions">Please enter portions</string>
+    <string name="addIngredients">Please enter ingredients</string>
+    <string name="addSteps">Please add prep-steps</string>
+    <string name="deletSuccess">successfully deleted</string>
+    <string name="sthWrong">something went wrong</string>
+    <string name="dataRetrFailed">data retrieval failed</string>
 
 </resources>

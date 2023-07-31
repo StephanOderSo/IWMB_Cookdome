@@ -35,7 +35,7 @@ import java.util.Random;
 
 import Model.Ingredient;
 import Model.Recipe;
-import Viewmodel.RecyclerAdapterCat;
+import Viewmodel.SearchAdapters.RecyclerAdapterCat;
 import Viewmodel.SearchAdapters.RecyclerAdapterDietary;
 import Viewmodel.SearchAdapters.RecyclerAdapterLo;
 

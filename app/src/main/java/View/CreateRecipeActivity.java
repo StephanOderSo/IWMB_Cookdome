@@ -76,7 +76,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
     ArrayList<Integer>dietList=new ArrayList<>();
     ArrayList<String>dietaryRecList=new ArrayList<>();
-    ArrayList<String>shoppingList;
     StringBuilder dietSb;
     TextView catBtn,unitBtn;
     TextView detailsHeader;
@@ -91,10 +90,11 @@ public class CreateRecipeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_recipe);
-
+//create Arraylists for Alert Dialog selections
         String[] dietArray={getResources().getString(R.string.none),getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.vegan),getResources().getString(R.string.vegetar),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)};
         String[] catArray={getResources().getString(R.string.breakki),getResources().getString(R.string.mainMeal),getResources().getString(R.string.dessert),getResources().getString(R.string.snack),getResources().getString(R.string.soup),getResources().getString(R.string.salad)};
         String[] unitArray={" ","cup","tsp","tbsp","ml","l","g","kg","mg","oz","pound"};
+//assign strings to variables for access outside of onCreate
         vegi=getResources().getString(R.string.vegetar);
         vegan=getResources().getString(R.string.vegan);
         paleo=getResources().getString(R.string.paleo);
@@ -165,7 +165,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if(!unit.equals(null)){
+                        if(!unit.equals("")){
                             unitBtn.setText(unit);}
                         else{
                             Toast.makeText(CreateRecipeActivity.this, "select Unit", Toast.LENGTH_SHORT).show();
@@ -194,7 +194,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if(!category.equals(null)){
+                        if(!category.equals("")){
                             catBtn.setText(category);}
                         else{
                             Toast.makeText(CreateRecipeActivity.this, "select Category", Toast.LENGTH_SHORT).show();
@@ -304,7 +304,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
 //Ingredient List
             ingredientAdapter= new IngredientListAdapter(getApplicationContext(),0,ingredientList);
             ingredientsView.setAdapter(ingredientAdapter);
-//Arbeitsschritt Liste erstellen
+//Step List
             stepListAdapter= new StepListAdapter(getApplicationContext(),0,stepList);
             stepsView.setAdapter(stepListAdapter);
         }
@@ -338,7 +338,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
 
 
-//Arbeitsschritt hinzufuegen
+//Add step
         addStepBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -356,37 +356,38 @@ public class CreateRecipeActivity extends AppCompatActivity {
 //Save Recipe
         save.setOnClickListener(view -> {
             if (imageUri==null) {
-                Toast.makeText(CreateRecipeActivity.this, "Bitte Rezeptbild aussuchen", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CreateRecipeActivity.this, R.string.no_image_selected, Toast.LENGTH_SHORT).show();
             }
-            if(recipeNameView.getText()==null){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Rezeptname hinzufuegen",Toast.LENGTH_SHORT).show();
+            if(recipeNameView.getText().toString().equals("")){
+                Toast.makeText(CreateRecipeActivity.this,R.string.no_name_selected,Toast.LENGTH_SHORT).show();
             }
-            if(category.trim().equals("")||category.equals("Kategorie")){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Categorie waehlen",Toast.LENGTH_SHORT).show();
+            if(category==null){
+                Toast.makeText(CreateRecipeActivity.this,R.string.chooseCat,Toast.LENGTH_SHORT).show();
             }
-            if(timeView.getText()==null){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Zubereitungszeit hinzufuegen",Toast.LENGTH_SHORT).show();
+            if(timeView.getText().toString().equals("")){
+                Toast.makeText(CreateRecipeActivity.this,R.string.enterPreptime,Toast.LENGTH_SHORT).show();
             }
-            if(portionsView.getText()==null){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Portionenangabe hinzufuegen",Toast.LENGTH_SHORT).show();
+            if(portionsView.getText().toString().equals("")){
+                Toast.makeText(CreateRecipeActivity.this,R.string.enterPortions,Toast.LENGTH_SHORT).show();
             }
             if(ingredientsView.getCount()==0){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Zutaten hinzufuegen",Toast.LENGTH_SHORT).show();
+                Toast.makeText(CreateRecipeActivity.this,R.string.addIngredients,Toast.LENGTH_SHORT).show();
             }
             if(stepsView.getCount()==0){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Zubereitungsschritte hinzufuegen",Toast.LENGTH_SHORT).show();
+                Toast.makeText(CreateRecipeActivity.this,R.string.addSteps,Toast.LENGTH_SHORT).show();
             }
             if(dietaryRecList.isEmpty()){
-                Toast.makeText(CreateRecipeActivity.this,"Bitte Ernaehrings Spezifikation waehlen",Toast.LENGTH_SHORT).show();
+                Toast.makeText(CreateRecipeActivity.this,R.string.chooseDiet,Toast.LENGTH_SHORT).show();
             }
             else {
                 recipeName=(String) recipeNameView.getText().toString();
-                time = Integer.parseInt(timeView.getText().toString());}
+                time = Integer.parseInt(timeView.getText().toString());
             portions=Integer.parseInt(portionsView.getText().toString());
             progressbar.setVisibility(View.VISIBLE);
             uploadToFirebase();
             Recipe recipe=new Recipe(key,imageUri.toString(),recipeName,category,time,portions,ingredientList,stepList,dietaryRecList);
             writeToLocalStorage(key, recipe);
+            }
 
         });
 
@@ -603,7 +604,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                         setRecipeData(selectedRecipe);
 
                     } else {
-                        Toast.makeText(CreateRecipeActivity.this, "data retrieval failed", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(CreateRecipeActivity.this, R.string.dataRetrFailed, Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -616,9 +617,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()) {
-                    Toast.makeText(CreateRecipeActivity.this, "successfully deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateRecipeActivity.this, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
                 } else{
-                    Toast.makeText(CreateRecipeActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateRecipeActivity.this, R.string.sthWrong, Toast.LENGTH_SHORT).show();
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
