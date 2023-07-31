@@ -34,7 +34,9 @@
                 android:layout_columnWeight="1"
                 android:layout_rowWeight="1"
                 android:layout_margin="5dp"
-                android:outlineSpotShadowColor="@color/transparent">
+                android:outlineSpotShadowColor="@color/transparent"
+                android:backgroundTint="@color/transparent"
+                android:outlineAmbientShadowColor="@color/transparent">
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -58,6 +60,9 @@
     android:layout_columnWeight="1"
     android:layout_rowWeight="1"
     android:outlineSpotShadowColor="@color/transparent"
+    android:outlineAmbientShadowColor="@color/transparent"
+    android:backgroundTint="@color/transparent"
+    android:layout_marginTop="4dp"
     >
         <ImageButton
             android:id="@+id/logo"
@@ -74,7 +79,9 @@
                 android:layout_columnWeight="1"
                 android:layout_rowWeight="1"
                 android:layout_margin="5dp"
-                android:outlineSpotShadowColor="@color/transparent">
+                android:outlineSpotShadowColor="@color/transparent"
+                android:outlineAmbientShadowColor="@color/transparent"
+                android:backgroundTint="@color/transparent">
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent">

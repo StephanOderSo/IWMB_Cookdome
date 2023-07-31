@@ -5,13 +5,13 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#B0FFFFFF</color>
+    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="whiteLR">#FFFFFFFF</color>
+    <color name="whiteLR">#EB000000</color>
     <color name="lavender">#8692f7</color>
-    <color name="lavenderLR">#8692f7</color>
+    <color name="lavenderLR">#e6e6ff</color>
     <color name="light_lav">#e6e6ff</color>
-    <color name="semi_transparent">#EBFFFFFF</color>
+    <color name="semi_transparent">#EB000000</color>
     <color name="light_yellow">#26FDFD96</color>
     <color name="transparent_lav">#D68692f7</color>
     <color name="lightblue">#d7e3fc</color>

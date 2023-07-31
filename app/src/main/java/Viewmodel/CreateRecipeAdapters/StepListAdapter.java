@@ -15,8 +15,6 @@ import com.bienhuels.iwmb_cookdome.R;
 
 import java.util.ArrayList;
 
-import Model.Step;
-
 public class StepListAdapter extends ArrayAdapter {
     public StepListAdapter(@NonNull Context context, int resource, @NonNull ArrayList stepList) {
         super(context, resource, stepList);
