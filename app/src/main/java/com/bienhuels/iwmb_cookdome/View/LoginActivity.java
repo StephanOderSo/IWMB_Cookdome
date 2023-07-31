@@ -22,27 +22,34 @@ public class LoginActivity extends AppCompatActivity {
 
         ActivityLoginBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_login);
 
-        LoginVM viewmodel = new LoginVM(this);
+        LoginVM viewmodel = new LoginVM();
         binding.setViewmodel(viewmodel);
         binding.executePendingBindings();
     }
 
     //Todo: 2 Params uebergeben
-    @BindingAdapter({"bind:login", "bind:loginSuccess"})
-    public static void switchActivity(View view, User user, boolean loginSuccess){
-        if(user != null && loginSuccess)
+    @BindingAdapter({"bind:user"})
+    public static void switchActivity(View view, User user){
+        if(user != null)
         {
-            Intent intent = new Intent(view.getContext(), MainActivity.class);
-            view.getContext().startActivity(intent);
+            if(user.getLoginSucceeded())
+            {
+                Intent intent = new Intent(view.getContext(), MainActivity.class);
+                view.getContext().startActivity(intent);
+            }
+            else
+            {
+                Toast.makeText(view.getContext(), "###Failed to login. Check password and mail###", Toast.LENGTH_SHORT).show();
+            }
         }
 
 //        finish();
 
     }
 
-    @BindingAdapter({"toastMessage"})
-    public static void showToastMessage(View view, String message) {
-            if(message != null)
-                Toast.makeText(view.getContext(), message, Toast.LENGTH_SHORT).show();
-    }
+//    @BindingAdapter({"toastMessage"})
+//    public static void showToastMessage(View view, String message) {
+//            if(message != null)
+//                Toast.makeText(view.getContext(), message, Toast.LENGTH_SHORT).show();
+//    }
 }

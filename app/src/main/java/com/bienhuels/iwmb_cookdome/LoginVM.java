@@ -22,22 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.logging.Logger;
 
 public class LoginVM extends BaseObservable {
-    public LoginVM(Context viewContext){
-
-        this.viewContext = viewContext;
-    }
-    private Context viewContext;
-
-    @Bindable
-    private String toastMessage = null;
-    public String getToastMessage() {
-        return toastMessage;
-    }
-
-    public void setToastMessage(String toastMessage) {
-        this.toastMessage = toastMessage;
-        notifyPropertyChanged(BR.toastMessage);
-    }
+    public LoginVM(){ }
 
     @Bindable
     private User user;
@@ -51,37 +36,22 @@ public class LoginVM extends BaseObservable {
         notifyPropertyChanged(BR.user);
     }
 
-    @Bindable
-    private boolean loginSuccess;
-    public boolean isLoginSuccess() {
-        return loginSuccess;
-    }
-
-    public void setLoginSuccess(boolean loginSuccess) {
-        this.loginSuccess = loginSuccess;
-        notifyPropertyChanged(BR.loginSuccess);
-    }
-
     FirebaseAuth auth;
 
     public void onClickLogin(String email, String password){
-        User loginUser = new User();
-
+        user = new User();
+        user.setEmail(email);
+        user.setPassword(password);
         if(email.isEmpty() || password.isEmpty())
         {
-            String message = "###Password or Email empty###";
-            setToastMessage(message);
+            setUser(user);
             return;
         }
         if(!Patterns.EMAIL_ADDRESS.matcher(email).matches())
         {
-            Toast.makeText(viewContext, "###Wrong Format for email###", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        loginUser.setEmail(email);
-        loginUser.setPassword(password);
-        this.setUser(loginUser);
         auth = FirebaseAuth.getInstance();
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this::onCompleteLogin);
     }
@@ -94,13 +64,12 @@ public class LoginVM extends BaseObservable {
         if(task.isSuccessful())
         {
             //ToDo: Muss auch anders moeglich sein, mit dem Binding zu arbeiten...
+            user.setLoginSucceeded(true);
             this.setUser(user);
-            this.setLoginSuccess(true);
         }
         else {
-            this.setUser(null);
-            Toast.makeText(viewContext, "###Failure while Login###", Toast.LENGTH_SHORT).show();
-            this.setLoginSuccess(false);
+            user.setLoginSucceeded(false);
+            this.setUser(user);
         }
     }
 }
