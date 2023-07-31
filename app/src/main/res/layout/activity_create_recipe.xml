@@ -100,7 +100,9 @@
                 android:layout_marginEnd="4dp"
                 android:background="@drawable/lightlav_btn"
                 android:hint="@string/recipe_name"
+                android:textSize="18sp"
                 android:inputType="textShortMessage"
+                android:textColor="@color/black"
                 android:paddingHorizontal="11dp"
                 android:paddingVertical="7dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -119,7 +121,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:hint="@string/preptime"
+                    android:textSize="18sp"
                     android:inputType="number"
+                    android:textColor="@color/black"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/container"
                     app:layout_constraintBottom_toBottomOf="@id/container"
@@ -134,6 +138,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="5dp"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:hint="@string/portions"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/container"
@@ -147,6 +153,8 @@
                     android:id="@+id/category"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:text="@string/category"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
@@ -163,6 +171,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
+                android:textColor="@color/black"
+                android:textSize="18sp"
                 android:text="@string/diet"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -211,6 +221,8 @@
 
                 <TextView
                     android:id="@+id/unit"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
@@ -240,6 +252,8 @@
 
                 <EditText
                     android:id="@+id/ingredient"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
@@ -256,6 +270,8 @@
 
                 <EditText
                     android:id="@+id/amount"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="15dp"
@@ -323,6 +339,8 @@
 
                 <EditText
                     android:id="@+id/step"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="15dp"

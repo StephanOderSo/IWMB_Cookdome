@@ -25,6 +25,7 @@
                 android:text="@string/amount"
                 android:gravity="left"
                 android:textSize="17sp"
+                android:textColor="@color/black"
                 />
             <TextView
 
@@ -34,6 +35,7 @@
                 android:text="@string/unit"
                 android:gravity="left"
                 android:textSize="17sp"
+                android:textColor="@color/black"
                 />
             <TextView
                 android:id="@+id/ingredientColumn"
@@ -42,6 +44,7 @@
                 android:text="@string/ingredient"
                 android:gravity="left"
                 android:textSize="17sp"
+                android:textColor="@color/black"
                 />
 
         </TableRow>

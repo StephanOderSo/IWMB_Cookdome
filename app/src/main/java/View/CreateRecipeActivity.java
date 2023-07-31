@@ -101,11 +101,13 @@ public class CreateRecipeActivity extends AppCompatActivity {
         lf=getResources().getString(R.string.lactosefree);
         gf=getResources().getString(R.string.glutenfree);
         lof=getResources().getString(R.string.lowfat);
+//Initialise lists and variables
         ingredientList=new ArrayList<>();
         stepList=new ArrayList<>();
-        unit=null;
-        dietRec=null;
+        unit="";
+        dietRec="";
         clickCount=1;
+//Assign variables to View-objects
         Button save = findViewById(R.id.save);
         imageView=findViewById(R.id.uploadImage);
         recipeNameView=findViewById(R.id.recipeName);
@@ -116,8 +118,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         amountView=findViewById(R.id.amount);
         ingredientsView=findViewById(R.id.ingredientlist);
         stepsView=findViewById(R.id.stepList);
-        //   spinner = (Spinner) findViewById(R.id.unit);
-        //   categorySpinner=(Spinner)findViewById(R.id.category);
         ingredientView=findViewById(R.id.ingredient);
         enterStepView=findViewById(R.id.step);
         addStepBtn=findViewById(R.id.addStepbtn);
@@ -125,30 +125,34 @@ public class CreateRecipeActivity extends AppCompatActivity {
         expandDetailsBtn=findViewById(R.id.expandDetailsBtn);
         details=findViewById(R.id.detail);
         image=findViewById(R.id.uploadImageBorder);
+        unitBtn=findViewById(R.id.unit);
+        detailsHeader=findViewById(R.id.detailsHeader);
+//Initialise Database reference to Recipes folder in Firebase external Database
         databaseReference=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");
 
-
-//unfold Details
+//unfold Details (clickcount serves to determin whether Details are currently unfolded or not)
         clickCount=1;
-        detailsHeader=findViewById(R.id.detailsHeader);
         expandDetailsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //if uneven clickcount-> unfold details, remove imageview, change Button image and text
                 if (clickCount%2 !=0){
                     expandDetailsBtn.setImageResource(R.drawable.arrow_up);
                     detailsHeader.setText(R.string.all);
                     details.setVisibility(View.VISIBLE);
                     image.setVisibility(View.GONE);
-
-                } else {expandDetailsBtn.setImageResource(R.drawable.arrow_down);
+                //otherwise bring imageview back and change Button image and text back
+                } else {
+                    expandDetailsBtn.setImageResource(R.drawable.arrow_down);
                     image.setVisibility(View.VISIBLE);
                     detailsHeader.setText(R.string.details);
                 }
+                //Either way increase click count
                 clickCount++;
             }
         });
 //Select Unit Alert Dialog
-        unitBtn=findViewById(R.id.unit);
+
         unitBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -226,10 +230,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                         }else {
                             dietList.remove(Integer.valueOf(i));
                             item=dietArray[i];
-                            if(dietaryRecList.contains(item)){
-                                dietaryRecList.remove(item);
-                            }
-
+                            dietaryRecList.remove(item);
                         }
                         Log.d("liste", dietaryRecList.toString());
                     }
@@ -238,16 +239,37 @@ public class CreateRecipeActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dietSb=new StringBuilder();
-                        for(int j=0;j<dietList.size();j++){
-                            dietSb.append(dietArray[dietList.get(j)]);
-                            if(j!=dietList.size()-1){
+                        for(String diet: dietaryRecList){
+                            Log.d("DIET", diet);
+                            String dietShort = "";
+                            if (diet.equals(vegi)) {
+                                dietShort = "VT";
+                            }
+                            if (diet.equals(vegan)) {
+                                dietShort = "V";
+                            }
+                            if (diet.equals(gf)) {
+                                dietShort = "GF";
+                            }
+                            if (diet.equals(lf)) {
+                                dietShort = "LF";
+                            }
+                            if (diet.equals(paleo)) {
+                                dietShort = "P";
+                            }
+                            if (diet.equals(lof)) {
+                                dietShort = "LoF";
+                            }
+
+                            dietSb.append(dietShort);
+                            i=dietRec.indexOf(diet);
+                            if(i!=dietaryRecList.size()-1){
                                 dietSb.append(" | ");
                             }
-                        }
                         if(dietSb.toString().equals("")){
                             dietaryBtn.setText(R.string.none);
                         }else{
-                        dietaryBtn.setText(dietSb.toString());}
+                        dietaryBtn.setText(dietSb.toString());}}
 
                     }
                 });
@@ -507,39 +529,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
         portionsView.setText(portions);
         String category=selectedRecipe.getCategory();
         catBtn.setText(category);
-        StringBuilder dietaryTxt=new StringBuilder();
-        for(String diet: recipe.getDietaryRec()){
-            Log.d("DIET", diet);
-            String dietShort = "";
-            if (diet.equals(vegi)) {
-                dietShort = "VT";
-            }
-            if (diet.equals(vegan)) {
-                dietShort = "V";
-            }
-            if (diet.equals(gf)) {
-                dietShort = "GF";
-            }
-            if (diet.equals(lf)) {
-                dietShort = "LF";
-            }
-            if (diet.equals(paleo)) {
-                dietShort = "P";
-            }
-            if (diet.equals(lof)) {
-                dietShort = "LF";
-            }
-            if(diet.equals("None")){
-                dietShort="None";
-            }
-            dietaryTxt.append(dietShort);
-            Integer i;
-            i=selectedRecipe.getDietaryRec().indexOf(diet);
-            if(i!=recipe.getDietaryRec().size()-1){
-                dietaryTxt.append(" | ");
-            }
-        }
-        dietaryBtn.setText(dietaryTxt.toString());
+        dietaryRecList=recipe.getDietaryRec();
+        convertToShortcut(dietaryRecList,dietaryBtn);
         editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,selectedRecipe.getIngredientList());
         getListViewSize(ingredientAdapter,ingredientsView);
         ingredientsView.setAdapter(ingredientAdapter);
@@ -628,5 +619,39 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    public void convertToShortcut(ArrayList<String> dietRec, TextView dietaryBtn){
+        StringBuilder dietaryTxt=new StringBuilder();
+        for(String diet: dietRec){
+            Log.d("DIET", diet);
+            String dietShort = "";
+            if (diet.equals(vegi)) {
+                dietShort = "VT";
+            }
+            if (diet.equals(vegan)) {
+                dietShort = "V";
+            }
+            if (diet.equals(gf)) {
+                dietShort = "GF";
+            }
+            if (diet.equals(lf)) {
+                dietShort = "LF";
+            }
+            if (diet.equals(paleo)) {
+                dietShort = "P";
+            }
+            if (diet.equals(lof)) {
+                dietShort = "LoF";
+            }
+            if(diet.equals("None")){
+                dietShort="None";
+            }
+            dietaryTxt.append(dietShort);
+            Integer i;
+            i=dietRec.indexOf(diet);
+            if(i!=dietRec.size()-1){
+                dietaryTxt.append(" | ");
+            }
+        }dietaryBtn.setText(dietaryTxt.toString());
     }
 }
