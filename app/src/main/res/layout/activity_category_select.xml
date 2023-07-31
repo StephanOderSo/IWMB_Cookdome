@@ -22,7 +22,8 @@
             android:layout_height="0dp"
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
-            app:cardCornerRadius="30dp">
+            app:cardCornerRadius="20dp"
+            android:layout_margin="5dp">
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -34,7 +35,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="5dp"/>
+                    />
 
                 <TextView
                     android:id="@+id/mainText"
@@ -63,7 +64,8 @@
             app:cardElevation="0dp"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:cardCornerRadius="30dp">
+            app:cardCornerRadius="20dp"
+            android:layout_margin="5dp">
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -76,7 +78,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="5dp"/>
+                    />
 
                 <TextView
                     android:id="@+id/brekkiText"
@@ -104,10 +106,8 @@
             android:layout_rowWeight="1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/main"
-            app:cardCornerRadius="30dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="5dp">
+            app:cardCornerRadius="20dp"
+            android:layout_margin="5dp">
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -120,7 +120,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="5dp"/>
+                    />
 
                 <TextView
                     android:id="@+id/soupText"
@@ -148,7 +148,8 @@
             android:layout_rowWeight="1"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/brekki"
-            app:cardCornerRadius="30dp"
+            app:cardCornerRadius="20dp"
+            android:layout_margin="5dp"
             >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -161,7 +162,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="5dp"/>
+                    />
 
                 <TextView
                     android:id="@+id/snackText"
@@ -169,7 +170,7 @@
                     android:padding="5dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/dessert"
+                    android:text="@string/snack"
                     android:textColor="@color/white"
                     android:textSize="25sp"
                     android:fontFamily="@font/abel"
@@ -188,7 +189,8 @@
             android:layout_columnWeight="1"
             android:layout_rowWeight="1"
             app:layout_constraintTop_toBottomOf="@id/snack"
-            app:cardCornerRadius="30dp"
+            app:cardCornerRadius="20dp"
+            android:layout_margin="5dp"
             >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -201,7 +203,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="5dp"/>
+                    />
 
                 <TextView
                     android:id="@+id/dessertText"
@@ -229,7 +231,8 @@
             android:layout_rowWeight="1"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/soup"
-            app:cardCornerRadius="30dp"
+            app:cardCornerRadius="20dp"
+            android:layout_margin="5dp"
             >
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -242,7 +245,7 @@
                     android:scaleType="centerCrop"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
-                    android:layout_margin="5dp"/>
+                    />
 
                 <TextView
                     android:id="@+id/saladText"

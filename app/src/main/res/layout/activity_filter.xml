@@ -4,6 +4,396 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="View.FilterActivity">
+    tools:context="View.FilterActivity"
+    android:id="@+id/mainLayout">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/subContainer">
+
+        <TextView
+            android:id="@+id/timeselectheading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="15dp"
+            android:text="@string/preptime"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/valueView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="9dp"
+            android:layout_marginTop="15dp"
+            android:textColor="@color/lavender"
+            android:text="0"
+            app:layout_constraintStart_toEndOf="@+id/timeselectheading"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/minutes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="15dp"
+            android:text="@string/minutes"
+            android:textColor="@color/lavender"
+            app:layout_goneMarginLeft="5dp"
+            app:layout_constraintEnd_toStartOf="@+id/timeselect"
+            app:layout_constraintStart_toEndOf="@+id/valueView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <SeekBar
+            android:id="@+id/timeselect"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="4dp"
+            android:progress="3"
+            android:progressTint="@color/lavender"
+            android:stepSize="5.0"
+            android:thumbTint="@color/lavender"
+            android:valueFrom="0"
+            android:valueTo="300"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/line0"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/light_lav"
+            app:layout_constraintTop_toBottomOf="@+id/timeselect"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="10dp"
+            ></androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/chooseCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/line0"
+            >
+            <ImageButton
+                android:id="@+id/extendBtn1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="15dp"
+                android:padding="12dp"
+                android:background="@drawable/lavender_btn"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/arrow_down"
+                android:contentDescription="@string/unfoldCat"/>
+
+            <TextView
+                android:id="@+id/categories"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="17dp"
+                android:text="@string/categories"
+                app:layout_constraintStart_toEndOf="@+id/extendBtn1"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/chosenCat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/extendBtn1" />
+
+
+            <LinearLayout
+                android:id="@+id/catSelect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="25dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chosenCat"
+                android:visibility="gone"
+                >
+                <CheckBox
+                    android:id="@+id/breakki"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/breakki"
+                    android:buttonTint="@color/lavender"
+                    />
+                <CheckBox
+                    android:id="@+id/mainmeal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mainMeal"
+                    android:buttonTint="@color/lavender"
+                    />
+                <CheckBox
+                    android:id="@+id/snacks"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/snack"
+                    android:buttonTint="@color/lavender"
+                    />
+                <CheckBox
+                    android:id="@+id/dessert"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dessert"
+                    android:buttonTint="@color/lavender"
+                    />
+                <CheckBox
+                    android:id="@+id/salad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/salad"
+                    android:buttonTint="@color/lavender"
+                    />
+                <CheckBox
+                    android:id="@+id/soup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Suppe"
+                    android:buttonTint="@color/lavender"
+                    />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/line1"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/light_lav"
+            app:layout_constraintTop_toBottomOf="@+id/chooseCategory"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="10dp"
+            ></androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/choosedietaryRec"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/line1">
+            <TextView
+                android:id="@+id/dietary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="17dp"
+                android:text="@string/dietary"
+                app:layout_constraintStart_toEndOf="@+id/extendBtn2"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <ImageButton
+                android:id="@+id/extendBtn2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="15dp"
+                android:padding="12dp"
+                android:background="@drawable/lavender_btn"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/arrow_down"
+                android:contentDescription="@string/unfoldDietary"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/chosendietaryRec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/extendBtn2" />
+
+            <LinearLayout
+                android:id="@+id/diatarySelect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginLeft="25dp"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chosendietaryRec"
+                android:visibility="gone">
+
+                <CheckBox
+                    android:id="@+id/gluten"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/lavender"
+                    android:text="@string/glutenfree"
+                    />
+
+                <CheckBox
+                    android:id="@+id/lactose"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/lavender"
+                    android:text="@string/lactosefree"
+                    />
+                <CheckBox
+                    android:id="@+id/vegan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/lavender"
+                    android:text="@string/vegan" />
+                <CheckBox
+                    android:id="@+id/vege"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/lavender"
+                    android:text="@string/vegetar" />
+                <CheckBox
+                    android:id="@+id/paleo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/lavender"
+                    android:text="@string/paleo" />
+                <CheckBox
+                    android:id="@+id/lowfat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/lavender"
+                    android:text="@string/lowfat" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/line2"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/light_lav"
+            app:layout_constraintTop_toBottomOf="@+id/choosedietaryRec"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="10dp"
+            ></androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.cardview.widget.CardView
+        android:id="@+id/headercard"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="40dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/subContainer"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="15dp"
+        android:layout_marginTop="5dp">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/background"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/leftovers"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/leftovers" />
+            <TextView
+                android:id="@+id/catText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                android:contentDescription=""
+                android:textAllCaps="true"
+                android:foregroundTint="@android:color/transparent"
+                android:lineSpacingExtra="8sp"
+                android:text="@string/leftovers"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="40sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/insertIngredientBlock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/headercard"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:paddingTop="15dp"
+        android:paddingStart="5dp">
+
+        <EditText
+            android:layout_marginStart="5dp"
+            android:id="@+id/insertIngredient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingVertical="12dp"
+            android:ems="10"
+            android:hint="@string/ingredient"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/lightlav_border"/>
+
+        <ImageButton
+            android:id="@+id/addIngredientFilter"
+            android:contentDescription="@string/addIngredient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@+id/insertIngredient"
+            app:srcCompat="@drawable/ic_plus"
+            tools:layout_editor_absoluteY="95dp"
+            android:background="@drawable/lavender_btn"
+            app:layout_constraintLeft_toRightOf="@+id/insertIngredient"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginLeft="4dp"
+            android:padding="12dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/leftoversList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/insertIngredient"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Button
+        android:id="@+id/filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fertig"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginBottom="15dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@drawable/lavender_btn"/>
+
+    <Button
+        android:id="@+id/cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Abbruch"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginBottom="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:background="@drawable/lavender_btn"/>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

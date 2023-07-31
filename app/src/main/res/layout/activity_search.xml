@@ -295,7 +295,7 @@
                     android:buttonTint="@color/lavender"
                     android:text="@string/paleo" />
                 <CheckBox
-                    android:id="@+id/fettarm"
+                    android:id="@+id/lowfat"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/lavender"

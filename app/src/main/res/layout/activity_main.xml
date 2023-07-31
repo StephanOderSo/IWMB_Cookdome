@@ -17,57 +17,96 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <GridLayout
+            android:id="@+id/topbar"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/selection"
+            app:layout_constraintTop_toTopOf="parent"
+            android:columnCount="3"
+            android:rowCount="1"
+            >
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:layout_margin="5dp">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                <ImageButton
+                    android:contentDescription="@string/menue"
+                    android:id="@+id/burgermenu"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:background="@android:color/transparent"
+                    android:scaleType="centerInside"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:srcCompat="@drawable/burgermenu"
+                    />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
 
-
+<androidx.cardview.widget.CardView
+    android:layout_width="50dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    >
         <ImageButton
             android:id="@+id/logo"
-            android:layout_width="170dp"
-            android:layout_height="170dp"
-            android:layout_marginStart="15dp"
-            android:layout_marginEnd="15dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:background="@android:color/transparent"
             android:contentDescription="@string/logo"
             android:scaleType="centerInside"
-            app:layout_constraintEnd_toStartOf="@+id/search"
-            app:layout_constraintStart_toEndOf="@+id/burgermenu"
-            app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/logo" />
-
-        <ImageButton
-            android:contentDescription="@string/menue"
-            android:id="@+id/burgermenu"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="16dp"
-            android:background="@android:color/transparent"
-            android:scaleType="centerInside"
-            app:layout_constraintEnd_toStartOf="@+id/logo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/burgermenu"
-            />
-
+</androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:layout_margin="5dp">
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
         <ImageButton
             android:contentDescription="@string/search"
             android:id="@+id/search"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_marginTop="15dp"
             android:background="@android:color/transparent"
             android:scaleType="centerInside"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/logo"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/search" />
+</androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+        </GridLayout>
+        <GridLayout
+            android:id="@+id/selection"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/topbar"
+            android:columnCount="1"
+            android:rowCount="3"
+            android:layout_margin="8dp">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/catcard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
             app:cardCornerRadius="30dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/logo"
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             android:layout_marginBottom="5dp">
@@ -79,7 +118,7 @@
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     android:layout_width="match_parent"
-                    android:layout_height="160dp"
+                    android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/category"
                     android:scaleType="centerCrop"
@@ -109,8 +148,10 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/restcard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
             app:cardCornerRadius="30dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -125,7 +166,7 @@
                 <ImageView
                     android:id="@+id/resteImage"
                     android:layout_width="match_parent"
-                    android:layout_height="160dp"
+                    android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/leftovers"
                     android:scaleType="centerCrop"
@@ -157,8 +198,10 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/randomcard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
             app:cardCornerRadius="30dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -173,7 +216,7 @@
                 <ImageView
                     android:id="@+id/imageButton7"
                     android:layout_width="match_parent"
-                    android:layout_height="160dp"
+                    android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/randomRecipe"
                     android:scaleType="centerCrop"
@@ -203,6 +246,7 @@
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
+        </GridLayout>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"

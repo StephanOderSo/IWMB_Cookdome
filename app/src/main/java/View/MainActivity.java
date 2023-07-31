@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//Create-Recipe Button
+//Create-Recipe Button (Click leads to create recipe activity)
         fab=findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 finish();
             }
         });
-//Search Button
+//Search Button (Click leads to Search activity with comment "search" to indicate source-activity)
         View search = findViewById(R.id.search);
         search.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 finish();
             }
         });
-//Burgermenu Navigation
+//Burgermenu Navigation-Drawer
         drawerLayout=findViewById(R.id.drawerLayout);
         NavigationView navView=findViewById(R.id.navView);
         navView.bringToFront();

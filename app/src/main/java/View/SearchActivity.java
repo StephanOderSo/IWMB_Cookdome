@@ -251,7 +251,7 @@ public class SearchActivity extends AppCompatActivity {
         CheckBox cbVegan = findViewById(R.id.vegan);
         CheckBox cbVege = findViewById(R.id.vege);
         CheckBox cbPaleo = findViewById(R.id.paleo);
-        CheckBox cbFettarm = findViewById(R.id.fettarm);
+        CheckBox cbFettarm = findViewById(R.id.lowfat);
         cbGluten.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
