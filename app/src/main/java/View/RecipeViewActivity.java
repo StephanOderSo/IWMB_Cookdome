@@ -227,11 +227,6 @@ public class RecipeViewActivity extends AppCompatActivity {
         stepList.setLayoutParams(stepparams);
 
     }
-    public static Integer convertDpToPixel(Integer dp){
-        DisplayMetrics metrics = Resources.getSystem().getDisplayMetrics();
-        float px = dp * (metrics.densityDpi / 160f);
-        return Math.round(px);
-    }
     public void getUserFav() {
         auth= FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
@@ -356,5 +351,17 @@ public class RecipeViewActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent previousIntent = getIntent();
+        if(previousIntent.getExtras().equals("key")){
+            Intent toMainIntent=new Intent(RecipeViewActivity.this,MainActivity.class);
+            startActivity(toMainIntent);
+        }else{
+            super.onBackPressed();
+        }
+
     }
 }

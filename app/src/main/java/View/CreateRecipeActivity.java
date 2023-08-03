@@ -157,22 +157,22 @@ public class CreateRecipeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 AlertDialog.Builder builder=new AlertDialog.Builder(CreateRecipeActivity.this);
-                builder.setTitle("Choose Unit");
+                builder.setTitle(R.string.chooseUnit);
                 builder.setCancelable(false);
                 builder.setSingleChoiceItems(unitArray, -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         unit=unitArray[i];
-                        Log.d("CATEGORY", unit);
                     }
                 });
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if(!unit.equals("")){
+                        Log.d("TAG", unit);
+                        if(unit!=null&&!unit.equals("")){
                             unitBtn.setText(unit);}
                         else{
-                            Toast.makeText(CreateRecipeActivity.this, "select Unit", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CreateRecipeActivity.this, R.string.chooseUnit, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -198,10 +198,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if(!category.equals("")){
+                        if(category!=null){
                             catBtn.setText(category);}
                         else{
-                            Toast.makeText(CreateRecipeActivity.this, "select Category", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CreateRecipeActivity.this, R.string.chooseCat, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -239,6 +239,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         dietSb=new StringBuilder();
+                        if(dietaryRecList.isEmpty()){
+                            Toast.makeText(CreateRecipeActivity.this, R.string.chooseDiet, Toast.LENGTH_SHORT).show();
+                        }else{
                         for(String diet: dietaryRecList){
                             Log.d("DIET", diet);
                             String dietShort = "";
@@ -269,9 +272,11 @@ public class CreateRecipeActivity extends AppCompatActivity {
                         if(dietSb.toString().equals("")){
                             dietaryBtn.setText(R.string.none);
                         }else{
-                        dietaryBtn.setText(dietSb.toString());}}
+                        dietaryBtn.setText(dietSb.toString());}
+                        }
+                        }
 
-                    }
+                   }
                 });
                 builder.setNeutralButton("Clear", new DialogInterface.OnClickListener() {
                     @Override
@@ -331,18 +336,18 @@ public class CreateRecipeActivity extends AppCompatActivity {
             stepsView.setAdapter(stepListAdapter);
         }
 
-//Zutat hinzufuegen
+//add Ingredient Button
         addIngredientBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(ingredientView.getText()==null){
-                    Toast.makeText(CreateRecipeActivity.this,"Bitte Categorie waehlen",Toast.LENGTH_SHORT).show();
+                if(ingredientView.getText().toString().equals("")){
+                    Toast.makeText(CreateRecipeActivity.this,R.string.enterIngr,Toast.LENGTH_SHORT).show();
                 }
-                if(unitBtn.getText()==null){
-                    Toast.makeText(CreateRecipeActivity.this,"Bitte Messeinheit auswaehlen",Toast.LENGTH_SHORT).show();
+                if(unit==null||unit.equals("")){
+                    Toast.makeText(CreateRecipeActivity.this,R.string.chooseUnit,Toast.LENGTH_SHORT).show();
                 }
-                if(amountView.getText()==null){
-                    Toast.makeText(CreateRecipeActivity.this,"Bitte Zubereitungszeit hinzufuegen",Toast.LENGTH_SHORT).show();
+                if(amountView.getText().toString().equals("")){
+                    Toast.makeText(CreateRecipeActivity.this,R.string.enterAmount,Toast.LENGTH_SHORT).show();
                 }else{
                     amount=Float.parseFloat(amountView.getText().toString());
                     ingredientName=ingredientView.getText().toString().toLowerCase();
@@ -351,7 +356,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
                     Log.d("INGREDIENTLIST", ingredientList.toString());
                     ingredientAdapter.notifyDataSetChanged();
                     amountView.setText("");
-//            spinner.setSelection(0);
                     ingredientView.setText("");
                     getListViewSize(ingredientAdapter,ingredientsView);
                 }
@@ -364,8 +368,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
         addStepBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(enterStepView.getText()==null){
-                    Toast.makeText(CreateRecipeActivity.this,"Bitte Arbeitsschritt eingeben",Toast.LENGTH_SHORT).show();
+                if(enterStepView.getText()==null||enterStepView.getText().toString().equals("")){
+                    Toast.makeText(CreateRecipeActivity.this,R.string.enterStep,Toast.LENGTH_SHORT).show();
                 }else{
                     String step=enterStepView.getText().toString();
                     stepList.add(step);
@@ -377,29 +381,38 @@ public class CreateRecipeActivity extends AppCompatActivity {
         });
 //Save Recipe
         save.setOnClickListener(view -> {
+            save.setBackground(getDrawable(R.drawable.lightlav_btn));
             if (imageUri==null) {
                 Toast.makeText(CreateRecipeActivity.this, R.string.no_image_selected, Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(recipeNameView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.no_name_selected,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(category==null){
                 Toast.makeText(CreateRecipeActivity.this,R.string.chooseCat,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(timeView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.enterPreptime,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(portionsView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.enterPortions,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(ingredientsView.getCount()==0){
                 Toast.makeText(CreateRecipeActivity.this,R.string.addIngredients,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(stepsView.getCount()==0){
                 Toast.makeText(CreateRecipeActivity.this,R.string.addSteps,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             if(dietaryRecList.isEmpty()){
                 Toast.makeText(CreateRecipeActivity.this,R.string.chooseDiet,Toast.LENGTH_SHORT).show();
+                save.setBackground(getDrawable(R.drawable.lavender_btn));
             }
             else {
                 recipeName=(String) recipeNameView.getText().toString();
@@ -530,7 +543,38 @@ public class CreateRecipeActivity extends AppCompatActivity {
         String category=selectedRecipe.getCategory();
         catBtn.setText(category);
         dietaryRecList=recipe.getDietaryRec();
-        convertToShortcut(dietaryRecList,dietaryBtn);
+        StringBuilder dietaryTxt=new StringBuilder();
+        for(String diet: dietaryRecList){
+            Log.d("DIET", diet);
+            String dietShort = "";
+            if (diet.equals(vegi)) {
+                dietShort = "VT";
+            }
+            if (diet.equals(vegan)) {
+                dietShort = "V";
+            }
+            if (diet.equals(gf)) {
+                dietShort = "GF";
+            }
+            if (diet.equals(lf)) {
+                dietShort = "LF";
+            }
+            if (diet.equals(paleo)) {
+                dietShort = "P";
+            }
+            if (diet.equals(lof)) {
+                dietShort = "LoF";
+            }
+            if(diet.equals("None")){
+                dietShort="None";
+            }
+            dietaryTxt.append(dietShort);
+            Integer i;
+            i=dietRec.indexOf(diet);
+            if(i!=dietaryRecList.size()-1){
+                dietaryTxt.append(" | ");
+            }
+        }dietaryBtn.setText(dietaryTxt.toString());
         editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,selectedRecipe.getIngredientList());
         getListViewSize(ingredientAdapter,ingredientsView);
         ingredientsView.setAdapter(ingredientAdapter);
@@ -619,39 +663,5 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-    public void convertToShortcut(ArrayList<String> dietRec, TextView dietaryBtn){
-        StringBuilder dietaryTxt=new StringBuilder();
-        for(String diet: dietRec){
-            Log.d("DIET", diet);
-            String dietShort = "";
-            if (diet.equals(vegi)) {
-                dietShort = "VT";
-            }
-            if (diet.equals(vegan)) {
-                dietShort = "V";
-            }
-            if (diet.equals(gf)) {
-                dietShort = "GF";
-            }
-            if (diet.equals(lf)) {
-                dietShort = "LF";
-            }
-            if (diet.equals(paleo)) {
-                dietShort = "P";
-            }
-            if (diet.equals(lof)) {
-                dietShort = "LoF";
-            }
-            if(diet.equals("None")){
-                dietShort="None";
-            }
-            dietaryTxt.append(dietShort);
-            Integer i;
-            i=dietRec.indexOf(diet);
-            if(i!=dietRec.size()-1){
-                dietaryTxt.append(" | ");
-            }
-        }dietaryBtn.setText(dietaryTxt.toString());
     }
 }

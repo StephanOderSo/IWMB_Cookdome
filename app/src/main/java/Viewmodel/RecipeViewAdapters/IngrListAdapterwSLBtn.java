@@ -78,18 +78,23 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter {
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-
+                    String key="";
                     Double amount=snapshot.child("amount").getValue(Double.class);
                     String unit=snapshot.child("unit").getValue(String.class);
                     String name=snapshot.child("ingredientName").getValue(String.class);
 
                     if(ingredient.getUnit().equals(unit)){
-                        amount=amount+ingredient.getAmount();
+                        try{
+                        amount+=ingredient.getAmount();}
+                        catch (NullPointerException e){
+                            amount=ingredient.getAmount();
+                        }
+                        key=name;
                     }else{
-                        convertUnit();
+                        key=name+":"+unit;
                     }
                     Ingredient updatedIngredient=new Ingredient(amount,unit,name);
-                    dbRefUsers.child(uID).child("Shoppinglist").child(ingredient.getIngredientName()).setValue(updatedIngredient).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    dbRefUsers.child(uID).child("Shoppinglist").child(key).setValue(updatedIngredient).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if(task.isSuccessful()){
@@ -132,7 +137,4 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter {
 
         });
     }
-    public void convertUnit() {
-    }
-
 }

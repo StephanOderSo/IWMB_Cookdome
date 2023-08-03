@@ -87,5 +87,9 @@
     <string name="deletSuccess">successfully deleted</string>
     <string name="sthWrong">something went wrong</string>
     <string name="dataRetrFailed">data retrieval failed</string>
+    <string name="enterStep">enter a step</string>
+    <string name="enterIngr">enter Ingredientname</string>
+    <string name="chooseUnit">choose Unit</string>
+    <string name="enterAmount">enter ingredient amount</string>
 
 </resources>
