@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,6 +25,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.widget.AppCompatDrawableManager;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.bienhuels.iwmb_cookdome.R;
@@ -83,6 +86,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     StepListAdapter stepListAdapter;
     String vegi,vegan,paleo,gf,lf,lof;
     Recipe selectedRecipe;
+
 
     /****/
     private DatabaseReference databaseReference;
@@ -381,39 +385,38 @@ public class CreateRecipeActivity extends AppCompatActivity {
         });
 //Save Recipe
         save.setOnClickListener(view -> {
-            save.setBackground(getDrawable(R.drawable.lightlav_btn));
+            save.setVisibility(View.INVISIBLE);
             if (imageUri==null) {
                 Toast.makeText(CreateRecipeActivity.this, R.string.no_image_selected, Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(recipeNameView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.no_name_selected,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(category==null){
                 Toast.makeText(CreateRecipeActivity.this,R.string.chooseCat,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(timeView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.enterPreptime,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(portionsView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.enterPortions,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(ingredientsView.getCount()==0){
                 Toast.makeText(CreateRecipeActivity.this,R.string.addIngredients,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(stepsView.getCount()==0){
                 Toast.makeText(CreateRecipeActivity.this,R.string.addSteps,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
+                save.setVisibility(View.VISIBLE);
             }
             if(dietaryRecList.isEmpty()){
                 Toast.makeText(CreateRecipeActivity.this,R.string.chooseDiet,Toast.LENGTH_SHORT).show();
-                save.setBackground(getDrawable(R.drawable.lavender_btn));
-            }
+                save.setVisibility(View.VISIBLE);}
             else {
                 recipeName=(String) recipeNameView.getText().toString();
                 time = Integer.parseInt(timeView.getText().toString());
@@ -571,7 +574,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             dietaryTxt.append(dietShort);
             Integer i;
             i=dietRec.indexOf(diet);
-            if(i!=dietaryRecList.size()-1){
+            if(i!=dietaryRecList.size()-2){
                 dietaryTxt.append(" | ");
             }
         }dietaryBtn.setText(dietaryTxt.toString());

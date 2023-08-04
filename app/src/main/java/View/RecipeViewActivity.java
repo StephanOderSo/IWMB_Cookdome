@@ -356,10 +356,12 @@ public class RecipeViewActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent previousIntent = getIntent();
-        if(previousIntent.getExtras().equals("key")){
+        if(previousIntent.hasExtra("key")){
+            Log.d(TAG, "onBackPressed: main");
             Intent toMainIntent=new Intent(RecipeViewActivity.this,MainActivity.class);
             startActivity(toMainIntent);
         }else{
+            Log.d(TAG, "onBackPressed: back");
             super.onBackPressed();
         }
 

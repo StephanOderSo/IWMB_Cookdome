@@ -270,16 +270,16 @@
 
                 <EditText
                     android:id="@+id/amount"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="15dp"
                     android:background="@drawable/lightlav_btn"
                     android:hint="@string/amount"
-                    android:inputType="numberDecimal"
+                    android:inputType="number|numberDecimal"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="10dp"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
