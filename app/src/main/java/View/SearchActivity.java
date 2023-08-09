@@ -92,7 +92,6 @@ public class SearchActivity extends AppCompatActivity {
             String catFilter = previousIntent.getStringExtra("filter");
             selectedCategoryList.add(catFilter);
             source="categories";
-            Log.d("filter", catFilter);
             fetchList(catFilter, source);
         }
         //User clicked leftovers Button
@@ -100,20 +99,15 @@ public class SearchActivity extends AppCompatActivity {
             source="leftovers";
             String catFilter="";
             fetchList(catFilter,source);
-            Log.d("TAG", "LEFTOVERS");
-
         }
         //User clicked search Icon
         if(previousIntent.hasExtra("search")) {
             setupList();
-            Log.d("TAG", "REGULARSEARCH");
         }
         //User clicked Own-recipes
         if(previousIntent.hasExtra("select")){
-            Log.d("TAG", "Intent origin, navigation menu");
             source=previousIntent.getStringExtra("select");
             if(source.equals("ownRecipes")){
-                Log.d("TAG", "OWNRECIPES");
                 getUserOwn();
             }
         }
@@ -312,10 +306,8 @@ public class SearchActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String lo=insertIngredient.getText().toString();
                 leftoverList.add(lo.toLowerCase());
-                Log.d("TAG",lo);
                 Integer listsize=leftoverList.size();
                 Integer rows=gridManager.getSpanCount();
-                Log.d("TAG",listsize+""+rows);
                 if(listsize>rowsize&&listsize%3==1){
                     rows=rows+1;
                     gridManager.setSpanCount(rows);
@@ -331,7 +323,6 @@ public class SearchActivity extends AppCompatActivity {
         applyFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("dietList", selectedDietaryRecList.toString());
                 ArrayList<Recipe> filteredRecipes = new ArrayList<>();
                 filterSearchList(time, selectedCategoryList, selectedDietaryRecList, leftoverList, filteredRecipes);
                 filter.setVisibility(View.VISIBLE);
@@ -383,7 +374,7 @@ public class SearchActivity extends AppCompatActivity {
             }
         }
         if(filteredList.isEmpty()){
-            Toast.makeText(this,"no matching results",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,R.string.noMatch,Toast.LENGTH_SHORT).show();
         }else{
             recipeAdapter.searchList(filteredList);
         }
@@ -392,7 +383,6 @@ public class SearchActivity extends AppCompatActivity {
     private void fetchList(String catFilter,String source){
         currentList=new ArrayList<>();
         recyclerconfig(currentList);
-        Log.d("FETCH", "fetchList: started ");
         databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -404,8 +394,6 @@ public class SearchActivity extends AppCompatActivity {
                             if(source.equals("categories")){
                                 if (selectedRecipe.getCategory().equals(catFilter)) {
                                     currentList.add(selectedRecipe);
-                                    Log.d("categorylist",currentList.toString() );
-                                    Log.d("TAG", "categoryfilter step2");
                                 }
                             }
                             if(source.equals("leftovers")){
@@ -415,11 +403,10 @@ public class SearchActivity extends AppCompatActivity {
                                 for(Ingredient ingredient:selectedRecipe.getIngredientList()){
                                     String name=ingredient.getIngredientName();
                                     ingredientStringList.add(name);
-                                }Log.d("IngredientList", ingredientStringList.toString());
+                                }
                                 if(ingredientStringList.containsAll(leftoverList)){
                                     Log.d("IngredientFilter", "applied");
                                 } else{
-                                    Log.d("filter", "ingredients didnt match");
                                     continue;}
                                 currentList.add(selectedRecipe);
                             }
@@ -427,21 +414,21 @@ public class SearchActivity extends AppCompatActivity {
                         recipeAdapter.notifyDataSetChanged();
                         if(source.equals("categories")){
                             if(currentList.isEmpty()){
-                                Toast.makeText(SearchActivity.this,"no matching results",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SearchActivity.this,R.string.noMatch,Toast.LENGTH_SHORT).show();
                             }
                         }
                         if(source.equals("resteVerwertung")){
                             if(currentList.isEmpty()){
-                                Toast.makeText(SearchActivity.this,"no matching results",Toast.LENGTH_SHORT).show();
+                                Toast.makeText(SearchActivity.this,R.string.noMatch,Toast.LENGTH_SHORT).show();
                             }
                         }
-                        Toast.makeText(SearchActivity.this,"list Retreived",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SearchActivity.this,R.string.retreived,Toast.LENGTH_SHORT).show();
 
                     }else{
-                        Toast.makeText(SearchActivity.this,"database empty",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SearchActivity.this,R.string.dBEmpty,Toast.LENGTH_SHORT).show();
                     }
                 }else{
-                    Toast.makeText(SearchActivity.this,"data retrieval failed",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SearchActivity.this,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();
                 }
                 Log.d(TAG, currentList.toString());
             }
@@ -458,9 +445,7 @@ public class SearchActivity extends AppCompatActivity {
                 if(task.isSuccessful()) {
                     if (task.getResult().exists()) {
                         DataSnapshot snapshot = task.getResult();
-                        // dBRecipeList= snapshot.getValue(listType);
                         for(DataSnapshot dsS:snapshot.getChildren()){
-                            //for(DataSnapshot DsSS:snapshot.child("key").getChildren()) {
                             createRecipe(dsS);
                             currentList.add(selectedRecipe);
                         }
@@ -513,45 +498,38 @@ public class SearchActivity extends AppCompatActivity {
         for(Recipe recipe:currentList){
             Log.d("Recipe", recipe.getRecipeName().toString());
             if (time != null){
-                Log.d("filter", "time selected");
                 if(recipe.getPrepTime()<=time){
                     Log.d("timeFilter", "applied");
                 }else{
                     Log.d("filter", "time didnt match");
                     continue;}}
             if(!categories.isEmpty()){
-                Log.d("filter", "cat selected");
                 if (categories.contains(recipe.getCategory())) {
                     Log.d("CatFilter", "applied");
                 } else {
                     Log.d("filter", "cat didnt match");
                     continue;}}
             if(!dietary.isEmpty()){
-                Log.d("filter", "diet selected");
                 ArrayList<String> temp=recipe.getDietaryRec();
-                Log.d("RecipesDietary", temp.toString());
-                Log.d("filter", dietary.toString());
                 if (recipe.getDietaryRec().containsAll(dietary)) {
                     Log.d("DietFilter", "applied");
                 } else {
                     Log.d("filter", "diet didnt match");
                     continue;}}
             if(!ingredients.isEmpty()){
-                Log.d("filter", "ingredients selected");
                 ArrayList<String>ingredientStringList=new ArrayList<>();
                 for(Ingredient ingredient:recipe.getIngredientList()){
                     String name=ingredient.getIngredientName();
                     ingredientStringList.add(name);
-                }Log.d("IngredientList", ingredientStringList.toString());
+                }
                 if(ingredientStringList.containsAll(ingredients)){
                     Log.d("IngredientFilter", "applied");
                 } else{
-                    Log.d("filter", "ingredients didnt match");
                     continue;}}
             filteredRecipes.add(recipe);
         }
         if(filteredRecipes.isEmpty()){
-            Toast.makeText(this, "No items matched your search", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.noMatch, Toast.LENGTH_SHORT).show();
         }else{
             recipeAdapter.searchList(filteredRecipes);
         }
@@ -565,7 +543,7 @@ public class SearchActivity extends AppCompatActivity {
         FirebaseUser currentUser = auth.getCurrentUser();
 //Send User to sign in if no current user found
         if (currentUser == null) {
-            Toast.makeText(SearchActivity.this, "You're not logged in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(SearchActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
             Intent loginIntent = new Intent(SearchActivity.this, LoginActivity.class);
             startActivity(loginIntent);
         }
@@ -581,13 +559,10 @@ public class SearchActivity extends AppCompatActivity {
                         // dBRecipeList= snapshot.getValue(listType);
                         for (DataSnapshot dsS : snapshot.getChildren()) {
                             String favkey = dsS.getKey();
-                            Log.d("KEY", favkey);
                             favlist.add(favkey);
                         }
                         if(source!=null){
                             if(source.equals("likedRecipes")){
-                                Log.d("TAG", "LIKEDRECIPES");
-                                Log.d("FAVLIST", favlist.toString());
                                 getOwnFavList(favlist);}
                         }
                     }
@@ -608,7 +583,7 @@ public class SearchActivity extends AppCompatActivity {
         FirebaseUser currentUser = auth.getCurrentUser();
 //Send to login if User not found
         if (currentUser == null) {
-            Toast.makeText(SearchActivity.this, "You're not logged in", Toast.LENGTH_SHORT).show();
+            Toast.makeText(SearchActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
             Intent loginIntent = new Intent(SearchActivity.this, LoginActivity.class);
             startActivity(loginIntent);
 //If user found, use userID to create the List of Keys from Firebase
@@ -622,7 +597,6 @@ public class SearchActivity extends AppCompatActivity {
                         DataSnapshot snapshot = task.getResult();
                         for (DataSnapshot dsS : snapshot.getChildren()) {
                             String ownkey = dsS.getKey();
-                            Log.d("KEY", ownkey);
                             ownlist.add(ownkey);
                         }
                         getOwnFavList(ownlist);
@@ -649,7 +623,6 @@ public class SearchActivity extends AppCompatActivity {
                         DataSnapshot snapshot = task.getResult();
                         createRecipe(snapshot);
                         currentList.add(selectedRecipe);
-                        Log.d("TAG", currentList.toString());
                         recipeAdapter.notifyDataSetChanged();
                     }
 
@@ -661,28 +634,19 @@ public class SearchActivity extends AppCompatActivity {
     //Mapping the firebase Data structure of a Recipe back to a recipe-Object
     public void createRecipe(DataSnapshot dsS){
         String dBKey = dsS.child("key").getValue(String.class);
-        Log.d("Key", dBKey);
         String dBrecipeName = dsS.child("recipeName").getValue(String.class);
-        Log.d("RecipeName", dBrecipeName);
         String dBcat = String.valueOf(dsS.child("category").getValue());
-        Log.d("category", dBcat);
         Integer dBprepTime = Integer.parseInt(String.valueOf(dsS.child("prepTime").getValue()));
-        Log.d("time", dBprepTime.toString());
         Integer dBportions = Integer.parseInt(String.valueOf(dsS.child("portions").getValue()));
-        Log.d("portions", dBportions.toString());
         String dBImage = dsS.child("image").getValue(String.class);
-        Log.d("imageUrl", dBImage);
         ArrayList<String> dBstepList = new ArrayList<>();
-        Log.d("Steplist", dBstepList.toString());
         String index="0";
         for(DataSnapshot stepSS:dsS.child("stepList").getChildren()){
             String stepTry=String.valueOf(dsS.child("stepList").child(index).getValue());
-            Log.d("stepTry", stepTry);
             dBstepList.add(stepTry);
             Integer i=Integer.parseInt(index);
             i++;
-            index=(String)i.toString();
-            Log.d("steps", dBstepList.toString());
+            index=i.toString();
         }
         String index2="0";
         ArrayList<String> dBdietList = new ArrayList<>();
@@ -691,7 +655,6 @@ public class SearchActivity extends AppCompatActivity {
             Integer i=Integer.parseInt(index2);
             i++;
             index2=i.toString();
-            Log.d("diaet", dietTry);
             dBdietList.add(dietTry);
         }
         ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
@@ -700,8 +663,7 @@ public class SearchActivity extends AppCompatActivity {
             String unit=IngSS.child("unit").getValue(String.class);
             String ingredientName=IngSS.child("ingredientName").getValue(String.class);
             Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-            dBIngredientList.add(ingredient);
-            Log.d("ingredient", ingredient.toString());}
+            dBIngredientList.add(ingredient);}
 
         selectedRecipe = new Recipe(dBKey, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
     }

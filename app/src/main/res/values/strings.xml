@@ -96,5 +96,6 @@
     <string name="retreived">Data retreived</string>
     <string name="dBEmpty">database empty</string>
     <string name="dataRetrievalFailed">data retreival failed</string>
+    <string name="noMatch">No items matched your search</string>
 
 </resources>
