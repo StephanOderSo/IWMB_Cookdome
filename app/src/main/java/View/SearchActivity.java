@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.bienhuels.iwmb_cookdome.R;
 import Model.Ingredient;
 import Model.Recipe;
+import Viewmodel.CustomComparator;
 import Viewmodel.SearchAdapters.RecipeAdapter;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
 import Viewmodel.SearchAdapters.RecyclerAdapterDietary;
@@ -41,6 +42,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class SearchActivity extends AppCompatActivity {
     RecyclerView recipeSearchView;
@@ -460,13 +463,15 @@ public class SearchActivity extends AppCompatActivity {
                             //for(DataSnapshot DsSS:snapshot.child("key").getChildren()) {
                             createRecipe(dsS);
                             currentList.add(selectedRecipe);
-                        }recipeAdapter.notifyDataSetChanged();
-                        Toast.makeText(SearchActivity.this,"list Retreived",Toast.LENGTH_SHORT).show();
+                        }
+                        Collections.sort(currentList,new CustomComparator());
+                        recipeAdapter.notifyDataSetChanged();
+                        Toast.makeText(SearchActivity.this,R.string.retreived,Toast.LENGTH_SHORT).show();
                     }else{
-                        Toast.makeText(SearchActivity.this,"database empty",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SearchActivity.this,R.string.dBEmpty,Toast.LENGTH_SHORT).show();
                     }
                 }else{
-                    Toast.makeText(SearchActivity.this,"data retrieval failed",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SearchActivity.this,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -480,12 +485,10 @@ public class SearchActivity extends AppCompatActivity {
         if(checkbox.isChecked()){
             selectedCategoryList.add(selectedFilter);
             recyclerAdapter.notifyItemInserted(selectedCategoryList.indexOf(selectedFilter));
-            Log.d("newListadd", selectedCategoryList.toString());
         }
         else{
             selectedCategoryList.remove(selectedFilter);
             recyclerAdapter.notifyDataSetChanged();
-            Log.d("newListrem", selectedCategoryList.toString());
         }
     }
     //Dietary Checkboxes
@@ -499,17 +502,14 @@ public class SearchActivity extends AppCompatActivity {
         else{
             selectedDietaryRecList.remove(selectedFilter);
             recyclerAdapter.notifyDataSetChanged();
-            Log.d("newListrem", selectedDietaryRecList.toString());
         }
     }
     //Applying selected Filters to filter the displayed Items
     private void filterSearchList(Integer time,ArrayList<String> categories,ArrayList<String> dietary,ArrayList<String> ingredients,ArrayList<Recipe> filteredRecipes) {
         filteredRecipes.clear();
-        Log.d("filteredRecipeList", filteredRecipes.toString());
         if(dietary.contains(getResources().getString(R.string.vegan))&&dietary.contains(getResources().getString(R.string.vegetar))){
             dietary.remove(getResources().getString(R.string.vegetar));
         }
-        Log.d("ingredientList", ingredients.toString());
         for(Recipe recipe:currentList){
             Log.d("Recipe", recipe.getRecipeName().toString());
             if (time != null){

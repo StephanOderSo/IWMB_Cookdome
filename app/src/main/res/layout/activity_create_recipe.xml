@@ -235,6 +235,7 @@
                     android:paddingVertical="10dp"/>
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:contentDescription="@string/addIngredient"
                     android:id="@+id/addIngredientBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -330,7 +331,7 @@
                     android:layout_marginEnd="4dp"
                     android:layout_marginBottom="4dp"
                     android:clickable="true"
-                    android:contentDescription="addstepbtn"
+                    android:contentDescription="@string/addSteps"
                     app:backgroundTint="@color/lavender"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -354,7 +355,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/delete"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -367,11 +368,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 android:layout_margin="10dp"
                 android:visibility="gone"/>
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/lavender_btn"
+                android:backgroundTint="@color/lavender"
                 android:text="@string/save"
                 android:textColor="@color/white"
                 app:layout_constraintTop_toBottomOf="@+id/addstep"

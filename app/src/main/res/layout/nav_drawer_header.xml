@@ -16,7 +16,7 @@
         app:layout_constraintBottom_toBottomOf="parent">
 
         <ImageView
-            android:contentDescription="profileImage"
+            android:contentDescription="@string/image"
             android:scaleType="centerCrop"
             android:minWidth="150dp"
             android:minHeight="150dp"

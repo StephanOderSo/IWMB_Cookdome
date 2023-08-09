@@ -1,9 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.IWMB_Cookdome" parent="Theme.MaterialComponents.DayNight.NoActionBar">
 
-    </style>
-    <style name="Theme.IWMB_Cookdome.NoActionBar">
+    <style name="Theme.IWMB_Cookdome.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>

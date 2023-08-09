@@ -91,5 +91,10 @@
     <string name="enterIngr">enter Ingredientname</string>
     <string name="chooseUnit">choose Unit</string>
     <string name="enterAmount">enter ingredient amount</string>
+    <string name="done">Done</string>
+    <string name="mail">Email</string>
+    <string name="retreived">Data retreived</string>
+    <string name="dBEmpty">database empty</string>
+    <string name="dataRetrievalFailed">data retreival failed</string>
 
 </resources>

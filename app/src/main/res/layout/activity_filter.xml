@@ -31,7 +31,6 @@
             android:layout_marginEnd="9dp"
             android:layout_marginTop="15dp"
             android:textColor="@color/lavender"
-            android:text="0"
             app:layout_constraintStart_toEndOf="@+id/timeselectheading"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -118,7 +117,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginLeft="25dp"
+                android:layout_marginStart="25dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/chosenCat"
                 android:visibility="gone"
@@ -162,7 +161,7 @@
                     android:id="@+id/soup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Suppe"
+                    android:text="@string/soup"
                     android:buttonTint="@color/lavender"
                     />
             </LinearLayout>
@@ -221,7 +220,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginLeft="25dp"
+                android:layout_marginStart="25dp"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/chosendietaryRec"
                 android:visibility="gone">
@@ -333,9 +332,11 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         android:paddingTop="15dp"
-        android:paddingStart="5dp">
+        android:paddingStart="5dp"
+        tools:ignore="RtlSymmetry">
 
         <EditText
+            android:inputType="text"
             android:layout_marginStart="5dp"
             android:id="@+id/insertIngredient"
             android:layout_width="wrap_content"
@@ -359,7 +360,7 @@
             android:background="@drawable/lavender_btn"
             app:layout_constraintLeft_toRightOf="@+id/insertIngredient"
             app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginLeft="4dp"
+            android:layout_marginStart="4dp"
             android:padding="12dp"/>
 
         <androidx.recyclerview.widget.RecyclerView
@@ -372,22 +373,24 @@
             />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/filter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fertig"
+        android:text="@string/done"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginHorizontal="40dp"
         android:layout_marginBottom="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         android:background="@drawable/lavender_btn"/>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/cancel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Abbruch"
+        android:textColor="@color/white"
+        android:text="@string/cancel"
         android:layout_marginHorizontal="40dp"
         android:layout_marginBottom="15dp"
         app:layout_constraintBottom_toBottomOf="parent"

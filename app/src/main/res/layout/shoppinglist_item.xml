@@ -24,7 +24,7 @@
                 android:layout_width="90dp"
                 android:layout_height="match_parent"
                 android:text="@string/amount"
-                android:gravity="left"
+                android:gravity="start"
                 android:textSize="17sp"
                 />
             <TextView
@@ -33,7 +33,7 @@
                 android:layout_width="50dp"
                 android:layout_height="match_parent"
                 android:text="@string/unit"
-                android:gravity="left"
+                android:gravity="start"
                 android:textSize="17sp"
                 />
             <TextView
@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/ingredient"
-                android:gravity="left"
+                android:gravity="start"
                 android:textSize="17sp"
                 />
             <CheckBox

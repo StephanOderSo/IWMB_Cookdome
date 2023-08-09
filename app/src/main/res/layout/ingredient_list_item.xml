@@ -23,7 +23,7 @@
                 android:layout_width="60dp"
                 android:layout_height="match_parent"
                 android:text="@string/amount"
-                android:gravity="left"
+                android:gravity="start"
                 android:textSize="17sp"
                 android:textColor="@color/black"
                 />
@@ -33,7 +33,7 @@
                 android:layout_width="60dp"
                 android:layout_height="match_parent"
                 android:text="@string/unit"
-                android:gravity="left"
+                android:gravity="start"
                 android:textSize="17sp"
                 android:textColor="@color/black"
                 />
@@ -42,7 +42,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/ingredient"
-                android:gravity="left"
+                android:gravity="start"
                 android:textSize="17sp"
                 android:textColor="@color/black"
                 />
@@ -59,8 +59,8 @@
         app:srcCompat="@drawable/remove"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginRight="5dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginStart="10dp"
         android:padding="12dp"
         />
 

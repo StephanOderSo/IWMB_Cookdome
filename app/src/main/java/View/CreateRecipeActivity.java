@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -25,8 +24,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.widget.AppCompatDrawableManager;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.bienhuels.iwmb_cookdome.R;
@@ -76,7 +73,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
     Integer clickCount;
     boolean[] selectedDiet;
     EditStepAdapter stepAdapter;
-
     ArrayList<Integer>dietList=new ArrayList<>();
     ArrayList<String>dietaryRecList=new ArrayList<>();
     StringBuilder dietSb;
@@ -385,7 +381,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
         });
 //Save Recipe
         save.setOnClickListener(view -> {
-            save.setVisibility(View.INVISIBLE);
+
+           save.setVisibility(View.GONE);
+
             if (imageUri==null) {
                 Toast.makeText(CreateRecipeActivity.this, R.string.no_image_selected, Toast.LENGTH_SHORT).show();
                 save.setVisibility(View.VISIBLE);
@@ -515,8 +513,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
-    public void getListViewSize(ArrayAdapter adapter,ListView view){
+//Edit Recipe functions
+    public void getListViewSize(ArrayAdapter adapter, ListView view){
         Integer totalHeight=0;
         for ( int i=0;i<adapter.getCount();i++) {
             View mView=adapter.getView(i,null,view);
@@ -533,7 +531,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         Picasso.get()
                 .load(selectedRecipe.getImage())
                 .placeholder(R.drawable.camera)
-                .resize(400,400)
+                .fit()
                 .centerCrop()
                 .into(imageView);
         String name=selectedRecipe.getRecipeName();
@@ -573,8 +571,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
             dietaryTxt.append(dietShort);
             Integer i;
-            i=dietRec.indexOf(diet);
-            if(i!=dietaryRecList.size()-2){
+            i=dietaryRecList.indexOf(diet);
+            if(i!=dietaryRecList.size()-1){
                 dietaryTxt.append(" | ");
             }
         }dietaryBtn.setText(dietaryTxt.toString());
@@ -667,4 +665,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
         });
     }
+
+    public void updateListview(){
+            getListViewSize(ingredientAdapter,ingredientsView);
+        }
+
 }

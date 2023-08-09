@@ -9,6 +9,7 @@
     >
 
     <ImageView
+        android:contentDescription="@string/image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
@@ -71,7 +72,7 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
-                android:drawableLeft="@drawable/email"
+                android:drawableStart="@drawable/email"
                 android:layout_marginTop="50dp"
                 android:id="@+id/editTextTextEmailAddress"
                 android:layout_width="wrap_content"
@@ -81,7 +82,7 @@
                 android:padding="15dp"
                 android:background="@drawable/lavender_border"
                 android:inputType="textEmailAddress"
-                android:hint="Email-Adress"
+                android:hint="@string/mail"
                 android:textColor="@color/lavender"
                 app:layout_constraintTop_toBottomOf="@id/loginText"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -89,7 +90,7 @@
                 />
 
             <EditText
-                android:drawableLeft="@drawable/lock"
+                android:drawableStart="@drawable/lock"
                 android:textSize="18sp"
                 android:id="@+id/editTextTextPassword"
                 android:layout_width="wrap_content"
@@ -97,7 +98,7 @@
                 android:ems="16"
                 android:layout_marginTop="15dp"
                 android:padding="15dp"
-                android:hint="Password"
+                android:hint="@string/password"
                 android:background="@drawable/lavender_border"
                 android:inputType="textPassword"
                 app:layout_constraintEnd_toEndOf="parent"
