@@ -34,16 +34,13 @@ public class RecyclerAdapterLo extends RecyclerView.Adapter<RecyclerViewHolder>{
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
         String rest=list.get(position);
+        int i=position;
         Log.d("TAG", rest);
         holder.textView2.setText(rest);
         holder.remove.setImageResource(R.drawable.remove);
-        holder.remove.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                list.remove(rest);
-                Log.d("TAG", list.toString());
-                notifyDataSetChanged();
-            }
+        holder.remove.setOnClickListener(view -> {
+            list.remove(rest);
+            notifyItemRemoved(i);
         });
     }
 

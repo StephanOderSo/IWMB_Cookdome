@@ -2,14 +2,6 @@ package View;
 
 import static android.view.View.GONE;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,9 +15,15 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -54,15 +52,14 @@ public class FilterActivity extends AppCompatActivity {
     Button applyFilter;
     LinearLayout diatarySelect;
     LinearLayout catSelect;
-    ConstraintLayout mainLayout;
     RecyclerView chosenCat;
     RecyclerView chosendietaryRec;
     RecyclerAdapterCat catRecyclerAdapter;
     RecyclerAdapterLo loRecyclerAdapter;
     RecyclerAdapterDietary dietaryRecyclerAdapter;
-    public ArrayList<String> selectedCategoryList= new ArrayList<String>();
-    public ArrayList<String> selectedDietaryRecList=new ArrayList<String>();
-    public static ArrayList<String> resteList = new ArrayList<String>();
+    public ArrayList<String> selectedCategoryList= new ArrayList<>();
+    public ArrayList<String> selectedDietaryRecList= new ArrayList<>();
+    public static ArrayList<String> resteList = new ArrayList<>();
     ArrayList<Recipe> dBRecipeList,filteredRecipes;
 
 
@@ -84,8 +81,8 @@ public class FilterActivity extends AppCompatActivity {
 
 
 //Timepicker
-        seekBar=(SeekBar) findViewById(R.id.timeselect);
-        valueView=(TextView) findViewById(R.id.valueView);
+        seekBar= findViewById(R.id.timeselect);
+        valueView= findViewById(R.id.valueView);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
@@ -104,40 +101,34 @@ public class FilterActivity extends AppCompatActivity {
 
         extendBtn1=findViewById(R.id.extendBtn1);
         extendBtn2=findViewById(R.id.extendBtn2);
-        catSelect=(LinearLayout) findViewById(R.id.catSelect);
-        extendBtn1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                extendBtn1.setImageResource(R.drawable.arrow_up);
-                if (clickCount2%2 !=0){
-                    catSelect.setVisibility(View.VISIBLE);
-                } else {extendBtn1.setImageResource(R.drawable.arrow_down);
-                    catSelect.setVisibility(GONE);
+        catSelect= findViewById(R.id.catSelect);
+        extendBtn1.setOnClickListener(view -> {
+            extendBtn1.setImageResource(R.drawable.arrow_up);
+            if (clickCount2%2 !=0){
+                catSelect.setVisibility(View.VISIBLE);
+            } else {extendBtn1.setImageResource(R.drawable.arrow_down);
+                catSelect.setVisibility(GONE);
 
-                }
-                clickCount2++;
             }
+            clickCount2++;
         });
 //ErnaehrungsCheckliste entfalten
-        diatarySelect=(LinearLayout) findViewById(R.id.diatarySelect);
-        extendBtn2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (clickCount%2 !=0){
-                    extendBtn2.setImageResource(R.drawable.arrow_up);
-                    diatarySelect.setVisibility(View.VISIBLE);
+        diatarySelect= findViewById(R.id.diatarySelect);
+        extendBtn2.setOnClickListener(view -> {
+            if (clickCount%2 !=0){
+                extendBtn2.setImageResource(R.drawable.arrow_up);
+                diatarySelect.setVisibility(View.VISIBLE);
 
-                } else {extendBtn2.setImageResource(R.drawable.arrow_down);
-                    diatarySelect.setVisibility(GONE);
+            } else {extendBtn2.setImageResource(R.drawable.arrow_down);
+                diatarySelect.setVisibility(GONE);
 
-                }
-                clickCount++;
             }
+            clickCount++;
         });
 
 //Kategorie Checkboxen
         GridLayoutManager layoutManager=new GridLayoutManager(this,3);
-        layoutManager.setOrientation(layoutManager.VERTICAL);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         chosenCat=findViewById(R.id.chosenCat);
         chosenCat.setLayoutManager(layoutManager);
         catRecyclerAdapter=new RecyclerAdapterCat(getApplicationContext(),selectedCategoryList);
@@ -148,47 +139,17 @@ public class FilterActivity extends AppCompatActivity {
         CheckBox checkBox3=findViewById(R.id.mainmeal);
         CheckBox checkBox4=findViewById(R.id.salad);
         CheckBox checkBox5=findViewById(R.id.dessert);
-        checkBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheck(checkBox,getResources().getString(R.string.breakki),catRecyclerAdapter);
-            }
-        });
-        checkBox1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheck(checkBox1,getResources().getString(R.string.soup),catRecyclerAdapter);
-            }
-        });
-        checkBox2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheck(checkBox2, getResources().getString(R.string.snack),catRecyclerAdapter);
-            }
-        });
-        checkBox3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheck(checkBox3,getResources().getString(R.string.mainMeal),catRecyclerAdapter);
-            }
-        });
-        checkBox4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheck(checkBox4,getResources().getString(R.string.salad),catRecyclerAdapter);
-            }
-        });
-        checkBox5.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheck(checkBox5,getResources().getString(R.string.dessert),catRecyclerAdapter);
-            }
-        });
+        checkBox.setOnClickListener(view -> onCheck(checkBox,getResources().getString(R.string.breakki),catRecyclerAdapter));
+        checkBox1.setOnClickListener(view -> onCheck(checkBox1,getResources().getString(R.string.soup),catRecyclerAdapter));
+        checkBox2.setOnClickListener(view -> onCheck(checkBox2, getResources().getString(R.string.snack),catRecyclerAdapter));
+        checkBox3.setOnClickListener(view -> onCheck(checkBox3,getResources().getString(R.string.mainMeal),catRecyclerAdapter));
+        checkBox4.setOnClickListener(view -> onCheck(checkBox4,getResources().getString(R.string.salad),catRecyclerAdapter));
+        checkBox5.setOnClickListener(view -> onCheck(checkBox5,getResources().getString(R.string.dessert),catRecyclerAdapter));
 
 
 // Ernaehrungsselektion und Checkboxen
         GridLayoutManager layoutManagerDietary=new GridLayoutManager(this,3);
-        layoutManagerDietary.setOrientation(layoutManagerDietary.VERTICAL);
+        layoutManagerDietary.setOrientation(LinearLayoutManager.VERTICAL);
         chosendietaryRec=findViewById(R.id.chosendietaryRec);
         chosendietaryRec.setLayoutManager(layoutManagerDietary);
         dietaryRecyclerAdapter=new RecyclerAdapterDietary(getApplicationContext(),selectedDietaryRecList);
@@ -200,47 +161,12 @@ public class FilterActivity extends AppCompatActivity {
         CheckBox cbVege=findViewById(R.id.vege);
         CheckBox cbPaleo=findViewById(R.id.paleo);
         CheckBox cbFettarm=findViewById(R.id.lowfat);
-        cbGluten.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheckDietary(cbGluten,getResources().getString(R.string.glutenfree),dietaryRecyclerAdapter);
-            }
-        });
-        cbLactose.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheckDietary(cbLactose,getResources().getString(R.string.lactosefree),dietaryRecyclerAdapter);
-
-            }
-        });
-        cbVegan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheckDietary(cbVegan,getResources().getString(R.string.vegan),dietaryRecyclerAdapter);
-
-            }
-        });
-        cbVege.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheckDietary(cbVege,getResources().getString(R.string.vegetar),dietaryRecyclerAdapter);
-
-            }
-        });
-        cbFettarm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheckDietary(cbFettarm,getResources().getString(R.string.lowfat),dietaryRecyclerAdapter);
-
-            }
-        });
-        cbPaleo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onCheckDietary(cbPaleo,getResources().getString(R.string.paleo),dietaryRecyclerAdapter);
-
-            }
-        });
+        cbGluten.setOnClickListener(view -> onCheckDietary(cbGluten,getResources().getString(R.string.glutenfree),dietaryRecyclerAdapter));
+        cbLactose.setOnClickListener(view -> onCheckDietary(cbLactose,getResources().getString(R.string.lactosefree),dietaryRecyclerAdapter));
+        cbVegan.setOnClickListener(view -> onCheckDietary(cbVegan,getResources().getString(R.string.vegan),dietaryRecyclerAdapter));
+        cbVege.setOnClickListener(view -> onCheckDietary(cbVege,getResources().getString(R.string.vegetar),dietaryRecyclerAdapter));
+        cbFettarm.setOnClickListener(view -> onCheckDietary(cbFettarm,getResources().getString(R.string.lowfat),dietaryRecyclerAdapter));
+        cbPaleo.setOnClickListener(view -> onCheckDietary(cbPaleo,getResources().getString(R.string.paleo),dietaryRecyclerAdapter));
 
 //Leftover list
 
@@ -252,51 +178,42 @@ public class FilterActivity extends AppCompatActivity {
         insertIngredient=findViewById(R.id.insertIngredient);
         addIngredientFilter=findViewById(R.id.addIngredientFilter);
         rowsize=3;
-        addIngredientFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String lo=insertIngredient.getText().toString();
-                resteList.add(lo.toLowerCase());
-                Log.d("TAG",lo);
-                Log.d("TAG",resteList.toString());
-                Integer listsize=resteList.size();
-                Integer rows=gridM.getSpanCount();
-                Log.d("TAG",listsize.toString()+""+rows.toString());
-                if(listsize>rowsize&&listsize%3==1){
-                    rows=rows+1;
-                    gridM.setSpanCount(rows);
-                    rowsize=rowsize+3;
-                }
-
-                loRecyclerAdapter.notifyDataSetChanged();
-                insertIngredient.setText("");
-                //insertIngredient.setText("");
+        addIngredientFilter.setOnClickListener(view -> {
+            String lo=insertIngredient.getText().toString();
+            resteList.add(lo.toLowerCase());
+            Log.d("TAG",lo);
+            Log.d("TAG",resteList.toString());
+            int listsize=resteList.size();
+            int rows=gridM.getSpanCount();
+            Log.d("TAG", listsize +""+ rows);
+            if(listsize>rowsize&&listsize%3==1){
+                rows=rows+1;
+                gridM.setSpanCount(rows);
+                rowsize=rowsize+3;
             }
+
+            loRecyclerAdapter.notifyDataSetChanged();
+            insertIngredient.setText("");
+            //insertIngredient.setText("");
         });
 //Fertigbutton
         applyFilter=findViewById(R.id.filter);
-        applyFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(FilterActivity.this,"pressed",Toast.LENGTH_SHORT).show();
-                if(previousIntent.hasExtra("action")){
-                    Intent newIntent=new Intent(FilterActivity.this,SearchActivity.class);
-                    newIntent.putExtra("action",resteList);
-                    startActivity(newIntent);
-                    finish();
-                }else{
-                    getRandomRecipe();}
-            }
+        applyFilter.setOnClickListener(view -> {
+            Toast.makeText(FilterActivity.this,"pressed",Toast.LENGTH_SHORT).show();
+            if(previousIntent.hasExtra("action")){
+                Intent newIntent=new Intent(FilterActivity.this,SearchActivity.class);
+                newIntent.putExtra("action",resteList);
+                startActivity(newIntent);
+                finish();
+            }else{
+                getRandomRecipe();}
         });
 
 //Cancel Button
         Button cancel=findViewById(R.id.cancel);
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent toMainIntent=new Intent(FilterActivity.this,MainActivity.class);
-                startActivity(toMainIntent);
-            }
+        cancel.setOnClickListener(view -> {
+            Intent toMainIntent=new Intent(FilterActivity.this,MainActivity.class);
+            startActivity(toMainIntent);
         });
     }
     private void onCheck(CheckBox checkbox, String selectedFilter, RecyclerAdapterCat recyclerAdapter){
@@ -324,79 +241,76 @@ public class FilterActivity extends AppCompatActivity {
         }
     }
     private void getRandomRecipe() {
-        dBRecipeList=new ArrayList<Recipe>();
+        dBRecipeList= new ArrayList<>();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference databaseReference = database.getReference("/Cookdome/Recipes");
-        databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()) {
-                    if (task.getResult().exists()) {
-                        DataSnapshot snapshot = task.getResult();
-                        // dBRecipeList= snapshot.getValue(listType);
-                        for(DataSnapshot dsS:snapshot.getChildren()){
-                            //for(DataSnapshot DsSS:snapshot.child("key").getChildren()) {
-                            String dBKey = dsS.child("key").getValue(String.class);
-                            Log.d("Key", dBKey);
-                            String dBrecipeName = dsS.child("recipeName").getValue(String.class);
-                            Log.d("RecipeName", dBrecipeName);
-                            String dBcat = String.valueOf(dsS.child("category").getValue());
-                            Log.d("category", dBcat);
-                            Integer dBprepTime = Integer.parseInt(String.valueOf(dsS.child("prepTime").getValue()));
-                            Log.d("time", dBprepTime.toString());
-                            Integer dBportions = Integer.parseInt(String.valueOf(dsS.child("portions").getValue()));
-                            Log.d("portions", dBportions.toString());
-                            String dBImage = dsS.child("image").getValue(String.class);
-                            Log.d("imageUrl", dBImage);
+        databaseReference.get().addOnCompleteListener(task -> {
+            if(task.isSuccessful()) {
+                if (task.getResult().exists()) {
+                    DataSnapshot snapshot = task.getResult();
+                    // dBRecipeList= snapshot.getValue(listType);
+                    for(DataSnapshot dsS:snapshot.getChildren()){
+                        //for(DataSnapshot DsSS:snapshot.child("key").getChildren()) {
+                        String dBKey = dsS.child("key").getValue(String.class);
+                        Log.d("Key", dBKey);
+                        String dBrecipeName = dsS.child("recipeName").getValue(String.class);
+                        Log.d("RecipeName", dBrecipeName);
+                        String dBcat = String.valueOf(dsS.child("category").getValue());
+                        Log.d("category", dBcat);
+                        int dBprepTime = Integer.parseInt(String.valueOf(dsS.child("prepTime").getValue()));
+                        Log.d("time", Integer.toString(dBprepTime));
+                        int dBportions = Integer.parseInt(String.valueOf(dsS.child("portions").getValue()));
+                        Log.d("portions", Integer.toString(dBportions));
+                        String dBImage = dsS.child("image").getValue(String.class);
+                        Log.d("imageUrl", dBImage);
 
-                            ArrayList<String> dBstepList = new ArrayList<>();
-                            Log.d("Steplist", dBstepList.toString());
-                            String index="0";
-                            for(DataSnapshot stepSS:dsS.child("stepList").getChildren()){
-                                String stepTry=String.valueOf(dsS.child("stepList").child(index).getValue());
-                                Log.d("stepTry", stepTry);
-                                dBstepList.add(stepTry);
-                                Integer i=Integer.parseInt(index);
-                                i++;
-                                index=(String)i.toString();
-                                Log.d("steps", dBstepList.toString());
-                            }
-                            String index2="0";
-                            ArrayList<String> dBdietList = new ArrayList<>();
-                            for(DataSnapshot stepSS:dsS.child("dietRec").getChildren()){
-                                String dietTry=String.valueOf(dsS.child("dietRec").child(index2).getValue());
-                                Integer i=Integer.parseInt(index2);
-                                i++;
-                                index2=i.toString();
-                                Log.d("diaet", dietTry);
-                                dBdietList.add(dietTry);
-                            }
-
-
-                            ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
-                            for(DataSnapshot IngSS:dsS.child("ingredientList").getChildren()){
-                                Double amount=IngSS.child("amount").getValue(Double.class);
-                                String unit=IngSS.child("unit").getValue(String.class);
-                                String ingredientName=IngSS.child("ingredientName").getValue(String.class);
-                                Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-                                dBIngredientList.add(ingredient);
-                                Log.d("ingredient", ingredient.toString());}
-
-                            Recipe selectedRecipe = new Recipe(dBKey, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
-                            dBRecipeList.add(selectedRecipe);
-                            // }
-
-
+                        ArrayList<String> dBstepList = new ArrayList<>();
+                        Log.d("Steplist", dBstepList.toString());
+                        String index="0";
+                        for(DataSnapshot stepSS:dsS.child("stepList").getChildren()){
+                            String stepTry=String.valueOf(dsS.child("stepList").child(index).getValue());
+                            Log.d("stepTry", stepTry);
+                            dBstepList.add(stepTry);
+                            int i=Integer.parseInt(index);
+                            i++;
+                            index= Integer.toString(i);
+                            Log.d("steps", dBstepList.toString());
                         }
-                        Toast.makeText(FilterActivity.this,"list Retreived",Toast.LENGTH_SHORT).show();
+                        String index2="0";
+                        ArrayList<String> dBdietList = new ArrayList<>();
+                        for(DataSnapshot stepSS:dsS.child("dietRec").getChildren()){
+                            String dietTry=String.valueOf(dsS.child("dietRec").child(index2).getValue());
+                            int i=Integer.parseInt(index2);
+                            i++;
+                            index2= Integer.toString(i);
+                            Log.d("diaet", dietTry);
+                            dBdietList.add(dietTry);
+                        }
 
-                    }else{
-                        Toast.makeText(FilterActivity.this,"database empty",Toast.LENGTH_SHORT).show();
+
+                        ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
+                        for(DataSnapshot IngSS:dsS.child("ingredientList").getChildren()){
+                            Double amount=IngSS.child("amount").getValue(Double.class);
+                            String unit=IngSS.child("unit").getValue(String.class);
+                            String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+                            Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
+                            dBIngredientList.add(ingredient);
+                            Log.d("ingredient", ingredient.toString());}
+
+                        Recipe selectedRecipe = new Recipe(dBKey, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
+                        dBRecipeList.add(selectedRecipe);
+                        // }
+
+
                     }
-                    filterSearchList(time,selectedCategoryList,selectedDietaryRecList,resteList,filteredRecipes);
+                    Toast.makeText(FilterActivity.this,"list Retreived",Toast.LENGTH_SHORT).show();
+
                 }else{
-                    Toast.makeText(FilterActivity.this,"data retrieval failed",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(FilterActivity.this,"database empty",Toast.LENGTH_SHORT).show();
                 }
+                filterSearchList(time,selectedCategoryList,selectedDietaryRecList,resteList,filteredRecipes);
+            }else{
+                Toast.makeText(FilterActivity.this,"data retrieval failed",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -411,7 +325,7 @@ public class FilterActivity extends AppCompatActivity {
         }
         Log.d("ingredientList", ingredients.toString());
         for(Recipe recipe:dBRecipeList){
-            Log.d("Recipe", recipe.getRecipeName().toString());
+            Log.d("Recipe", recipe.getRecipeName());
             if (time != null){
                 Log.d("filter", "time selected");
                 if(recipe.getPrepTime()<=time){

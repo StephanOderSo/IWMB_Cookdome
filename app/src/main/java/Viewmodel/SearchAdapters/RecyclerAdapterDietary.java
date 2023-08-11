@@ -2,6 +2,7 @@ package Viewmodel.SearchAdapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -29,6 +30,8 @@ public class RecyclerAdapterDietary extends RecyclerView.Adapter<RecyclerViewHol
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
         holder.textView2.setText(list.get(position));
+
+        holder.remove.setVisibility(View.GONE);
     }
 
     @Override

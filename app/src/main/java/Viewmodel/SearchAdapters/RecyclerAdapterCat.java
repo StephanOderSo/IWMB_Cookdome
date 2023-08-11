@@ -2,6 +2,7 @@ package Viewmodel.SearchAdapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,9 @@ public class RecyclerAdapterCat extends RecyclerView.Adapter<RecyclerViewHolder>
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
         holder.textView2.setText(list.get(position));
+        holder.textView2.setPadding(6,5,6,5);
+        holder.remove.setVisibility(View.GONE);
+
     }
 
     @Override
