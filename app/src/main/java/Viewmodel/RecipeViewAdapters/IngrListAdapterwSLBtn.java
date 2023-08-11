@@ -15,11 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import Model.Ingredient;
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -27,6 +23,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+
+import Model.Ingredient;
 
 
 public class IngrListAdapterwSLBtn extends ArrayAdapter {
@@ -47,22 +45,16 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter {
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.ingredient_list_item,parent,false);
         }
-        TextView amountView=(TextView) convertView.findViewById(R.id.amountColumn);
-        TextView unitView=(TextView)convertView.findViewById(R.id.unitColumn);
-        TextView ingredientView=(TextView)convertView.findViewById(R.id.ingredientColumn);
+        TextView amountView= convertView.findViewById(R.id.amountColumn);
+        TextView unitView= convertView.findViewById(R.id.unitColumn);
+        TextView ingredientView= convertView.findViewById(R.id.ingredientColumn);
         String amount=Double.toString(ingredient.getAmount());
         amountView.setText(amount);
         unitView.setText(ingredient.getUnit());
         ingredientView.setText(ingredient.getIngredientName());
-        ImageButton imageButton=(ImageButton)convertView.findViewById(R.id.removeStepBtn);
+        ImageButton imageButton= convertView.findViewById(R.id.removeStepBtn);
         imageButton.setImageResource(R.drawable.add_to_cart);
-        imageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addToSList(ingredient,imageButton);
-
-            }
-        });
+        imageButton.setOnClickListener(view -> addToSList(ingredient,imageButton));
 
 
         return convertView;
@@ -73,68 +65,39 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter {
         auth=FirebaseAuth.getInstance();
         FirebaseUser user=auth.getCurrentUser();
         String uID= user.getUid();
-        dbRefUsers.child(uID).child("Shoppinglist").child(ingredient.getIngredientName()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    String key="";
-                    Double amount=snapshot.child("amount").getValue(Double.class);
-                    String unit=snapshot.child("unit").getValue(String.class);
-                    String name=snapshot.child("ingredientName").getValue(String.class);
-
-                    if(ingredient.getUnit().equals(unit)){
-                        try{
-                        amount+=ingredient.getAmount();}
-                        catch (NullPointerException e){
-                            amount=ingredient.getAmount();
-                        }
-                        key=name;
-                    }else{
-                        key=name+":"+unit;
+        dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).get().addOnCompleteListener(task -> {
+            if (task.getResult().exists()) {
+                DataSnapshot snapshot = task.getResult();
+                Double amount=snapshot.child("amount").getValue(Double.class);
+                String unit=snapshot.child("unit").getValue(String.class);
+                String name=snapshot.child("ingredientName").getValue(String.class);
+                    try{
+                    amount+=ingredient.getAmount();}
+                    catch (NullPointerException e){
+                        amount=ingredient.getAmount();
                     }
-                    Ingredient updatedIngredient=new Ingredient(amount,unit,name);
-                    dbRefUsers.child(uID).child("Shoppinglist").child(key).setValue(updatedIngredient).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful()){
-                                imageButton.setImageResource(R.drawable.tick);
-                                imageButton.setBackground(null);
-                                imageButton.setBackgroundColor(00000000);
-                                Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                Ingredient updatedIngredient=new Ingredient(amount,unit,name);
+                dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(updatedIngredient).addOnCompleteListener(task12 -> {
+                    if(task12.isSuccessful()){
+                        imageButton.setImageResource(R.drawable.tick);
+                        imageButton.setBackground(null);
+                        imageButton.setBackgroundColor(0);
+                        Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
 
-                }else{
-                    Log.d(TAG, "Ingredient not in List yet");
-                    dbRefUsers.child(uID).child("Shoppinglist").child(ingredient.getIngredientName()).setValue(ingredient).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if(task.isSuccessful()){
-                                Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
-                                imageButton.setImageResource(R.drawable.tick);
-                                imageButton.setBackground(null);
-                                imageButton.setBackgroundColor(00000000);
-                            }
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+            }else{
+                Log.d(TAG, "Ingredient not in List yet");
+                dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(ingredient).addOnCompleteListener(task1 -> {
+                    if(task1.isSuccessful()){
+                        Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
+                        imageButton.setImageResource(R.drawable.tick);
+                        imageButton.setBackground(null);
+                        imageButton.setBackgroundColor(0);
+                    }
+                }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
 
-                }
             }
-
-
-
         });
     }
 }
