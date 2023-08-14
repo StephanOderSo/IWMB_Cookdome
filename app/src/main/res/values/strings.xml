@@ -100,5 +100,9 @@
     <string name="noChange">No changes entered</string>
     <string name="noPassMatch">Passwords dont match</string>
     <string name="minLength">Password must be min 8 characters long</string>
+    <string name="setPortions">Select Portions</string>
+    <string name="ok">OK</string>
+    <string name="changesApplied">changes applied</string>
+    <string name="number2small">Number too small</string>
 
 </resources>

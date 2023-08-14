@@ -30,8 +30,6 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
     FirebaseAuth auth;
     public IngrListAdapterwSLBtn(@NonNull Context context, int resource, @NonNull ArrayList<Ingredient> ingredientList) {
         super(context, resource,ingredientList);
-
-
     }
 
     @NonNull
@@ -95,5 +93,8 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
 
             }
         });
+    }
+    public void changePortions(double portions){
+
     }
 }
