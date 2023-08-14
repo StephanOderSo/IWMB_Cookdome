@@ -1,10 +1,5 @@
 package View;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-import androidx.drawerlayout.widget.DrawerLayout;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,11 +10,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bienhuels.iwmb_cookdome.R;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
+import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,6 +23,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
+
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
@@ -43,24 +41,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 //Create-Recipe Button (Click leads to create recipe activity)
         fab=findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                Intent intent = new Intent(MainActivity.this, CreateRecipeActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        fab.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, CreateRecipeActivity.class);
+            startActivity(intent);
+            finish();
         });
 //Search Button (Click leads to Search activity with comment "search" to indicate source-activity)
         View search = findViewById(R.id.search);
-        search.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view){
-                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-                intent.putExtra("search","search");
-                startActivity(intent);
-                finish();
-            }
+        search.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            intent.putExtra("search","search");
+            startActivity(intent);
+            finish();
         });
 //Burgermenu Navigation-Drawer
         drawerLayout=findViewById(R.id.drawerLayout);
@@ -68,83 +60,61 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navView.bringToFront();
         navView.setNavigationItemSelectedListener(this);
         ImageButton burgermenu2=findViewById(R.id.burgermenu);
-        burgermenu2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                drawerLayout.open();
-            }
-        });
+        burgermenu2.setOnClickListener(view -> drawerLayout.open());
 
 
 
         CardView randomcard=findViewById(R.id.randomcard);
-        randomcard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, FilterActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        randomcard.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, FilterActivity.class);
+            startActivity(intent);
+            finish();
         });
         CardView catcard=findViewById(R.id.catcard);
-        catcard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, SelectCategoryActivity.class);
-                startActivity(intent);
-                finish();
-            }
+        catcard.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, SelectCategoryActivity.class);
+            startActivity(intent);
+            finish();
         });
         CardView restcard=findViewById(R.id.restcard);
-        restcard.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, FilterActivity.class);
-                intent.putExtra("action","Resteverwertung");
-                startActivity(intent);
-                finish();
-            }
+        restcard.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, FilterActivity.class);
+            intent.putExtra("action","Resteverwertung");
+            startActivity(intent);
+            finish();
         });
 //Burgermenu header
         ImageView profileImage=navView.getHeaderView(0).findViewById(R.id.profileImage);
         TextView nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
         auth=FirebaseAuth.getInstance();
-        String id=new String();
-        try{id= auth.getCurrentUser().getUid();
+        String id= "";
+        try{id= Objects.requireNonNull(auth.getCurrentUser()).getUid();
         }catch (NullPointerException e){
             Intent toLoginIntent=new Intent(MainActivity.this,LoginActivity.class);
                     startActivity(toLoginIntent);
         }
         FirebaseDatabase database=FirebaseDatabase.getInstance();
         DatabaseReference ref=database.getReference("/Cookdome/Users");
-        ref.child(id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    // dBRecipeList= snapshot.getValue(listType);
-                    String name = snapshot.child("name").getValue(String.class);
-                    String url = snapshot.child("photo").getValue(String.class);
+        ref.child(id).get().addOnCompleteListener(task -> {
+            if (task.getResult().exists()) {
+                DataSnapshot snapshot = task.getResult();
+                // dBRecipeList= snapshot.getValue(listType);
+                String name = snapshot.child("name").getValue(String.class);
+                String url = snapshot.child("photo").getValue(String.class);
 
-                    Picasso.get()
-                            .load(url)
-                            .placeholder(R.drawable.camera)
-                            .resize(150, 150)
-                            .centerCrop()
-                            .into(profileImage);
-                    nameHeader.setText(name);
+                Picasso.get()
+                        .load(url)
+                        .placeholder(R.drawable.camera)
+                        .resize(150, 150)
+                        .centerCrop()
+                        .into(profileImage);
+                nameHeader.setText(name);
 
 
-                } else {
-                    Toast.makeText(MainActivity.this, "No userinformation found", Toast.LENGTH_SHORT).show();
-                }
+            } else {
+                Toast.makeText(MainActivity.this, "No userinformation found", Toast.LENGTH_SHORT).show();
             }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        }).addOnFailureListener(e -> Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
     }
     @Override
     public void onBackPressed(){

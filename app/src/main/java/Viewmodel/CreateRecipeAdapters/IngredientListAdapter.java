@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 import Model.Ingredient;
 
-public class IngredientListAdapter extends ArrayAdapter {
+public class IngredientListAdapter extends ArrayAdapter<Ingredient> {
     ArrayList<Ingredient>list;
     public IngredientListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<Ingredient> ingredientList) {
         super(context, resource, ingredientList);
@@ -26,27 +26,24 @@ public class IngredientListAdapter extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Ingredient ingredient = (Ingredient) getItem(position);
+        Ingredient ingredient = getItem(position);
 
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.ingredient_list_item,parent,false);
         }
-        TextView amountView=(TextView) convertView.findViewById(R.id.amountColumn);
-        TextView unitView=(TextView)convertView.findViewById(R.id.unitColumn);
-        TextView ingredientView=(TextView)convertView.findViewById(R.id.ingredientColumn);
-        ImageButton removeStepBtn=(ImageButton)convertView.findViewById(R.id.removeStepBtn);
+        TextView amountView= convertView.findViewById(R.id.amountColumn);
+        TextView unitView= convertView.findViewById(R.id.unitColumn);
+        TextView ingredientView= convertView.findViewById(R.id.ingredientColumn);
+        ImageButton removeStepBtn= convertView.findViewById(R.id.removeStepBtn);
         removeStepBtn.setImageResource(R.drawable.remove);
         String amount=Double.toString(ingredient.getAmount());
         amountView.setText(amount);
         unitView.setText(ingredient.getUnit());
         ingredientView.setText(ingredient.getIngredientName());
-        removeStepBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Ingredient toBeRemoved=(Ingredient) getItem(position);
-                remove(toBeRemoved);
-                notifyDataSetChanged();
-            }
+        removeStepBtn.setOnClickListener(view -> {
+            Ingredient toBeRemoved= getItem(position);
+            remove(toBeRemoved);
+            notifyDataSetChanged();
         });
 
         return convertView;

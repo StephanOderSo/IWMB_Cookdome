@@ -1,7 +1,6 @@
 package View;
 
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,9 +18,7 @@ public class RecyclerViewHolder extends RecyclerView.ViewHolder {
     public TextView recipe_name;
     public ImageView recipe_image,diet_show,time_show,favourite;
     public CardView recipeItem;
-    public TextView unitView,counter;
-    public ImageButton removeBtn,updateBtn,updateStepbtn,removeStepbtn;
-    public EditText amountView,step,ingredientView;
+
 
 
 

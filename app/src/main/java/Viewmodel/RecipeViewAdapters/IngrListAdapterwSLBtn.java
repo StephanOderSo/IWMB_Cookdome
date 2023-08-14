@@ -1,9 +1,6 @@
 package Viewmodel.RecipeViewAdapters;
 
-import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
-
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,11 +24,11 @@ import java.util.ArrayList;
 import Model.Ingredient;
 
 
-public class IngrListAdapterwSLBtn extends ArrayAdapter {
+public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
     FirebaseDatabase database=FirebaseDatabase.getInstance();
     DatabaseReference dbRefUsers;
     FirebaseAuth auth;
-    public IngrListAdapterwSLBtn(@NonNull Context context, int resource, @NonNull ArrayList ingredientList) {
+    public IngrListAdapterwSLBtn(@NonNull Context context, int resource, @NonNull ArrayList<Ingredient> ingredientList) {
         super(context, resource,ingredientList);
 
 
@@ -40,7 +37,7 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Ingredient ingredient = (Ingredient) getItem(position);
+        Ingredient ingredient = getItem(position);
 
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.ingredient_list_item,parent,false);
@@ -87,7 +84,6 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter {
                 }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
 
             }else{
-                Log.d(TAG, "Ingredient not in List yet");
                 dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(ingredient).addOnCompleteListener(task1 -> {
                     if(task1.isSuccessful()){
                         Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();

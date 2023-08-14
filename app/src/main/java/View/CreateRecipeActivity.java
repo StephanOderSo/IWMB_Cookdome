@@ -22,7 +22,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -41,6 +40,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 
 import Model.Ingredient;
 import Model.Recipe;
@@ -151,7 +151,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
             builder.setCancelable(false);
             builder.setSingleChoiceItems(unitArray, -1, (dialogInterface, i) -> unit=unitArray[i]);
             builder.setPositiveButton("OK", (dialogInterface, i) -> {
-                Log.d("TAG", unit);
                 if(unit!=null&&!unit.equals("")){
                     unitBtn.setText(unit);}
                 else{
@@ -167,10 +166,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             AlertDialog.Builder builder=new AlertDialog.Builder(CreateRecipeActivity.this);
             builder.setTitle("Choose category");
             builder.setCancelable(false);
-            builder.setSingleChoiceItems(catArray, -1, (dialogInterface, i) -> {
-                category=catArray[i];
-                Log.d("CATEGORY", category);
-            });
+            builder.setSingleChoiceItems(catArray, -1, (dialogInterface, i) -> category=catArray[i]);
             builder.setPositiveButton("OK", (dialogInterface, i) -> {
                 if(category!=null){
                     catBtn.setText(category);}
@@ -200,7 +196,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
                     item=dietArray[i];
                     dietaryRecList.remove(item);
                 }
-                Log.d("liste", dietaryRecList.toString());
             });
             builder.setPositiveButton("OK", (dialogInterface, i) -> {
                 dietSb=new StringBuilder();
@@ -208,7 +203,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
                     Toast.makeText(CreateRecipeActivity.this, R.string.chooseDiet, Toast.LENGTH_SHORT).show();
                 }else{
                 for(String diet: dietaryRecList){
-                    Log.d("DIET", diet);
                     String dietShort = "";
                     if (diet.equals(vegi)) {
                         dietShort = "VT";
@@ -259,6 +253,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 result -> {
                     if(result.getResultCode()== Activity.RESULT_OK){
                         Intent data=result.getData();
+                        assert data != null;
                         if(data.getData()!=null){
                             imageUri=data.getData();
                             imageView.setImageURI(imageUri);
@@ -311,7 +306,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 ingredientName=ingredientView.getText().toString().toLowerCase();
                 Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
                 ingredientList.add(ingredient);
-                Log.d("INGREDIENTLIST", ingredientList.toString());
                 ingredientAdapter.notifyDataSetChanged();
                 amountView.setText("");
                 ingredientView.setText("");
@@ -331,7 +325,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 stepListAdapter.notifyDataSetChanged();
                 enterStepView.setText("");
                 getListViewSize(stepListAdapter,stepsView);
-                Log.d("new list",stepList.toString() );}
+                }
         });
 //Save Recipe
         save.setOnClickListener(view -> {
@@ -390,7 +384,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         FirebaseAuth auth=FirebaseAuth.getInstance();
         String uid="";
         try{
-            uid=auth.getCurrentUser().getUid();
+            uid= Objects.requireNonNull(auth.getCurrentUser()).getUid();
         }catch(NullPointerException e){
             Intent toLoginIntent=new Intent(this,LoginActivity.class);
             startActivity(toLoginIntent);
@@ -423,7 +417,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
         StorageReference storageRef=FirebaseStorage.getInstance().getReference().child("Images").child(imageUri.getLastPathSegment());
         storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
             Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-            while(!uriTask.isComplete());
+            while(!uriTask.isComplete()) {
+                Log.d(TAG,  "waiting");
+            }
             Uri imageUriNew=uriTask.getResult();
             createNewRecipe(imageUriNew);
         }).addOnProgressListener(snapshot -> progressbar.getProgress()).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(),Toast.LENGTH_SHORT));
@@ -463,7 +459,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 .centerCrop()
                 .into(imageView);
         String name=selectedRecipe.getRecipeName();
-        Log.d("TAG", name);
         recipeNameView.setText(name);
         String time=String.valueOf(selectedRecipe.getPrepTime());
         timeView.setText(time);
@@ -474,7 +469,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         dietaryRecList=recipe.getDietaryRec();
         StringBuilder dietaryTxt=new StringBuilder();
         for(String diet: dietaryRecList){
-            Log.d("DIET", diet);
             String dietShort = "";
             if (diet.equals(vegi)) {
                 dietShort = "VT";
@@ -507,8 +501,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,selectedRecipe.getIngredientList());
         getListViewSize(ingredientAdapter,ingredientsView);
         ingredientsView.setAdapter(ingredientAdapter);
-        int ingrcount=ingredientAdapter.getCount();
-        Log.d("ingredientcount", Integer.toString(ingrcount));
         stepAdapter = new EditStepAdapter(getApplicationContext(), 0, selectedRecipe.getStepList());
         getListViewSize(stepAdapter,stepsView);
         stepsView.setAdapter(stepAdapter);
@@ -519,29 +511,21 @@ public class CreateRecipeActivity extends AppCompatActivity {
         reciperef.child(key).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 if (task.getResult().exists()) {
-                    Log.d(TAG, "NEW VALUES");
                     DataSnapshot snapshot = task.getResult();
                     String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
-                    Log.d("RecipeName", dBrecipeName);
                     String dBcat = String.valueOf(snapshot.child("category").getValue());
-                    Log.d("category", dBcat);
                     int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
-                    Log.d("time", Integer.toString(dBprepTime));
                     int dBportions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
-                    Log.d("portions", Integer.toString(dBportions));
                     String dBImage = snapshot.child("image").getValue(String.class);
-                    Log.d("imageUrl", dBImage);
 
                     ArrayList<String> dBstepList = new ArrayList<>();
                     String index="0";
                     for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
                         String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
-                        Log.d("stepTry", stepTry);
                         dBstepList.add(stepTry);
                         int i=Integer.parseInt(index);
                         i++;
                         index= Integer.toString(i);
-                        Log.d("steps", dBstepList.toString());
                     }
                     String index2="0";
                     ArrayList<String> dBdietList = new ArrayList<>();
@@ -550,21 +534,20 @@ public class CreateRecipeActivity extends AppCompatActivity {
                         int i=Integer.parseInt(index2);
                         i++;
                         index2= Integer.toString(i);
-                        Log.d("diaet", dietTry);
                         dBdietList.add(dietTry);
                     }
                     ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
                     for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
                         Double amount;
                         try{
-                        amount=IngSS.child("amount").getValue(Double.class);}catch(NullPointerException e){amount=0.0;};
+                        amount=IngSS.child("amount").getValue(Double.class);
+                        }catch(NullPointerException e){amount=0.0;}
                         String unit=IngSS.child("unit").getValue(String.class);
                         String ingredientName=IngSS.child("ingredientName").getValue(String.class);
                         Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
                         dBIngredientList.add(ingredient);
-                        Log.d("ingredient", ingredient.toString());}
+                        }
                     selectedRecipe = new Recipe(key, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
-                    Log.d("2step", "worked");
                     setRecipeData(selectedRecipe);
 
                 } else {

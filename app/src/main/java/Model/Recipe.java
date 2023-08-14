@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Recipe {
     String key;
-   /** private UUID id;**/
+
     private String image;
     private String recipeName;
     private int prepTime;
@@ -18,7 +18,6 @@ public class Recipe {
 
 
     public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietRec) {
-       /** this.id=nextUID();**/
        this.key=key;
         this.image=image;
         this.recipeName = recipeName;

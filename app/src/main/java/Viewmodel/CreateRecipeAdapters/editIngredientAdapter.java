@@ -15,9 +15,9 @@ import java.util.List;
 import Model.Ingredient;
 import View.CreateRecipeActivity;
 
-public class editIngredientAdapter extends ArrayAdapter {
+public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
     Context contextm;
-    public editIngredientAdapter(@NonNull Context context, int resource, @NonNull List ingredientList) {
+    public editIngredientAdapter(@NonNull Context context, int resource, @NonNull List<Ingredient> ingredientList) {
         super(context, resource, ingredientList);
         contextm=context;
 
@@ -25,7 +25,7 @@ public class editIngredientAdapter extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        Ingredient ingredient = (Ingredient) getItem(position);
+        Ingredient ingredient = getItem(position);
 
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.edit_ingredient,parent,false);
@@ -43,43 +43,34 @@ public class editIngredientAdapter extends ArrayAdapter {
         amountView.setText(amount);
         unitView.setText(ingredient.getUnit());
         ingredientView.setText(ingredient.getIngredientName());
-        editBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                editBtn.setVisibility(View.GONE);
-                removeBtn.setVisibility(View.VISIBLE);
-                updateBtn.setVisibility(View.VISIBLE);
-                if(contextm instanceof CreateRecipeActivity){
-                ((CreateRecipeActivity)contextm).updateListview();}
-            }
+        editBtn.setOnClickListener(view -> {
+            editBtn.setVisibility(View.GONE);
+            removeBtn.setVisibility(View.VISIBLE);
+            updateBtn.setVisibility(View.VISIBLE);
+            if(contextm instanceof CreateRecipeActivity){
+            ((CreateRecipeActivity)contextm).updateListview();}
         });
-        removeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Ingredient toBeRemoved=(Ingredient) getItem(position);
-                remove(toBeRemoved);
-                notifyDataSetChanged();
-            }
+        removeBtn.setOnClickListener(view -> {
+            Ingredient toBeRemoved= getItem(position);
+            remove(toBeRemoved);
+            notifyDataSetChanged();
         });
-        Double i=ingredient.getAmount();
+        double i=ingredient.getAmount();
         String a=Double.toString(i);
         amountView.setText(a);
         unitView.setText(ingredient.getUnit());
         ingredientView.setText(ingredient.getIngredientName());
-        updateBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Ingredient toBeUpdated=(Ingredient) getItem(position);
-                remove(toBeUpdated);
-                String unit=unitView.getText().toString();
-                Double amount=Double.parseDouble(amountView.getText().toString());
-                String ingredientname=ingredientView.getText().toString();
-                Ingredient ingredientnew=new Ingredient(amount,unit,ingredientname);
-                insert(ingredientnew,position);
-                removeBtn.setVisibility(View.GONE);
-                updateBtn.setVisibility(View.GONE);
-                editBtn.setVisibility(View.VISIBLE);}
-        });
+        updateBtn.setOnClickListener(view -> {
+            Ingredient toBeUpdated= getItem(position);
+            remove(toBeUpdated);
+            String unit=unitView.getText().toString();
+            double amount1 =Double.parseDouble(amountView.getText().toString());
+            String ingredientname=ingredientView.getText().toString();
+            Ingredient ingredientnew=new Ingredient(amount1,unit,ingredientname);
+            insert(ingredientnew,position);
+            removeBtn.setVisibility(View.GONE);
+            updateBtn.setVisibility(View.GONE);
+            editBtn.setVisibility(View.VISIBLE);});
         return convertView;
     }
 }

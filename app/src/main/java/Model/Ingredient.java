@@ -32,7 +32,5 @@ public class Ingredient {
         return ingredientName;
     }
 
-    public void setIngredientName(String ingredientName) {
-        this.ingredientName = ingredientName;
-    }
+
 }

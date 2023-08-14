@@ -3,24 +3,24 @@ package Viewmodel.SearchAdapters;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
-import View.RecyclerViewHolder;
 
 import java.util.ArrayList;
 
+import View.RecyclerViewHolder;
+
 public class RecyclerAdapterLo extends RecyclerView.Adapter<RecyclerViewHolder>{
-    private Context context;
+    private final Context context;
     private static ArrayList<String> list;
 
     public RecyclerAdapterLo(Context context, ArrayList<String> list) {
         this.context=context;
-        this.list=list;
+        RecyclerAdapterLo.list =list;
     }
 
     @NonNull
@@ -34,13 +34,11 @@ public class RecyclerAdapterLo extends RecyclerView.Adapter<RecyclerViewHolder>{
     @Override
     public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
         String rest=list.get(position);
-        int i=position;
-        Log.d("TAG", rest);
         holder.textView2.setText(rest);
         holder.remove.setImageResource(R.drawable.remove);
         holder.remove.setOnClickListener(view -> {
             list.remove(rest);
-            notifyItemRemoved(i);
+            notifyItemRemoved(position);
         });
     }
 

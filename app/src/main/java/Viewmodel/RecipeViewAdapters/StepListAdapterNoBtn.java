@@ -15,25 +15,25 @@ import com.bienhuels.iwmb_cookdome.R;
 
 import java.util.ArrayList;
 
-public class StepListAdapterNoBtn extends ArrayAdapter {
-    public StepListAdapterNoBtn(@NonNull Context context, int resource, @NonNull ArrayList stepList) {
+public class StepListAdapterNoBtn extends ArrayAdapter<String> {
+    public StepListAdapterNoBtn(@NonNull Context context, int resource, @NonNull ArrayList<String> stepList) {
         super(context, resource, stepList);
     }
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        String stepItem = (String) getItem(position);
+        String stepItem = getItem(position);
 
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.step_list_item,parent,false);
         }
-        TextView counterView=(TextView) convertView.findViewById(R.id.counter);
-        TextView stepView=(TextView)convertView.findViewById(R.id.step);
-        ImageButton imageButton=(ImageButton)convertView.findViewById(R.id.removeStepBtn);
+        TextView counterView= convertView.findViewById(R.id.counter);
+        TextView stepView= convertView.findViewById(R.id.step);
+        ImageButton imageButton= convertView.findViewById(R.id.removeStepBtn);
         imageButton.setVisibility(View.GONE);
         stepView.setText(stepItem);
-        Integer counter=getPosition(stepItem)+1;
-        String counterText=counter.toString();
+        int counter=getPosition(stepItem)+1;
+        String counterText= Integer.toString(counter);
         counterView.setText(counterText);
 
         return convertView;

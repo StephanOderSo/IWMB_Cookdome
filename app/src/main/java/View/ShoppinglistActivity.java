@@ -1,9 +1,5 @@
 package View;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,10 +8,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,7 +36,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
         FirebaseAuth auth;
         auth= FirebaseAuth.getInstance();
         FirebaseUser user=auth.getCurrentUser();
-        String uID=new String();
+        String uID="";
         try{
             uID=user.getUid();
         }catch(NullPointerException e){
@@ -56,37 +51,28 @@ public class ShoppinglistActivity extends AppCompatActivity {
         ListView shoppinglistView=findViewById(R.id.shoppinglistView);
         shoppinglistView.setBackground(null);
         shoppinglistView.setAdapter(adapter);
-        dbRefUsers.child(uID).child("Shoppinglist").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
-                    DataSnapshot snapshot=task.getResult();
-                    for(DataSnapshot IngSS:snapshot.getChildren()){
-                        Double amount=IngSS.child("amount").getValue(Double.class);
-                        String unit=IngSS.child("unit").getValue(String.class);
-                        String ingredientName=IngSS.child("ingredientName").getValue(String.class);
-                        Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-                        shoppingList.add(ingredient);
-                        Log.d("ingredient", ingredient.toString());}
-                    adapter.notifyDataSetChanged();
-                    if(shoppingList.isEmpty()){
-                        TextView slEmpty=findViewById(R.id.shoppinngListEmpty);
-                        CardView slCard=findViewById(R.id.shoppingListCard);
-                        shoppinglistView.setVisibility(View.GONE);
-                        slEmpty.setVisibility(View.VISIBLE);
+        dbRefUsers.child(uID).child("Shoppinglist").get().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                DataSnapshot snapshot=task.getResult();
+                for(DataSnapshot IngSS:snapshot.getChildren()){
+                    Double amount=IngSS.child("amount").getValue(Double.class);
+                    String unit=IngSS.child("unit").getValue(String.class);
+                    String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+                    Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
+                    shoppingList.add(ingredient);
+                    Log.d("ingredient", ingredient.toString());}
+                adapter.notifyDataSetChanged();
+                if(shoppingList.isEmpty()){
+                    TextView slEmpty=findViewById(R.id.shoppinngListEmpty);
+                    shoppinglistView.setVisibility(View.GONE);
+                    slEmpty.setVisibility(View.VISIBLE);
 
-
-                    }
 
                 }
 
             }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(ShoppinglistActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
+
+        }).addOnFailureListener(e -> Toast.makeText(ShoppinglistActivity.this, e.getMessage(), Toast.LENGTH_LONG).show());
 
     }
 }

@@ -15,34 +15,31 @@ import com.bienhuels.iwmb_cookdome.R;
 
 import java.util.ArrayList;
 
-public class StepListAdapter extends ArrayAdapter {
-    public StepListAdapter(@NonNull Context context, int resource, @NonNull ArrayList stepList) {
+public class StepListAdapter extends ArrayAdapter<String> {
+    public StepListAdapter(@NonNull Context context, int resource, @NonNull ArrayList<String> stepList) {
         super(context, resource, stepList);
     }
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
 
-        String stepItem = (String) getItem(position);
+        String stepItem = getItem(position);
 
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.step_list_item,parent,false);
         }
-        TextView counterView=(TextView) convertView.findViewById(R.id.counter);
-        TextView stepView=(TextView)convertView.findViewById(R.id.step);
-        ImageButton removeStepBtn=(ImageButton)convertView.findViewById(R.id.removeStepBtn);
+        TextView counterView= convertView.findViewById(R.id.counter);
+        TextView stepView=convertView.findViewById(R.id.step);
+        ImageButton removeStepBtn=convertView.findViewById(R.id.removeStepBtn);
         removeStepBtn.setImageResource(R.drawable.remove);
         stepView.setText(stepItem);
-        Integer counter=getPosition(stepItem)+1;
-        String counterText=counter.toString();
+        int counter=getPosition(stepItem)+1;
+        String counterText= Integer.toString(counter);
         counterView.setText(counterText);
-        removeStepBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String toBeRemoved=(String) getItem(position);
-                remove(toBeRemoved);
-                notifyDataSetChanged();
-            }
+        removeStepBtn.setOnClickListener(view -> {
+            String toBeRemoved=getItem(position);
+            remove(toBeRemoved);
+            notifyDataSetChanged();
         });
 
         return convertView;
