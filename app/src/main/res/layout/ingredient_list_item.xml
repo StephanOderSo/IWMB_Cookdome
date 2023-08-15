@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    >
+
+    <TableLayout
+        android:id="@+id/table"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/amountColumn"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:text="@string/amount"
+                android:gravity="start"
+                android:textSize="17sp"
+                android:textColor="@color/black"
+                />
+            <TextView
+
+                android:id="@+id/unitColumn"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:text="@string/unit"
+                android:gravity="start"
+                android:textSize="17sp"
+                android:textColor="@color/black"
+                />
+            <TextView
+                android:id="@+id/ingredientColumn"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="@string/ingredient"
+                android:gravity="start"
+                android:textSize="17sp"
+                android:textColor="@color/black"
+                />
+
+        </TableRow>
+    </TableLayout>
+    <ImageButton
+        android:contentDescription="@string/remove"
+        android:id="@+id/removeStepBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/lavender_btn"
+        android:layout_gravity="center"
+        app:srcCompat="@drawable/remove"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginEnd="5dp"
+        android:layout_marginStart="10dp"
+        android:padding="12dp"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
