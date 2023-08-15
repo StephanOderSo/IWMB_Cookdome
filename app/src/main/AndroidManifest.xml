@@ -16,31 +16,31 @@
         tools:targetApi="31">
 
         <activity
-            android:name="View.ShoppinglistActivity"
+            android:name=".View.ShoppinglistActivity"
             android:exported="false" />
         <activity
-            android:name="View.SelectCategoryActivity"
+            android:name=".View.SelectCategoryActivity"
             android:exported="false" />
         <activity
-            android:name="View.EditProfileActivity"
+            android:name=".View.EditProfileActivity"
             android:exported="false" />
         <activity
-            android:name="View.FilterActivity"
+            android:name=".View.FilterActivity"
             android:exported="false" />
         <activity
-            android:name="View.RegisterActivity"
+            android:name=".View.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name="View.CreateRecipeActivity"
+            android:name=".View.CreateRecipeActivity"
             android:exported="false" />
         <activity
-            android:name="View.RecipeViewActivity"
+            android:name=".View.RecipeViewActivity"
             android:exported="false" />
         <activity
-            android:name="View.SearchActivity"
+            android:name=".View.SearchActivity"
             android:exported="false" />
         <activity
-            android:name="View.LoginActivity"
+            android:name="com.bienhuels.iwmb_cookdome.View.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,7 +49,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="View.MainActivity"
+            android:name=".View.MainActivity"
             android:exported="false" />
 
         <meta-data

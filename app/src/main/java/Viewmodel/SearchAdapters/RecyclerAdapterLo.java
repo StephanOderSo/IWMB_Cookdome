@@ -1,7 +1,6 @@
 package Viewmodel.SearchAdapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -12,7 +11,7 @@ import com.bienhuels.iwmb_cookdome.R;
 
 import java.util.ArrayList;
 
-import View.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.View.RecyclerViewHolder;
 
 public class RecyclerAdapterLo extends RecyclerView.Adapter<RecyclerViewHolder>{
     private final Context context;

@@ -1,4 +1,4 @@
-package View;
+package com.bienhuels.iwmb_cookdome.View;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String id= "";
         try{id= Objects.requireNonNull(auth.getCurrentUser()).getUid();
         }catch (NullPointerException e){
-            Intent toLoginIntent=new Intent(MainActivity.this,LoginActivity.class);
+            Intent toLoginIntent=new Intent(MainActivity.this, LoginActivity.class);
                     startActivity(toLoginIntent);
         }
         FirebaseDatabase database=FirebaseDatabase.getInstance();

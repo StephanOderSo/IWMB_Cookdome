@@ -9,7 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
-import View.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.View.RecyclerViewHolder;
 
 import java.util.ArrayList;
 

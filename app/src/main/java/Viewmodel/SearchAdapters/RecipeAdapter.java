@@ -24,8 +24,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import Model.Recipe;
-import View.RecipeViewActivity;
-import View.RecyclerViewHolder;
+import com.bienhuels.iwmb_cookdome.View.RecipeViewActivity;
+import com.bienhuels.iwmb_cookdome.View.RecyclerViewHolder;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     private final Context context;

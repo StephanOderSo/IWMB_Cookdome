@@ -1,4 +1,4 @@
-package View;
+package com.bienhuels.iwmb_cookdome.View;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -41,7 +41,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
             uID=user.getUid();
         }catch(NullPointerException e){
             Toast.makeText(this, R.string.signedOut, Toast.LENGTH_SHORT).show();
-            Intent i=new Intent(ShoppinglistActivity.this,LoginActivity.class);
+            Intent i=new Intent(ShoppinglistActivity.this, LoginActivity.class);
             startActivity(i);
         }
 

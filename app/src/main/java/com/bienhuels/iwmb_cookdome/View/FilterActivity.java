@@ -1,4 +1,4 @@
-package View;
+package com.bienhuels.iwmb_cookdome.View;
 
 import static android.view.View.GONE;
 

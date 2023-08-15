@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 import com.bienhuels.iwmb_cookdome.R;
 import java.util.List;
 import Model.Ingredient;
-import View.CreateRecipeActivity;
+import com.bienhuels.iwmb_cookdome.View.CreateRecipeActivity;
 
 public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
     Context contextm;

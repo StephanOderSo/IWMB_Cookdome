@@ -1,4 +1,4 @@
-package View;
+package com.bienhuels.iwmb_cookdome.View;
 
 import android.app.Activity;
 import android.content.Intent;

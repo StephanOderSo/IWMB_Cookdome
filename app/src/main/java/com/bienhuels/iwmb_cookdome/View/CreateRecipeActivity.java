@@ -1,4 +1,4 @@
-package View;
+package com.bienhuels.iwmb_cookdome.View;
 
 import static android.content.ContentValues.TAG;
 
@@ -386,7 +386,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         try{
             uid= Objects.requireNonNull(auth.getCurrentUser()).getUid();
         }catch(NullPointerException e){
-            Intent toLoginIntent=new Intent(this,LoginActivity.class);
+            Intent toLoginIntent=new Intent(this, LoginActivity.class);
             startActivity(toLoginIntent);
         }
         key=databaseReference.push().getKey();

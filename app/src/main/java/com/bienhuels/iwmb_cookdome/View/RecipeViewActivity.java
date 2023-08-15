@@ -1,7 +1,5 @@
-package View;
-import android.content.DialogInterface;
+package com.bienhuels.iwmb_cookdome.View;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
@@ -13,9 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatDrawableManager;
 import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.Constraints;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
