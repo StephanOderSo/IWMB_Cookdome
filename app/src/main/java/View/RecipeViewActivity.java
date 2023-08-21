@@ -29,6 +29,7 @@ import Model.Ingredient;
 import Model.Recipe;
 import Viewmodel.RecipeViewAdapters.IngrListAdapterwSLBtn;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
+import okhttp3.internal.cache.DiskLruCache;
 
 public class RecipeViewActivity extends AppCompatActivity {
     DatabaseReference databaseReference,databaseReferenceFav;
@@ -45,7 +46,7 @@ public class RecipeViewActivity extends AppCompatActivity {
     TextView portionsText;
     IngrListAdapterwSLBtn ingredientAdapter;
     ArrayList<Ingredient> dBingredientList;
-
+    String key;
 
 
 
@@ -111,54 +112,62 @@ public class RecipeViewActivity extends AppCompatActivity {
         Intent previousIntent = getIntent();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         databaseReference = database.getReference("/Cookdome/Recipes");
-        String key = previousIntent.getStringExtra("key");
+        key = previousIntent.getStringExtra("key");
         databaseReference.child(key).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+                getUserFav();
+                getUserOwn();
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
-                    String dBcat = String.valueOf(snapshot.child("category").getValue());
-                    int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
-                    int dBportions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
-                    portionsOrigin=dBportions;
-                    dBImage = snapshot.child("image").getValue(String.class);
-
-                    ArrayList<String> dBstepList = new ArrayList<>();
-                    String index="0";
-                    for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
-                        String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
-                        dBstepList.add(stepTry);
-                        int i=Integer.parseInt(index);
-                        i++;
-                        index= Integer.toString(i);
-                    }
-                    String index2="0";
-                    ArrayList<String> dBdietList = new ArrayList<>();
-                    for(DataSnapshot stepSS:snapshot.child("dietaryRec").getChildren()){
-                        String dietTry=String.valueOf(snapshot.child("dietaryRec").child(index2).getValue());
-                        int i=Integer.parseInt(index2);
-                        i++;
-                        index2= Integer.toString(i);
-                        dBdietList.add(dietTry);
-                    }
-                    ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
-                    for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
-                        Double amount=IngSS.child("amount").getValue(Double.class);
-                        String unit=IngSS.child("unit").getValue(String.class);
-                        String ingredientName=IngSS.child("ingredientName").getValue(String.class);
-                        Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-                        dBIngredientList.add(ingredient);
-                    }
-                    selectedRecipe = new Recipe(key, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
-                    getUserFav();
-                    getUserOwn();
+                    createRecipe(snapshot);
                     setValues(selectedRecipe);
-
                 } else {
-                    Toast.makeText(RecipeViewActivity.this, R.string.dataRetrievalFailed, Toast.LENGTH_SHORT).show();
+                    databaseReferenceFav.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
+                        if (task1.getResult().exists()) {
+                            DataSnapshot snapshot = task1.getResult();
+                            createRecipe(snapshot);
+                            setValues(selectedRecipe);
+                        }
+                    }).addOnFailureListener(e -> Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
                 }
             }
         });
+    }
+    private void createRecipe(DataSnapshot snapshot){
+        String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
+        String dBcat = String.valueOf(snapshot.child("category").getValue());
+        int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
+        int dBportions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
+        portionsOrigin=dBportions;
+        dBImage = snapshot.child("image").getValue(String.class);
+
+        ArrayList<String> dBstepList = new ArrayList<>();
+        String index="0";
+        for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
+            String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
+            dBstepList.add(stepTry);
+            int i=Integer.parseInt(index);
+            i++;
+            index= Integer.toString(i);
+        }
+        String index2="0";
+        ArrayList<String> dBdietList = new ArrayList<>();
+        for(DataSnapshot stepSS:snapshot.child("dietaryRec").getChildren()){
+            String dietTry=String.valueOf(snapshot.child("dietaryRec").child(index2).getValue());
+            int i=Integer.parseInt(index2);
+            i++;
+            index2= Integer.toString(i);
+            dBdietList.add(dietTry);
+        }
+        ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
+        for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
+            Double amount=IngSS.child("amount").getValue(Double.class);
+            String unit=IngSS.child("unit").getValue(String.class);
+            String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+            Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
+            dBIngredientList.add(ingredient);
+        }
+        selectedRecipe = new Recipe(key, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
     }
 
     private void setValues (Recipe selectedRecipe) {
@@ -269,7 +278,7 @@ public class RecipeViewActivity extends AppCompatActivity {
                         String favkey = dsS.getKey();
                         favlist.add(favkey);
                     }
-                    if(favlist.contains(selectedRecipe.getKey())){
+                    if(favlist.contains(key)){
                         favView.setImageResource(R.drawable.liked);
                     }else{
                         favView.setImageResource(R.drawable.unliked);
@@ -311,7 +320,6 @@ public class RecipeViewActivity extends AppCompatActivity {
             startActivity(loginIntent);
         } else {
             id = currentUser.getUid();
-            String key=selectedRecipe.getKey();
             databaseReferenceFav.child(id).child("Own").get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     DataSnapshot snapshot=task.getResult();
@@ -319,7 +327,7 @@ public class RecipeViewActivity extends AppCompatActivity {
                         String key1 =ss.getKey();
                         ownlist.add(key1);
                     }
-                    if(ownlist.contains(selectedRecipe.getKey())){
+                    if(ownlist.contains(key)){
                         ImageView edit=findViewById(R.id.edit);
                         edit.setVisibility(View.VISIBLE);
                         edit.setOnClickListener(view -> {

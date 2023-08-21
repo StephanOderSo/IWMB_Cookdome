@@ -63,19 +63,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         burgermenu2.setOnClickListener(view -> drawerLayout.open());
 
 
-
+//Random Recipe Button
         CardView randomcard=findViewById(R.id.randomcard);
         randomcard.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, FilterActivity.class);
             startActivity(intent);
             finish();
         });
+//Categories Button
         CardView catcard=findViewById(R.id.catcard);
         catcard.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, SelectCategoryActivity.class);
             startActivity(intent);
             finish();
         });
+//Leftovers  Button
         CardView restcard=findViewById(R.id.restcard);
         restcard.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, FilterActivity.class);

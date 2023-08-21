@@ -17,6 +17,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +30,7 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -77,6 +79,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     StepListAdapter stepListAdapter;
     String vegi,vegan,paleo,gf,lf,lof;
     Recipe selectedRecipe;
+    Switch privateswitch;
 
 
     /****/
@@ -117,32 +120,14 @@ public class CreateRecipeActivity extends AppCompatActivity {
         enterStepView=findViewById(R.id.step);
         addStepBtn=findViewById(R.id.addStepbtn);
         addIngredientBtn=findViewById(R.id.addIngredientBtn);
-        expandDetailsBtn=findViewById(R.id.expandDetailsBtn);
         details=findViewById(R.id.detail);
         image=findViewById(R.id.uploadImageBorder);
         unitBtn=findViewById(R.id.unit);
-        detailsHeader=findViewById(R.id.detailsHeader);
+        privateswitch=findViewById(R.id.privateswitch);
+
 //Initialise Database reference to Recipes folder in Firebase external Database
         databaseReference=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");
 
-//unfold Details (clickcount serves to determin whether Details are currently unfolded or not)
-        clickCount=1;
-        expandDetailsBtn.setOnClickListener(view -> {
-            //if uneven clickcount-> unfold details, remove imageview, change Button image and text
-            if (clickCount%2 !=0){
-                expandDetailsBtn.setImageResource(R.drawable.arrow_up);
-                detailsHeader.setText(R.string.all);
-                details.setVisibility(View.VISIBLE);
-                image.setVisibility(View.GONE);
-            //otherwise bring imageview back and change Button image and text back
-            } else {
-                expandDetailsBtn.setImageResource(R.drawable.arrow_down);
-                image.setVisibility(View.VISIBLE);
-                detailsHeader.setText(R.string.details);
-            }
-            //Either way increase click count
-            clickCount++;
-        });
 //Select Unit Alert Dialog
 
         unitBtn.setOnClickListener(view -> {
@@ -327,6 +312,16 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 getListViewSize(stepListAdapter,stepsView);
                 }
         });
+//Private or Public switch
+        privateswitch.setOnClickListener(view -> {
+            if(!privateswitch.isChecked()){
+                privateswitch.setText(R.string.privates);
+            }else{
+                privateswitch.setText(R.string.publics);
+            }
+            Log.d(TAG, privateswitch.getText().toString());
+        });
+
 //Save Recipe
         save.setOnClickListener(view -> {
 
@@ -389,28 +384,46 @@ public class CreateRecipeActivity extends AppCompatActivity {
             Intent toLoginIntent=new Intent(this,LoginActivity.class);
             startActivity(toLoginIntent);
         }
+        String priv=privateswitch.getText().toString();
         key=databaseReference.push().getKey();
         Recipe recipe=new Recipe(key,imageUriNew.toString(),recipeName,category,time,portions,ingredientList,stepList,dietaryRecList);
         String finalUid = uid;
-        databaseReference.child(key).setValue(recipe).addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                Toast.makeText(CreateRecipeActivity.this,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                userref.child(finalUid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
-                    if(task1.isSuccessful()){
-                        Log.d(TAG, "Added");}
-                    else{
-                        Log.d(TAG, "failed");
-                    }
-                }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-                Intent toRecipeViewIntent=new Intent(getApplicationContext(), RecipeViewActivity.class);
-                toRecipeViewIntent.putExtra("key",recipe.getKey());
-                toRecipeViewIntent.putExtra("fromCreate",0);
-                startActivity(toRecipeViewIntent);
+        String publics=getResources().getString(R.string.publics);
+        if(priv.equals(publics)){
+            databaseReference.child(key).setValue(recipe).addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    Toast.makeText(CreateRecipeActivity.this,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
+                    userref.child(finalUid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
+                        if(task1.isSuccessful()){
+                            Log.d(TAG, "Added");}
+                        else{
+                            Log.d(TAG, "failed");
+                        }
+                    }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+            }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(),Toast.LENGTH_SHORT));
+        }else{
+            userref.child(finalUid).child("Privates").child(key).setValue(recipe).addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    Toast.makeText(CreateRecipeActivity.this,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
+                    userref.child(finalUid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
+                        if(task1.isSuccessful()){
+                            Log.d(TAG, "Added to privates");}
+                        else{
+                            Log.d(TAG, "failed to add to privates");
+                        }
+                    }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
+                }
+            });
 
-            }
-        }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(),Toast.LENGTH_SHORT));
+        }
+        Intent toRecipeViewIntent=new Intent(getApplicationContext(), RecipeViewActivity.class);
+        toRecipeViewIntent.putExtra("key",recipe.getKey());
+        toRecipeViewIntent.putExtra("fromCreate",0);
+        startActivity(toRecipeViewIntent);
         progressbar.setVisibility(View.INVISIBLE);
     }
+
 
 
     public void uploadToFirebase(){
@@ -571,5 +584,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
     public void updateListview(){
             getListViewSize(ingredientAdapter,ingredientsView);
         }
+    @Override
+    public void onBackPressed(){
+       Intent toMainIntent=new Intent(CreateRecipeActivity.this,MainActivity.class);
+       startActivity(toMainIntent);
+    }
 
 }

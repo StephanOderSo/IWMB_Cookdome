@@ -30,6 +30,8 @@
     <string name="vegan">Vegan</string>
     <string name="lowfat">Low Fat</string>
     <string name="none">None</string>
+    <string name="privates">Private</string>
+    <string name="publics">Public</string>
     <string name="salad">Salad</string>
     <string name="minutes">minutes</string>
     <string name="cancel">Cancel</string>
@@ -104,5 +106,6 @@
     <string name="ok">OK</string>
     <string name="changesApplied">changes applied</string>
     <string name="number2small">Number too small</string>
+
 
 </resources>

@@ -14,6 +14,8 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -21,6 +23,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bienhuels.iwmb_cookdome.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,7 +45,7 @@ import Viewmodel.SearchAdapters.RecyclerAdapterLo;
 public class SearchActivity extends AppCompatActivity {
     RecyclerView recipeSearchView;
     FloatingActionButton filter;
-    DatabaseReference databaseReference,databaseReferenceFav;
+    DatabaseReference databaseReference, dbRefUsers;
     FirebaseDatabase database;
     FirebaseAuth auth;
     String id;
@@ -311,6 +316,7 @@ public class SearchActivity extends AppCompatActivity {
                             currentList.add(selectedRecipe);
                         }
                     }
+                    Collections.sort(currentList,new CustomComparator());
                     recipeAdapter.notifyItemInserted(currentList.indexOf(selectedRecipe));
                     if(source.equals("categories")){
                         if(currentList.isEmpty()){
@@ -432,7 +438,7 @@ public class SearchActivity extends AppCompatActivity {
     //Generate a list of Keys to the Recipes the user liked
     public void getUserFav() {
         database = FirebaseDatabase.getInstance();
-        databaseReferenceFav = database.getReference("/Cookdome/Users");
+        dbRefUsers = database.getReference("/Cookdome/Users");
         auth= FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
 //Send User to sign in if no current user found
@@ -445,7 +451,7 @@ public class SearchActivity extends AppCompatActivity {
         else {
             id = currentUser.getUid();
             favlist = new ArrayList<>();
-            databaseReferenceFav.child(id).child("Favourites").get().addOnCompleteListener(task -> {
+            dbRefUsers.child(id).child("Favourites").get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     // dBRecipeList= snapshot.getValue(listType);
@@ -464,7 +470,7 @@ public class SearchActivity extends AppCompatActivity {
     //Creating a list of Keys to the Recipes the user created themselves
     public void getUserOwn() {
         database = FirebaseDatabase.getInstance();
-        databaseReferenceFav = database.getReference("/Cookdome/Users");
+        dbRefUsers = database.getReference("/Cookdome/Users");
         auth= FirebaseAuth.getInstance();
         FirebaseUser currentUser = auth.getCurrentUser();
 //Send to login if User not found
@@ -477,7 +483,7 @@ public class SearchActivity extends AppCompatActivity {
             id = currentUser.getUid();
             ownlist = new ArrayList<>();
             //In case of Issues with the download a case specific Error message is displayed to the user
-            databaseReferenceFav.child(id).child("Own").get().addOnCompleteListener(task -> {
+            dbRefUsers.child(id).child("Own").get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     for (DataSnapshot dsS : snapshot.getChildren()) {
@@ -500,9 +506,18 @@ public class SearchActivity extends AppCompatActivity {
                     createRecipe(snapshot);
                     currentList.add(selectedRecipe);
                     recipeAdapter.notifyItemInserted(currentList.indexOf(selectedRecipe));
+                }else{
+                    dbRefUsers.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
+                        if (task1.getResult().exists()) {
+                            DataSnapshot snapshot2 = task1.getResult();
+                            createRecipe(snapshot2);
+                            currentList.add(selectedRecipe);
+                            recipeAdapter.notifyItemInserted(currentList.indexOf(selectedRecipe));
+                        }
+                    }).addOnFailureListener(e -> Toast.makeText(SearchActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
                 }
 
-            });
+            }).addOnFailureListener(e2 -> Toast.makeText(SearchActivity.this, e2.getMessage(), Toast.LENGTH_SHORT).show());;
         }
     }
 
