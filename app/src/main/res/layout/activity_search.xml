@@ -377,7 +377,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/recipeSearchView"
-        app:layout_constraintTop_toBottomOf="@id/filterBtn"
+        app:layout_constraintTop_toBottomOf="@id/search"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <androidx.appcompat.widget.AppCompatButton
         android:textColor="@color/white"

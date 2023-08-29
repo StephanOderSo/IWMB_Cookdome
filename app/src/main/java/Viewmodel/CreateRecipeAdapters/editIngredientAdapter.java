@@ -30,6 +30,13 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.edit_ingredient,parent,false);
         }
+        Runnable runnable=new Runnable() {
+            @Override
+            public void run() {
+                if(contextm instanceof CreateRecipeActivity){
+                    ((CreateRecipeActivity)contextm).updateListview();}
+            }
+        };
         EditText amountView= convertView.findViewById(R.id.editamount);
         TextView unitView=convertView.findViewById(R.id.unit);
         EditText ingredientView= convertView.findViewById(R.id.editingredient);
@@ -47,8 +54,9 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
             editBtn.setVisibility(View.GONE);
             removeBtn.setVisibility(View.VISIBLE);
             updateBtn.setVisibility(View.VISIBLE);
-            if(contextm instanceof CreateRecipeActivity){
-            ((CreateRecipeActivity)contextm).updateListview();}
+            Thread adjustListSizeThread=new Thread(runnable);
+            adjustListSizeThread.start();
+
         });
         removeBtn.setOnClickListener(view -> {
             Ingredient toBeRemoved= getItem(position);

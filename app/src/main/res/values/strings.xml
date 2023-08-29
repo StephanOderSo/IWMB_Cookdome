@@ -106,6 +106,13 @@
     <string name="ok">OK</string>
     <string name="changesApplied">changes applied</string>
     <string name="number2small">Number too small</string>
+    <string name="updateSuccess">update successful</string>
+    <string name="mailUpdated">email updated</string>
+    <string name="confirmed">confirmed</string>
+    <string name="confirmIdentity">Confirm Identity</string>
+    <string name="loginsuccess">login successful</string>
+    <string name="invalidCred">invalid Credentials</string>
+    <string name="UserNotExist">user doesnt exist</string>
 
 
 </resources>

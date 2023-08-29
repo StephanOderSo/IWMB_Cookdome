@@ -1,10 +1,14 @@
 package View;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.InputType;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,12 +24,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
+
+import Model.User;
 
 public class EditProfileActivity extends AppCompatActivity {
     ImageView photo;
@@ -39,6 +46,9 @@ public class EditProfileActivity extends AppCompatActivity {
     Button saveUserchange,cancelUserchange;
     EditText nameEditor,emailEditor,passEditor,repeatPassEditor;
     Uri imageUri;
+    User user=new User();
+
+    Handler userHandler=new Handler();
 
 
     @Override
@@ -63,7 +73,20 @@ public class EditProfileActivity extends AppCompatActivity {
         cancelUserchange=findViewById(R.id.cancelUserChange);
         database=FirebaseDatabase.getInstance();
         auth=FirebaseAuth.getInstance();
-        getUserinfo();
+        fbuser=auth.getCurrentUser();
+        Intent toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
+        Intent toLoginIntent=new Intent(EditProfileActivity.this,LoginActivity.class);
+
+        Runnable runnable=new Runnable() {
+            @Override
+            public void run() {
+                setUserData();
+            }
+        };
+        Thread getInfoThread=new Thread(runnable);
+        getInfoThread.start();
+
+
 //Edit photo
         ActivityResultLauncher<Intent> activityResultLauncher= registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
@@ -130,68 +153,38 @@ public class EditProfileActivity extends AppCompatActivity {
             }
         });
         passworddone.setOnClickListener(view -> {
-            if(!passEditor.getText().toString().equals("")){
-                if(!repeatPassEditor.getText().toString().equals("")){
-                    newpass=passEditor.getText().toString();
-                    newpassrepeat=repeatPassEditor.getText().toString();
-                    if(newpass.length()>=8){
-                        if(newpass.equals(newpassrepeat)){
-                            passEditor.setVisibility(View.GONE);
-                            repeatPassEditor.setVisibility(View.GONE);
-                            passwordView.setVisibility(View.VISIBLE);
-                            passworddone.setVisibility(View.GONE);
-                            editpassword.setVisibility(View.VISIBLE);
-                        }else{
-                            Toast.makeText(EditProfileActivity.this, R.string.noPassMatch, Toast.LENGTH_LONG).show();}
-                    }else{
-                        Toast.makeText(EditProfileActivity.this, R.string.minLength, Toast.LENGTH_LONG).show();}
-                }else{
-                    Toast.makeText(EditProfileActivity.this, R.string.repeatPasword, Toast.LENGTH_SHORT).show();}
-            }else{
-                Toast.makeText(EditProfileActivity.this, R.string.enterPassword, Toast.LENGTH_SHORT).show();}
+            checkPassword();
         });
-        Intent toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
+
+
         saveUserchange.setOnClickListener(view -> {
-            HashMap<String,Object> update=new HashMap<>();
-            if(newname!=null){
-                update.put("name",newname);}
-            if(imageUri!=null){
-                update.put("photo",imageUri.toString());}
-            if(update.size()==0){
-                Log.d("TAG", "no additional userinfo");
-                if (newemail != null) {
-                    fbuser.updateEmail(newemail).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            if(newpass!=null){
-                                Log.d("TAG", "pass is next");
-                            }else{
-                                startActivity(toMainIntent);
-                            }
-                        }
-                    });
+            AlertDialog.Builder builder=new AlertDialog.Builder(this);
+            builder.setTitle(R.string.confirmIdentity);
+            builder.setCancelable(false);
+            EditText passView=new EditText(this);
+            passView.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            builder.setView(passView);
+
+            builder.setPositiveButton("OK", (dialogInterface, i) -> {
+                if(fbuser==null){
+                    Toast.makeText(this, R.string.signedOut, Toast.LENGTH_SHORT).show();
+                    startActivity(toLoginIntent);
+                    finish();
+                }  else if (passView.getText()==null) {
+                    Toast.makeText(this, R.string.enterPassword, Toast.LENGTH_SHORT).show();
+                    passView.requestFocus();
+                    passView.setError(getResources().getString(R.string.enterPassword));
+                }else{
+                    String pass=passView.getText().toString();
+                    user.loginUser(email,pass,getApplicationContext());
+
                 }
-                if(newpass!=null){
-                    fbuser.updatePassword(newpass).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            startActivity(toMainIntent);
-                        }
-                    });
-                } else{Toast.makeText(EditProfileActivity.this, R.string.noChange, Toast.LENGTH_SHORT).show();}
 
-            }else{
-                databaseReferenceUsers.child(id).updateChildren(update).addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        if (newemail != null) {
-                            fbuser.updateEmail(newemail);
-                        }
-                        if(newpass!=null){
-                            fbuser.updatePassword(newpass);}
 
-                        startActivity(toMainIntent);
-                    }else{
-                        Toast.makeText(EditProfileActivity.this, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-                    }
-                }).addOnFailureListener(e -> Toast.makeText(EditProfileActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());}
+
+            });
+            builder.show();
+            user.updateUser(fbuser,newname,newemail,newpass,imageUri,getApplicationContext());
 
         });
         cancelUserchange.setOnClickListener(view -> {
@@ -203,35 +196,36 @@ public class EditProfileActivity extends AppCompatActivity {
         });
 
     }
-    public void getUserinfo(){
-        fbuser=auth.getCurrentUser();
-        if(fbuser!=null) {
-            id = fbuser.getUid();
-            email = fbuser.getEmail();
-            databaseReferenceUsers = database.getReference("/Cookdome/Users");
-            databaseReferenceUsers.child(id).get().addOnCompleteListener(task -> {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    // dBRecipeList= snapshot.getValue(listType);
-                    name = snapshot.child("name").getValue(String.class);
-                    url = snapshot.child("photo").getValue(String.class);
-
-                    Picasso.get()
-                            .load(url)
-                            .placeholder(R.drawable.camera)
-                            .resize(400, 400)
-                            .centerCrop()
-                            .into(photo);
-                    nameView.setText(name);
-                    emailView.setText(email);
-
-                } else {
-                    Toast.makeText(EditProfileActivity.this, "No userinformation found", Toast.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(e -> Toast.makeText(EditProfileActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-
+    public void checkPassword(){
+        if(!passEditor.getText().toString().equals("")){
+            if(!repeatPassEditor.getText().toString().equals("")){
+                newpass=passEditor.getText().toString();
+                newpassrepeat=repeatPassEditor.getText().toString();
+                if(newpass.length()>=8){
+                    if(newpass.equals(newpassrepeat)){
+                        passEditor.setVisibility(View.GONE);
+                        repeatPassEditor.setVisibility(View.GONE);
+                        passwordView.setVisibility(View.VISIBLE);
+                        passworddone.setVisibility(View.GONE);
+                        editpassword.setVisibility(View.VISIBLE);
+                    }else{
+                        Toast.makeText(EditProfileActivity.this, R.string.noPassMatch, Toast.LENGTH_LONG).show();}
+                }else{
+                    Toast.makeText(EditProfileActivity.this, R.string.minLength, Toast.LENGTH_LONG).show();}
+            }else{
+                Toast.makeText(EditProfileActivity.this, R.string.repeatPasword, Toast.LENGTH_SHORT).show();}
         }else{
-            Toast.makeText(this, "no user logged in", Toast.LENGTH_SHORT).show();}
+            Toast.makeText(EditProfileActivity.this, R.string.enterPassword, Toast.LENGTH_SHORT).show();}
+    }
+
+    public void setUserData(){
+        userHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                final User user=new User().getUserinfo(getApplicationContext(),fbuser,nameView,emailView,photo);
+            }
+        });
+
     }
     @Override
     public void onBackPressed() {

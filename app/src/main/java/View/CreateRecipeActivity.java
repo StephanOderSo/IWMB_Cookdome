@@ -7,13 +7,13 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -27,22 +27,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Objects;
 
 import Model.Ingredient;
 import Model.Recipe;
@@ -59,12 +51,11 @@ public class CreateRecipeActivity extends AppCompatActivity {
     ListView ingredientsView,stepsView;
     Integer portions,time;
     Float amount;
-    String recipeName,category,ingredientName,key,dietRec,unit;
+    String recipeName,category,ingredientName,dietRec,unit;
     EditText ingredientView,enterStepView,portionsView, amountView,timeView;
-    public ArrayList<Ingredient> ingredientList;
-    public ArrayList<String> stepList;
+    ArrayList<Ingredient> ingredientList=new ArrayList<>();
+    ArrayList<String> stepList=new ArrayList<>();
     FloatingActionButton addIngredientBtn,addStepBtn;
-    ImageButton expandDetailsBtn;
     ConstraintLayout details, image;
     TextView dietaryBtn;
     Integer clickCount;
@@ -72,18 +63,18 @@ public class CreateRecipeActivity extends AppCompatActivity {
     EditStepAdapter stepAdapter;
     ArrayList<Integer>dietList=new ArrayList<>();
     ArrayList<String>dietaryRecList=new ArrayList<>();
-    StringBuilder dietSb;
     TextView catBtn,unitBtn;
-    TextView detailsHeader;
     IngredientListAdapter ingredientAdapter;
     StepListAdapter stepListAdapter;
-    String vegi,vegan,paleo,gf,lf,lof;
-    Recipe selectedRecipe;
+    String priv;
+
+    Recipe selectedRecipe=new Recipe();
     Switch privateswitch;
+    Handler handler=new Handler();
 
 
-    /****/
-    private DatabaseReference databaseReference;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,18 +84,42 @@ public class CreateRecipeActivity extends AppCompatActivity {
         String[] catArray={getResources().getString(R.string.breakki),getResources().getString(R.string.mainMeal),getResources().getString(R.string.dessert),getResources().getString(R.string.snack),getResources().getString(R.string.soup),getResources().getString(R.string.salad)};
         String[] unitArray={" ","cup","tsp","tbsp","ml","l","g","kg","mg","oz","pound"};
 //assign strings to variables for access outside of onCreate
-        vegi=getResources().getString(R.string.vegetar);
-        vegan=getResources().getString(R.string.vegan);
-        paleo=getResources().getString(R.string.paleo);
-        lf=getResources().getString(R.string.lactosefree);
-        gf=getResources().getString(R.string.glutenfree);
-        lof=getResources().getString(R.string.lowfat);
-//Initialise lists and variables
+        //Intentfilter for correct Adapter and content
+        Intent previousIntent=getIntent();
+        ingredientsView=findViewById(R.id.ingredientlist);
+        stepsView=findViewById(R.id.stepList);
+        //Initialise lists and variables
         ingredientList=new ArrayList<>();
         stepList=new ArrayList<>();
         unit="";
         dietRec="";
         clickCount=1;
+
+        if (previousIntent.hasExtra("Edit")){
+            Button delete=findViewById(R.id.delete);
+            delete.setVisibility(View.VISIBLE);
+            String key=previousIntent.getStringExtra("Edit");
+            delete.setOnClickListener(view -> selectedRecipe.removeFromFirebase(key,getApplicationContext()));
+            Runnable runnable=new Runnable() {
+                @Override
+                public void run() {
+                    getSelectedRecipe(key);
+                }
+            };
+            Thread getRThread=new Thread(runnable);
+            getRThread.start();
+
+        }else{
+//Ingredient List
+
+            ingredientAdapter= new IngredientListAdapter(getApplicationContext(),0,ingredientList);
+            ingredientsView.setAdapter(ingredientAdapter);
+//Step List
+
+            stepListAdapter= new StepListAdapter(getApplicationContext(),0,stepList);
+            stepsView.setAdapter(stepListAdapter);
+        }
+
 //Assign variables to View-objects
         Button save = findViewById(R.id.save);
         imageView=findViewById(R.id.uploadImage);
@@ -114,8 +129,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         timeView = findViewById(R.id.preptime);
         portionsView=findViewById(R.id.portionen);
         amountView=findViewById(R.id.amount);
-        ingredientsView=findViewById(R.id.ingredientlist);
-        stepsView=findViewById(R.id.stepList);
         ingredientView=findViewById(R.id.ingredient);
         enterStepView=findViewById(R.id.step);
         addStepBtn=findViewById(R.id.addStepbtn);
@@ -125,8 +138,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         unitBtn=findViewById(R.id.unit);
         privateswitch=findViewById(R.id.privateswitch);
 
-//Initialise Database reference to Recipes folder in Firebase external Database
-        databaseReference=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");
+
 
 //Select Unit Alert Dialog
 
@@ -183,41 +195,18 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 }
             });
             builder.setPositiveButton("OK", (dialogInterface, i) -> {
-                dietSb=new StringBuilder();
                 if(dietaryRecList.isEmpty()){
                     Toast.makeText(CreateRecipeActivity.this, R.string.chooseDiet, Toast.LENGTH_SHORT).show();
                 }else{
-                for(String diet: dietaryRecList){
-                    String dietShort = "";
-                    if (diet.equals(vegi)) {
-                        dietShort = "VT";
-                    }
-                    if (diet.equals(vegan)) {
-                        dietShort = "V";
-                    }
-                    if (diet.equals(gf)) {
-                        dietShort = "GF";
-                    }
-                    if (diet.equals(lf)) {
-                        dietShort = "LF";
-                    }
-                    if (diet.equals(paleo)) {
-                        dietShort = "P";
-                    }
-                    if (diet.equals(lof)) {
-                        dietShort = "LoF";
-                    }
+                    Runnable runnable=new Runnable() {
+                        @Override
+                        public void run() {
+                            buildDietString();
+                        }
+                    };
+                    Thread stringBuildThread=new Thread();
+                    stringBuildThread.start();
 
-                    dietSb.append(dietShort);
-                    i=dietRec.indexOf(diet);
-                    if(i!=dietaryRecList.size()-1){
-                        dietSb.append(" | ");
-                    }
-                if(dietSb.toString().equals("")){
-                    dietaryBtn.setText(R.string.none);
-                }else{
-                dietaryBtn.setText(dietSb.toString());}
-                }
                 }
 
            });
@@ -259,22 +248,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
         });
 
-//Intentfilter for correct Adapter and content
-        Intent previousIntent=getIntent();
-        if (previousIntent.hasExtra("Edit")){
-            Button delete=findViewById(R.id.delete);
-            delete.setVisibility(View.VISIBLE);
-            String key=previousIntent.getStringExtra("Edit");
-            delete.setOnClickListener(view -> removeRecipe(key));
-            getSelectedRecipe(key);
-        }else{
-//Ingredient List
-            ingredientAdapter= new IngredientListAdapter(getApplicationContext(),0,ingredientList);
-            ingredientsView.setAdapter(ingredientAdapter);
-//Step List
-            stepListAdapter= new StepListAdapter(getApplicationContext(),0,stepList);
-            stepsView.setAdapter(stepListAdapter);
-        }
+
 
 //add Ingredient Button
         addIngredientBtn.setOnClickListener(view -> {
@@ -363,92 +337,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 time = Integer.parseInt(timeView.getText().toString());
             portions=Integer.parseInt(portionsView.getText().toString());
             progressbar.setVisibility(View.VISIBLE);
-            uploadToFirebase();
-            Recipe recipe=new Recipe(key,imageUri.toString(),recipeName,category,time,portions,ingredientList,stepList,dietaryRecList);
-            writeToLocalStorage(key, recipe);
+            priv=privateswitch.getText().toString();
+            selectedRecipe.uploadToFirebase(imageUri,getApplicationContext(),recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,priv);
             }
 
         });
 
-    }
-
-
-
-    public void createNewRecipe(Uri imageUriNew){
-        DatabaseReference userref=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
-        FirebaseAuth auth=FirebaseAuth.getInstance();
-        String uid="";
-        try{
-            uid= Objects.requireNonNull(auth.getCurrentUser()).getUid();
-        }catch(NullPointerException e){
-            Intent toLoginIntent=new Intent(this,LoginActivity.class);
-            startActivity(toLoginIntent);
-        }
-        String priv=privateswitch.getText().toString();
-        key=databaseReference.push().getKey();
-        Recipe recipe=new Recipe(key,imageUriNew.toString(),recipeName,category,time,portions,ingredientList,stepList,dietaryRecList);
-        String finalUid = uid;
-        String publics=getResources().getString(R.string.publics);
-        if(priv.equals(publics)){
-            databaseReference.child(key).setValue(recipe).addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    Toast.makeText(CreateRecipeActivity.this,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                    userref.child(finalUid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
-                        if(task1.isSuccessful()){
-                            Log.d(TAG, "Added");}
-                        else{
-                            Log.d(TAG, "failed");
-                        }
-                    }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-                }
-            }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(),Toast.LENGTH_SHORT));
-        }else{
-            userref.child(finalUid).child("Privates").child(key).setValue(recipe).addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    Toast.makeText(CreateRecipeActivity.this,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                    userref.child(finalUid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
-                        if(task1.isSuccessful()){
-                            Log.d(TAG, "Added to privates");}
-                        else{
-                            Log.d(TAG, "failed to add to privates");
-                        }
-                    }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-                }
-            });
-
-        }
-        Intent toRecipeViewIntent=new Intent(getApplicationContext(), RecipeViewActivity.class);
-        toRecipeViewIntent.putExtra("key",recipe.getKey());
-        toRecipeViewIntent.putExtra("fromCreate",0);
-        startActivity(toRecipeViewIntent);
-        progressbar.setVisibility(View.INVISIBLE);
-    }
-
-
-
-    public void uploadToFirebase(){
-        StorageReference storageRef=FirebaseStorage.getInstance().getReference().child("Images").child(imageUri.getLastPathSegment());
-        storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-            Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-            while(!uriTask.isComplete()) {
-                Log.d(TAG,  "waiting");
-            }
-            Uri imageUriNew=uriTask.getResult();
-            createNewRecipe(imageUriNew);
-        }).addOnProgressListener(snapshot -> progressbar.getProgress()).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(),Toast.LENGTH_SHORT));
-
-    }
-    public void writeToLocalStorage(String fileName, Recipe content){
-        File filepath=getApplicationContext().getFilesDir();
-        Log.d("FILEPATHLOCAL", filepath.getName());
-        try {
-            FileOutputStream writer=new FileOutputStream(new File(filepath,fileName));
-            writer.write(content.toString().getBytes());
-            writer.close();
-            Toast.makeText(getApplicationContext(),R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
     }
 //Edit Recipe functions
     public void getListViewSize(ArrayAdapter adapter, ListView view){
@@ -460,63 +354,47 @@ public class CreateRecipeActivity extends AppCompatActivity {
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
             totalHeight += mView.getMeasuredHeight();
         }
-        ViewGroup.LayoutParams params=view.getLayoutParams();
-        params.height=totalHeight+view.getDividerHeight()*adapter.getCount();
-        view.setLayoutParams(params);
+        int newTotal=totalHeight;
+        Handler adjustListSizeHandler=new Handler();
+        adjustListSizeHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                ViewGroup.LayoutParams params=view.getLayoutParams();
+                params.height=newTotal+view.getDividerHeight()*adapter.getCount();
+                view.setLayoutParams(params);
+            }
+        });
+
     }
     public void setRecipeData(Recipe recipe){
-        Picasso.get()
-                .load(selectedRecipe.getImage())
-                .placeholder(R.drawable.camera)
-                .fit()
-                .centerCrop()
-                .into(imageView);
-        String name=selectedRecipe.getRecipeName();
-        recipeNameView.setText(name);
-        String time=String.valueOf(selectedRecipe.getPrepTime());
-        timeView.setText(time);
-        String portions=String.valueOf(selectedRecipe.getPortions());
-        portionsView.setText(portions);
-        String category=selectedRecipe.getCategory();
-        catBtn.setText(category);
-        dietaryRecList=recipe.getDietaryRec();
-        StringBuilder dietaryTxt=new StringBuilder();
-        for(String diet: dietaryRecList){
-            String dietShort = "";
-            if (diet.equals(vegi)) {
-                dietShort = "VT";
+        String name=recipe.getRecipeName();
+        String time=String.valueOf(recipe.getPrepTime());
+        String portions=String.valueOf(recipe.getPortions());
+        String category=recipe.getCategory();
+        buildDietString();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Picasso.get()
+                        .load(recipe.getImage())
+                        .placeholder(R.drawable.camera)
+                        .fit()
+                        .centerCrop()
+                        .into(imageView);
+                recipeNameView.setText(name);
+                timeView.setText(time);
+                portionsView.setText(portions);
+                catBtn.setText(category);
+                dietaryRecList=recipe.getDietaryRec();
+                editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,recipe.getIngredientList());
+                EditStepAdapter stepAdapter = new EditStepAdapter(getApplicationContext(), 0, recipe.getStepList());
+                ingredientsView.setAdapter(ingredientAdapter);
+                stepsView.setAdapter(stepAdapter);
+                getListViewSize(stepAdapter,stepsView);
+                getListViewSize(ingredientAdapter,ingredientsView);
             }
-            if (diet.equals(vegan)) {
-                dietShort = "V";
-            }
-            if (diet.equals(gf)) {
-                dietShort = "GF";
-            }
-            if (diet.equals(lf)) {
-                dietShort = "LF";
-            }
-            if (diet.equals(paleo)) {
-                dietShort = "P";
-            }
-            if (diet.equals(lof)) {
-                dietShort = "LoF";
-            }
-            if(diet.equals("None")){
-                dietShort="None";
-            }
-            dietaryTxt.append(dietShort);
-            int i;
-            i=dietaryRecList.indexOf(diet);
-            if(i!=dietaryRecList.size()-1){
-                dietaryTxt.append(" | ");
-            }
-        }dietaryBtn.setText(dietaryTxt.toString());
-        editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,selectedRecipe.getIngredientList());
-        getListViewSize(ingredientAdapter,ingredientsView);
-        ingredientsView.setAdapter(ingredientAdapter);
-        stepAdapter = new EditStepAdapter(getApplicationContext(), 0, selectedRecipe.getStepList());
-        getListViewSize(stepAdapter,stepsView);
-        stepsView.setAdapter(stepAdapter);
+        });
+
     }
     private void getSelectedRecipe(String key) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -525,61 +403,54 @@ public class CreateRecipeActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
-                    String dBcat = String.valueOf(snapshot.child("category").getValue());
-                    int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
-                    int dBportions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
-                    String dBImage = snapshot.child("image").getValue(String.class);
-
-                    ArrayList<String> dBstepList = new ArrayList<>();
-                    String index="0";
-                    for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
-                        String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
-                        dBstepList.add(stepTry);
-                        int i=Integer.parseInt(index);
-                        i++;
-                        index= Integer.toString(i);
-                    }
-                    String index2="0";
-                    ArrayList<String> dBdietList = new ArrayList<>();
-                    for(DataSnapshot stepSS:snapshot.child("dietaryRec").getChildren()){
-                        String dietTry=String.valueOf(snapshot.child("dietaryRec").child(index2).getValue());
-                        int i=Integer.parseInt(index2);
-                        i++;
-                        index2= Integer.toString(i);
-                        dBdietList.add(dietTry);
-                    }
-                    ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
-                    for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
-                        Double amount;
-                        try{
-                        amount=IngSS.child("amount").getValue(Double.class);
-                        }catch(NullPointerException e){amount=0.0;}
-                        String unit=IngSS.child("unit").getValue(String.class);
-                        String ingredientName=IngSS.child("ingredientName").getValue(String.class);
-                        Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-                        dBIngredientList.add(ingredient);
-                        }
-                    selectedRecipe = new Recipe(key, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
-                    setRecipeData(selectedRecipe);
-
+                    selectedRecipe=selectedRecipe.rebuildFromFirebase(key,snapshot,selectedRecipe);
+                        setRecipeData(selectedRecipe);
                 } else {
                     Toast.makeText(CreateRecipeActivity.this, R.string.dataRetrFailed, Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
-    public void removeRecipe(String key){
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference reciperef = database.getReference("/Cookdome/Recipes");
-        reciperef.child(key).removeValue().addOnCompleteListener(task -> {
-            if(task.isSuccessful()) {
-                Toast.makeText(CreateRecipeActivity.this, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
-            } else{
-                Toast.makeText(CreateRecipeActivity.this, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e -> Toast.makeText(CreateRecipeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
+   public void buildDietString(){
+       StringBuilder dietaryTxt=new StringBuilder();
+       for(String diet: dietaryRecList){
+           String dietShort = "";
+           if (diet.equals(getString(R.string.vegetar))) {
+               dietShort = "VT";
+           }
+           if (diet.equals(getString(R.string.vegan))) {
+               dietShort = "V";
+           }
+           if (diet.equals(getString(R.string.glutenfree))) {
+               dietShort = "GF";
+           }
+           if (diet.equals(getString(R.string.lactosefree))) {
+               dietShort = "LF";
+           }
+           if (diet.equals(getString(R.string.paleo))) {
+               dietShort = "P";
+           }
+           if (diet.equals(getString(R.string.lowfat))) {
+               dietShort = "LoF";
+           }
+           if(diet.equals("None")||diet.equals("")){
+               dietShort="None";
+           }
+           dietaryTxt.append(dietShort);
+           int i;
+           i=dietaryRecList.indexOf(diet);
+           if(i!=dietaryRecList.size()-1){
+               dietaryTxt.append(" | ");
+           }
+       }
+       Handler stringBuidHandler=new Handler();
+       stringBuidHandler.post(new Runnable() {
+           @Override
+           public void run() {
+               dietaryBtn.setText(dietaryTxt.toString());
+           }
+       });
+   }
 
     public void updateListview(){
             getListViewSize(ingredientAdapter,ingredientsView);
