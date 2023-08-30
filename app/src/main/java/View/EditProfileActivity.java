@@ -2,13 +2,12 @@ package View;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
-import android.util.Log;
-import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -24,13 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.squareup.picasso.Picasso;
-
-import java.util.HashMap;
 
 import Model.User;
 
@@ -38,15 +31,16 @@ public class EditProfileActivity extends AppCompatActivity {
     ImageView photo;
     FirebaseUser fbuser;
     FirebaseAuth auth;
-    DatabaseReference databaseReferenceUsers;
     FirebaseDatabase database;
-    String name,email,url,id,newname,newemail,newpass,newpassrepeat;
+    String email;
+    String newname,newemail,newpass,newpassrepeat;
     TextView nameView,emailView,passwordView;
     ImageButton editname,editemail,editpassword,namedone,emaildone,passworddone;
     Button saveUserchange,cancelUserchange;
     EditText nameEditor,emailEditor,passEditor,repeatPassEditor;
     Uri imageUri;
     User user=new User();
+    Context context;
 
     Handler userHandler=new Handler();
 
@@ -74,6 +68,7 @@ public class EditProfileActivity extends AppCompatActivity {
         database=FirebaseDatabase.getInstance();
         auth=FirebaseAuth.getInstance();
         fbuser=auth.getCurrentUser();
+        context=getApplicationContext();
         Intent toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
         Intent toLoginIntent=new Intent(EditProfileActivity.this,LoginActivity.class);
 
@@ -161,7 +156,7 @@ public class EditProfileActivity extends AppCompatActivity {
             AlertDialog.Builder builder=new AlertDialog.Builder(this);
             builder.setTitle(R.string.confirmIdentity);
             builder.setCancelable(false);
-            EditText passView=new EditText(this);
+            final EditText passView=new EditText(this);
             passView.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
             builder.setView(passView);
 
@@ -176,15 +171,13 @@ public class EditProfileActivity extends AppCompatActivity {
                     passView.setError(getResources().getString(R.string.enterPassword));
                 }else{
                     String pass=passView.getText().toString();
-                    user.loginUser(email,pass,getApplicationContext());
-
+                    String mail=fbuser.getEmail();
+                    User user=new User();
+                    user.updateUserOnFirebase(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
                 }
-
-
-
             });
             builder.show();
-            user.updateUser(fbuser,newname,newemail,newpass,imageUri,getApplicationContext());
+
 
         });
         cancelUserchange.setOnClickListener(view -> {
@@ -219,13 +212,7 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     public void setUserData(){
-        userHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                final User user=new User().getUserinfo(getApplicationContext(),fbuser,nameView,emailView,photo);
-            }
-        });
-
+        user=new User().getUserFromFirebase(context,fbuser,nameView,emailView,photo,userHandler);
     }
     @Override
     public void onBackPressed() {

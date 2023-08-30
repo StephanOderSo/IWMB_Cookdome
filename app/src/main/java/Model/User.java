@@ -24,11 +24,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-import View.EditProfileActivity;
 import View.LoginActivity;
 import View.MainActivity;
 
@@ -38,7 +36,7 @@ public class User {
     DatabaseReference userRef=database.getReference("/Cookdome/Users");
     FirebaseAuth auth=FirebaseAuth.getInstance();
     User user;
-    Handler userHandler=new Handler();
+
 
 
     public User(){}
@@ -71,7 +69,7 @@ public class User {
     }
 
 
-    public User getUserinfo(Context context,FirebaseUser fbuser,TextView nameView,TextView emailView,ImageView imageView){
+    public User getUserFromFirebase(Context context, FirebaseUser fbuser, TextView nameView, TextView emailView, ImageView imageView, Handler userHandler){
 
         if(fbuser!=null) {
             String id = fbuser.getUid();
@@ -96,8 +94,8 @@ public class User {
                         }
                     });
                 } else {
-                    Handler toastHandler=new Handler();
-                    toastHandler.post(new Runnable() {
+
+                    userHandler.post(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(context, R.string.noMatch, Toast.LENGTH_SHORT).show();
@@ -110,8 +108,8 @@ public class User {
             }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
 
         }else{
-            Handler toastHandler=new Handler();
-            toastHandler.post(new Runnable() {
+
+            userHandler.post(new Runnable() {
                 @Override
                 public void run() {
                     Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
@@ -123,88 +121,102 @@ public class User {
         }
         return user;
     }
-    public void setUserInfo(){
-
-    }
 
 
-    public void updateUser(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context) {
-        if(fbuser!=null){
-            String id=fbuser.getUid();
-            Intent toMainIntent=new Intent(context, MainActivity.class);
-            toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            HashMap<String,Object> update=new HashMap<>();
-            if(newname!=null){
-                if(!newname.equals("")){
-                    update.put("name",newname);}
-            }
-            if(imageUri!=null){
-                update.put("photo",imageUri.toString());}
-  //If name and image arent changed (because they are stored in User dataclass)
-            if(update.size()==0){
-                if (newemail != null) {
-                    if (!newemail.equals("")) {
-                        fbuser.updateEmail(newemail).addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(context, R.string.updateSuccess, Toast.LENGTH_SHORT).show();
-                                }else { context.startActivity(toMainIntent);}
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                Log.d("TAG", e.getMessage());
-                            }
-                        });
-                    }}
-                if(newpass!=null){
-                    if(!newpass.equals("")) {
-                        if (newpass.length()<8) {
-                            Toast.makeText(context, R.string.passwordLength, Toast.LENGTH_SHORT).show();}
-                        else{
-                            fbuser.updatePassword(newpass).addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(context, R.string.updateSuccess, Toast.LENGTH_SHORT).show();
-                                context.startActivity(toMainIntent);
-                                }
-                        }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                    Log.d("TAG", e.getMessage());
-                                }
-                            });}
-                    }}
-                context.startActivity(toMainIntent);
 
-            }else{
-                userRef.child(id).updateChildren(update).addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        if (newemail != null) {
-                            fbuser.updateEmail(newemail).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    Toast.makeText(context, R.string.mailUpdated, Toast.LENGTH_SHORT).show();
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                        if(newpass!=null){
-                            fbuser.updatePassword(newpass);}
-
-                        context.startActivity(toMainIntent);
-                    }else{
-                        Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
+    public void updateUserOnFirebase(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
+        auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
+            if(task1.isSuccessful()){
+                Log.d("TAG", "login success");
+                if(fbuser!=null){
+                    String id=fbuser.getUid();
+                    Intent toMainIntent=new Intent(context, MainActivity.class);
+                    toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    HashMap<String,Object> update=new HashMap<>();
+                    if(newname!=null){
+                        if(!newname.equals("")){
+                            update.put("name",newname);}
                     }
-                }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());}
-        }
-        else{
-            Intent toLoginIntent=new Intent(context, LoginActivity.class);
-            context.startActivity(toLoginIntent);
-        }
+                    if(imageUri!=null){
+                        update.put("photo",imageUri.toString());}
+                    //If name and image arent changed (because they are stored in User dataclass)
+                    if(update.size()==0){
+                        if (newemail != null) {
+                            if (!newemail.equals("")) {
+                                fbuser.updateEmail(newemail).addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        Toast.makeText(context, R.string.updateSuccess, Toast.LENGTH_SHORT).show();
+                                    }else { context.startActivity(toMainIntent);}
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        Log.d("TAG", e.getMessage());
+                                    }
+                                });
+                            }}
+                        if(newpass!=null){
+                            if(!newpass.equals("")) {
+                                if (newpass.length()<8) {
+                                    Toast.makeText(context, R.string.passwordLength, Toast.LENGTH_SHORT).show();}
+                                else{
+                                    fbuser.updatePassword(newpass).addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Toast.makeText(context, R.string.updateSuccess, Toast.LENGTH_SHORT).show();
+                                            context.startActivity(toMainIntent);
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                            Log.d("TAG", e.getMessage());
+                                        }
+                                    });}
+                            }}
+                        context.startActivity(toMainIntent);
+
+                    }else{
+                        userRef.child(id).updateChildren(update).addOnCompleteListener(task -> {
+                            if(task.isSuccessful()){
+                                if (newemail != null) {
+                                    fbuser.updateEmail(newemail).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Toast.makeText(context, R.string.mailUpdated, Toast.LENGTH_SHORT).show();
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                }
+                                if(newpass!=null){
+                                    fbuser.updatePassword(newpass);}
+
+                                context.startActivity(toMainIntent);
+                            }else{
+                                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());}
+                }
+                else{
+                    Intent toLoginIntent=new Intent(context, LoginActivity.class);
+                    context.startActivity(toLoginIntent);
+                }
+            }else{
+                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
+                try{
+                    throw Objects.requireNonNull(task1.getException());
+                }catch (FirebaseAuthInvalidCredentialsException e){
+                    Toast.makeText(context, R.string.invalidCred, Toast.LENGTH_SHORT).show();
+                }catch (FirebaseAuthInvalidUserException e){
+                    Toast.makeText(context, R.string.UserNotExist, Toast.LENGTH_SHORT).show();
+                }catch (Exception e){
+                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
     public void loginUser(String email,String password,Context context){
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
