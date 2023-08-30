@@ -1,8 +1,8 @@
 package View;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatDrawableManager;
 import androidx.cardview.widget.CardView;
-import androidx.constraintlayout.widget.Constraints;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,16 +25,17 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import Model.Ingredient;
 import Model.Recipe;
+import Model.User;
 import Viewmodel.RecipeViewAdapters.IngrListAdapterwSLBtn;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
-import okhttp3.internal.cache.DiskLruCache;
 
 public class RecipeViewActivity extends AppCompatActivity {
     DatabaseReference databaseReference,databaseReferenceFav;
-    String dBImage, id;
+    String id;
     FirebaseDatabase database;
-    FirebaseAuth auth;
-    ArrayList<String> favlist,ownlist;
+    FirebaseAuth auth=FirebaseAuth.getInstance();
+    ArrayList<String> favlist=new ArrayList<>();
+    ArrayList<String> ownlist=new ArrayList<>();
     ImageView favView;
     Boolean portionsChanged;
 
@@ -47,6 +46,12 @@ public class RecipeViewActivity extends AppCompatActivity {
     IngrListAdapterwSLBtn ingredientAdapter;
     ArrayList<Ingredient> dBingredientList;
     String key;
+    ImageView edit;
+    User user=new User();
+    FirebaseUser fbUser;
+    Context context;
+    Handler userHandler=new Handler();
+
 
 
 
@@ -56,57 +61,72 @@ public class RecipeViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_recipe_view);
         database=FirebaseDatabase.getInstance();
         databaseReferenceFav = database.getReference("/Cookdome/Users");
-        getSelectedRecipe();
+        fbUser=auth.getCurrentUser();
+        id=fbUser.getUid();
+
+        context=getApplicationContext();
+        Runnable runnable=new Runnable() {
+            @Override
+            public void run() {
+                getSelectedRecipe();
+            }
+        };
+        Thread getRecipeThread=new Thread(runnable);
+        getRecipeThread.start();
+        edit=findViewById(R.id.edit);
+        edit.setOnClickListener(view -> {
+            Intent toEditIntent=new Intent(this, CreateRecipeActivity.class);
+            toEditIntent.putExtra("Edit",key);
+            startActivity(toEditIntent);
+            finish();
+        });
         favView=findViewById(R.id.favourite);
-        favView.setOnClickListener(view -> updateFavouritesList(selectedRecipe));
+        favView.setOnClickListener(view -> favlist=user.updateFav(selectedRecipe,context,favView,id,userHandler));
         portionsChanged=false;
         portionsCard=findViewById(R.id.portionsBtn);
         portionsText=findViewById(R.id.portions);
         portionsCard.setOnClickListener(view -> {
-                    AlertDialog.Builder portionsDialog=new AlertDialog.Builder(RecipeViewActivity.this);
-                    portionsDialog.setTitle(R.string.setPortions);
-                    final EditText editPortions=new EditText(RecipeViewActivity.this);
-                    editPortions.setInputType(InputType.TYPE_CLASS_NUMBER);
-                    editPortions.setBackground(getDrawable(R.drawable.lavender_border));
-                    editPortions.setHint(R.string.portions);
-                    editPortions.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                    portionsDialog.setView(editPortions);
-                    portionsDialog.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
-                        int newPortions;
-                        if(!editPortions.getText().toString().equals("")){
-                         newPortions=Integer.parseInt(editPortions.getText().toString());
-                            if(newPortions>0){
-                                portionsText.setText(String.valueOf(newPortions));
-                                for(Ingredient ingredient:dBingredientList){
-                                    double amount=ingredient.getAmount();
-                                    ingredient.setAmount(amount/portionsOrigin*newPortions);
-
-                                }
-                                ingredientAdapter.notifyDataSetChanged();
-                                portionsOrigin=newPortions;
-                                Toast.makeText(this, R.string.changesApplied, Toast.LENGTH_SHORT).show();
-                            }else {
-                                Toast.makeText(this, R.string.number2small, Toast.LENGTH_LONG).show();
-                            }
-                        }
-                        else{
-                            Toast.makeText(this, R.string.noChange, Toast.LENGTH_SHORT).show();
-                        }
-
-                    });
-                    portionsDialog.setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
-                        dialogInterface.cancel();
-                        Toast.makeText(this, R.string.noChange, Toast.LENGTH_SHORT).show();
-
-                    });
-                    portionsDialog.show();
-
+                    buildPortionsDialog();
                 });
+    }
 
+    public void buildPortionsDialog(){
+        AlertDialog.Builder portionsDialog=new AlertDialog.Builder(RecipeViewActivity.this);
+        portionsDialog.setTitle(R.string.setPortions);
+        final EditText editPortions=new EditText(RecipeViewActivity.this);
+        editPortions.setInputType(InputType.TYPE_CLASS_NUMBER);
+        editPortions.setBackground(getDrawable(R.drawable.lavender_border));
+        editPortions.setHint(R.string.portions);
+        editPortions.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        portionsDialog.setView(editPortions);
+        portionsDialog.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+            int newPortions;
+            if(!editPortions.getText().toString().equals("")){
+                newPortions=Integer.parseInt(editPortions.getText().toString());
+                if(newPortions>0){
+                    portionsText.setText(String.valueOf(newPortions));
+                    for(Ingredient ingredient:dBingredientList){
+                        double amount=ingredient.getAmount();
+                        ingredient.setAmount(amount/portionsOrigin*newPortions);
 
+                    }
+                    ingredientAdapter.notifyDataSetChanged();
+                    portionsOrigin=newPortions;
+                    Toast.makeText(this, R.string.changesApplied, Toast.LENGTH_SHORT).show();
+                }else {
+                    Toast.makeText(this, R.string.number2small, Toast.LENGTH_LONG).show();
+                }
+            }
+            else{
+                Toast.makeText(this, R.string.noChange, Toast.LENGTH_SHORT).show();
+            }
+        });
+        portionsDialog.setNegativeButton(R.string.cancel, (dialogInterface, i) -> {
+            dialogInterface.cancel();
+            Toast.makeText(this, R.string.noChange, Toast.LENGTH_SHORT).show();
 
-
-
+        });
+        portionsDialog.show();
     }
     private void getSelectedRecipe() {
         Intent previousIntent = getIntent();
@@ -115,17 +135,19 @@ public class RecipeViewActivity extends AppCompatActivity {
         key = previousIntent.getStringExtra("key");
         databaseReference.child(key).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                getUserFav();
-                getUserOwn();
+                favlist=user.getFav(context,fbUser,favView,key,userHandler);
+                user.getUserOwn(context,key,fbUser,edit,userHandler);
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    createRecipe(snapshot);
+                    selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
+                    portionsOrigin=selectedRecipe.getPortions();
                     setValues(selectedRecipe);
                 } else {
                     databaseReferenceFav.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();
-                            createRecipe(snapshot);
+                            selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
+                            portionsOrigin=selectedRecipe.getPortions();
                             setValues(selectedRecipe);
                         }
                     }).addOnFailureListener(e -> Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -133,42 +155,7 @@ public class RecipeViewActivity extends AppCompatActivity {
             }
         });
     }
-    private void createRecipe(DataSnapshot snapshot){
-        String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
-        String dBcat = String.valueOf(snapshot.child("category").getValue());
-        int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
-        int dBportions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
-        portionsOrigin=dBportions;
-        dBImage = snapshot.child("image").getValue(String.class);
 
-        ArrayList<String> dBstepList = new ArrayList<>();
-        String index="0";
-        for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
-            String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
-            dBstepList.add(stepTry);
-            int i=Integer.parseInt(index);
-            i++;
-            index= Integer.toString(i);
-        }
-        String index2="0";
-        ArrayList<String> dBdietList = new ArrayList<>();
-        for(DataSnapshot stepSS:snapshot.child("dietaryRec").getChildren()){
-            String dietTry=String.valueOf(snapshot.child("dietaryRec").child(index2).getValue());
-            int i=Integer.parseInt(index2);
-            i++;
-            index2= Integer.toString(i);
-            dBdietList.add(dietTry);
-        }
-        ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
-        for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
-            Double amount=IngSS.child("amount").getValue(Double.class);
-            String unit=IngSS.child("unit").getValue(String.class);
-            String ingredientName=IngSS.child("ingredientName").getValue(String.class);
-            Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-            dBIngredientList.add(ingredient);
-        }
-        selectedRecipe = new Recipe(key, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
-    }
 
     private void setValues (Recipe selectedRecipe) {
         TextView textView = findViewById(R.id.recipeName);
@@ -259,87 +246,6 @@ public class RecipeViewActivity extends AppCompatActivity {
         ViewGroup.LayoutParams stepparams=stepList.getLayoutParams();
         stepparams.height=totalHeight2+stepList.getDividerHeight()*stepcount;
         stepList.setLayoutParams(stepparams);
-
-    }
-    public void getUserFav() {
-        auth= FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(RecipeViewActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
-            Intent loginIntent = new Intent(RecipeViewActivity.this, LoginActivity.class);
-            startActivity(loginIntent);
-        } else {
-            id = currentUser.getUid();
-            favlist = new ArrayList<>();
-            databaseReferenceFav.child(id).child("Favourites").get().addOnCompleteListener(task -> {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    for (DataSnapshot dsS : snapshot.getChildren()) {
-                        String favkey = dsS.getKey();
-                        favlist.add(favkey);
-                    }
-                    if(favlist.contains(key)){
-                        favView.setImageResource(R.drawable.liked);
-                    }else{
-                        favView.setImageResource(R.drawable.unliked);
-                    }
-                }
-            }).addOnFailureListener(e -> Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
-    }
-    public void updateFavouritesList (Recipe recipe){
-        if (favlist.contains(recipe.getKey())) {
-            databaseReferenceFav.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    favView.setImageResource(R.drawable.unliked);
-                    favlist.remove(recipe.getKey());
-                    Toast.makeText(RecipeViewActivity.this, R.string.removed, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(RecipeViewActivity.this, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(e -> Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-        }else{
-            databaseReferenceFav.child(id).child("Favourites").child(recipe.getKey()).setValue(recipe).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    favView.setImageResource(R.drawable.liked);
-                    favlist.add(recipe.getKey());
-                    Toast.makeText(RecipeViewActivity.this, R.string.added, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(RecipeViewActivity.this, R.string.added, Toast.LENGTH_SHORT).show();
-                }
-            }).addOnFailureListener(e -> Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
-    }
-    public void getUserOwn(){
-        auth= FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-        ownlist=new ArrayList<>();
-        if (currentUser == null) {
-            Toast.makeText(RecipeViewActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
-            Intent loginIntent = new Intent(RecipeViewActivity.this, LoginActivity.class);
-            startActivity(loginIntent);
-        } else {
-            id = currentUser.getUid();
-            databaseReferenceFav.child(id).child("Own").get().addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    DataSnapshot snapshot=task.getResult();
-                    for(DataSnapshot ss:snapshot.getChildren()){
-                        String key1 =ss.getKey();
-                        ownlist.add(key1);
-                    }
-                    if(ownlist.contains(key)){
-                        ImageView edit=findViewById(R.id.edit);
-                        edit.setVisibility(View.VISIBLE);
-                        edit.setOnClickListener(view -> {
-                            Intent toEditIntent=new Intent(RecipeViewActivity.this, CreateRecipeActivity.class);
-                            toEditIntent.putExtra("Edit",key);
-                            startActivity(toEditIntent);
-                        });
-                    }
-
-                }
-            }).addOnFailureListener(e -> Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
     }
 
     @Override

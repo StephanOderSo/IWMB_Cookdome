@@ -1,7 +1,9 @@
 package View;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,6 +21,7 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -26,19 +29,25 @@ import com.squareup.picasso.Picasso;
 
 import java.util.Objects;
 
+import Model.User;
+
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     FloatingActionButton fab;
     DrawerLayout drawerLayout;
-    FirebaseAuth auth;
+    FirebaseAuth auth=FirebaseAuth.getInstance();
+    FirebaseUser fbuser;
+    Context context;
+    Handler userHandler=new Handler();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        fbuser=auth.getCurrentUser();
+        context=getApplicationContext();
 //Create-Recipe Button (Click leads to create recipe activity)
         fab=findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
@@ -81,42 +90,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         CardView restcard=findViewById(R.id.restcard);
         restcard.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, FilterActivity.class);
-            intent.putExtra("action","Resteverwertung");
+            intent.putExtra("action","action");
             startActivity(intent);
             finish();
         });
 //Burgermenu header
         ImageView profileImage=navView.getHeaderView(0).findViewById(R.id.profileImage);
         TextView nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
-        auth=FirebaseAuth.getInstance();
-        String id= "";
-        try{id= Objects.requireNonNull(auth.getCurrentUser()).getUid();
-        }catch (NullPointerException e){
-            Intent toLoginIntent=new Intent(MainActivity.this,LoginActivity.class);
-                    startActivity(toLoginIntent);
-        }
-        FirebaseDatabase database=FirebaseDatabase.getInstance();
-        DatabaseReference ref=database.getReference("/Cookdome/Users");
-        ref.child(id).get().addOnCompleteListener(task -> {
-            if (task.getResult().exists()) {
-                DataSnapshot snapshot = task.getResult();
-                // dBRecipeList= snapshot.getValue(listType);
-                String name = snapshot.child("name").getValue(String.class);
-                String url = snapshot.child("photo").getValue(String.class);
+        TextView mailHeader=navView.getHeaderView(0).findViewById(R.id.mailHeader);
 
-                Picasso.get()
-                        .load(url)
-                        .placeholder(R.drawable.camera)
-                        .resize(150, 150)
-                        .centerCrop()
-                        .into(profileImage);
-                nameHeader.setText(name);
-
-
-            } else {
-                Toast.makeText(MainActivity.this, "No userinformation found", Toast.LENGTH_SHORT).show();
+        Runnable runnable=new Runnable() {
+            @Override
+            public void run() {
+                User user= new User().getUserFromFirebase(context,fbuser,nameHeader,mailHeader,profileImage,userHandler);
             }
-        }).addOnFailureListener(e -> Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
+        };
+        Thread getUserThread=new Thread(runnable);
+        getUserThread.start();
     }
     @Override
     public void onBackPressed(){
@@ -130,9 +120,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        Log.d("menuitemid","worked");
         if(item.getItemId()==R.id.profile){
-            Log.d("menuitemid","profile");
             Intent editprofileIntent = new Intent(MainActivity.this, EditProfileActivity.class);
             startActivity(editprofileIntent);
         }

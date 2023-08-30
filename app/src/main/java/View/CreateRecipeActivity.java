@@ -403,7 +403,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    selectedRecipe=selectedRecipe.rebuildFromFirebase(key,snapshot,selectedRecipe);
+                    selectedRecipe=selectedRecipe.rebuildFromFirebase(snapshot);
                         setRecipeData(selectedRecipe);
                 } else {
                     Toast.makeText(CreateRecipeActivity.this, R.string.dataRetrFailed, Toast.LENGTH_SHORT).show();

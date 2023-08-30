@@ -32,7 +32,6 @@ public class EditProfileActivity extends AppCompatActivity {
     FirebaseUser fbuser;
     FirebaseAuth auth;
     FirebaseDatabase database;
-    String email;
     String newname,newemail,newpass,newpassrepeat;
     TextView nameView,emailView,passwordView;
     ImageButton editname,editemail,editpassword,namedone,emaildone,passworddone;

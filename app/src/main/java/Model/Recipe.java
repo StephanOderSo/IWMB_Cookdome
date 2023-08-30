@@ -59,16 +59,8 @@ public class Recipe {
         return key;
     }
 
-    public void setKey(String id) {
-        this.key=key;
-    }
-
     public Integer getPortions() {
         return portions;
-    }
-
-    public void setPortions(Integer portions) {
-        this.portions = portions;
     }
 
     public String getImage() {
@@ -83,49 +75,27 @@ public class Recipe {
         return recipeName;
     }
 
-    public void setRecipeName(String recipeName) {
-        this.recipeName = recipeName;
-    }
 
     public int getPrepTime() {
         return prepTime;
     }
 
-    public void setPrepTime(int prepTime) {
-        this.prepTime = prepTime;
-    }
 
     public ArrayList<Ingredient> getIngredientList() {
         return ingredientList;
     }
 
-    public void setIngredientList(ArrayList<Ingredient> ingredientList) {
-        this.ingredientList = ingredientList;
-    }
 
     public String getCategory() {
         return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 
     public ArrayList<String> getStepList() {
         return StepList;
     }
 
-
-    public void setStepList(ArrayList<String> stepList) {
-        StepList = stepList;
-    }
-
     public ArrayList<String> getDietaryRec() {
         return dietaryRec;
-    }
-
-    public void setDietaryRec(ArrayList<String> dietaryRec) {
-        this.dietaryRec = dietaryRec;
     }
     public void uploadToFirebase(Uri imageUri, Context context, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, String priv){
         StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images").child(imageUri.getLastPathSegment());
@@ -186,7 +156,9 @@ public class Recipe {
             }
         });
     }
-    public Recipe rebuildFromFirebase(String key, DataSnapshot snapshot, Recipe selectedRecipe) {
+    public Recipe rebuildFromFirebase( DataSnapshot snapshot) {
+        Recipe selectedRecipe=new Recipe();
+        String key = snapshot.child("key").getValue(String.class);
         String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
         String dBcat = String.valueOf(snapshot.child("category").getValue());
         int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
@@ -240,6 +212,7 @@ public class Recipe {
             }
         }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
     }
+
 
 }
 

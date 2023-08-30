@@ -43,20 +43,20 @@ public class LoginActivity extends AppCompatActivity {
         login=findViewById(R.id.loginBtn);
         login.setOnClickListener(view -> {
             if(enteremail.getText()==null){
-                Toast.makeText(LoginActivity.this, "Please enter email", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, R.string.enterMail, Toast.LENGTH_SHORT).show();
                 enteremail.requestFocus();
-                enteremail.setError("email required");
+                enteremail.setError(getResources().getString(R.string.enterMail));
             }  else if (enterpassword.getText()==null) {
-                Toast.makeText(LoginActivity.this, "Please enter Password", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, R.string.enterPassword, Toast.LENGTH_SHORT).show();
                 enterpassword.requestFocus();
-                enterpassword.setError("password required");
+                enterpassword.setError(getResources().getString(R.string.enterPassword));
             }else{
                 email=enteremail.getText().toString();
                 password=enterpassword.getText().toString();
                 if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(LoginActivity.this, "enter valid email", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, R.string.invalidMail, Toast.LENGTH_SHORT).show();
                     enteremail.requestFocus();
-                    enteremail.setError("enter valid email");
+                    enteremail.setError(getResources().getString(R.string.invalidMail));
                 }else{
                     loginUser(email,password);
                 }
@@ -84,22 +84,22 @@ public class LoginActivity extends AppCompatActivity {
         auth= FirebaseAuth.getInstance();
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
             if(task.isSuccessful()){
-                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, R.string.loginsuccess, Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             }else{
-                Toast.makeText(LoginActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, R.string.sthWrong, Toast.LENGTH_SHORT).show();
                 try{
                     throw Objects.requireNonNull(task.getException());
                 }catch (FirebaseAuthInvalidCredentialsException e){
-                    enteremail.setError("Invalid credentials");
-                    enterpassword.setError("Invalid credentials");
-                    Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                    enteremail.setError(getResources().getString(R.string.invalidCred));
+                    enterpassword.setError(getResources().getString(R.string.invalidCred));
+                    Toast.makeText(LoginActivity.this, getResources().getString(R.string.invalidCred), Toast.LENGTH_SHORT).show();
                 }catch (FirebaseAuthInvalidUserException e){
-                    enteremail.setError("User doesnt exist");
-                    enterpassword.setError("User doesnt exist");
-                    Toast.makeText(LoginActivity.this, "User doesnt exist", Toast.LENGTH_SHORT).show();
+                    enteremail.setError(getResources().getString(R.string.invalidCred));
+                    enterpassword.setError(getResources().getString(R.string.invalidCred));
+                    Toast.makeText(LoginActivity.this, getResources().getString(R.string.invalidCred), Toast.LENGTH_SHORT).show();
                 }catch (Exception e){
                     Toast.makeText(LoginActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 }

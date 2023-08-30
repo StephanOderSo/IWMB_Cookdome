@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,14 +25,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
 import View.LoginActivity;
 import View.MainActivity;
+import View.CreateRecipeActivity;
 
 public class User {
     String name,photo,email;
+    ArrayList<String> favourites, own;
     FirebaseDatabase database=FirebaseDatabase.getInstance();
     DatabaseReference userRef=database.getReference("/Cookdome/Users");
     FirebaseAuth auth=FirebaseAuth.getInstance();
@@ -121,9 +125,6 @@ public class User {
         }
         return user;
     }
-
-
-
     public void updateUserOnFirebase(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
             if(task1.isSuccessful()){
@@ -218,25 +219,156 @@ public class User {
             }
         });
     }
-    public void loginUser(String email,String password,Context context){
-        auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                Toast.makeText(context, R.string.loginsuccess, Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(context, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                context.startActivity(intent);
-            }else{
-                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-                try{
-                    throw Objects.requireNonNull(task.getException());
-                }catch (FirebaseAuthInvalidCredentialsException e){
-                    Toast.makeText(context, R.string.invalidCred, Toast.LENGTH_SHORT).show();
-                }catch (FirebaseAuthInvalidUserException e){
-                    Toast.makeText(context, R.string.UserNotExist, Toast.LENGTH_SHORT).show();
-                }catch (Exception e){
-                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+    public ArrayList<String> getFav(Context context,FirebaseUser currentUser,ImageView favView,String key,Handler handler) {
+        if (currentUser == null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
+                    Intent loginIntent = new Intent(context, LoginActivity.class);
+                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    context.startActivity(loginIntent);
                 }
-            }
-        });
+            });
+
+        } else {
+            String id = currentUser.getUid();
+            favourites = new ArrayList<>();
+            userRef.child(id).child("Favourites").get().addOnCompleteListener(task -> {
+                if (task.getResult().exists()) {
+                    DataSnapshot snapshot = task.getResult();
+                    for (DataSnapshot dsS : snapshot.getChildren()) {
+                        String favkey = dsS.getKey();
+                        favourites.add(favkey);
+                    }
+                    if(favourites.contains(key)){
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                favView.setImageResource(R.drawable.liked);
+                            }
+                        });
+
+                    }else{
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                favView.setImageResource(R.drawable.unliked);
+                            }
+                        });
+
+                    }
+                }
+            }).addOnFailureListener(e -> {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }return favourites;
+    }
+    public ArrayList<String> updateFav (Recipe recipe,Context context,ImageView favView,String id,Handler handler){
+        if (favourites.contains(recipe.getKey())) {
+            userRef.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    favourites.remove(recipe.getKey());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            favView.setImageResource(R.drawable.unliked);
+                            Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                } else {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                }
+            }).addOnFailureListener(e ->
+                    {handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();}});
+                    });
+        }else{
+            userRef.child(id).child("Favourites").child(recipe.getKey()).setValue(recipe).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+
+                    favourites.add(recipe.getKey());
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            favView.setImageResource(R.drawable.liked);
+                            Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                } else {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                }
+            }).addOnFailureListener(e -> {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+        }return favourites;
+    }
+    public void getUserOwn(Context context,String key,FirebaseUser currentUser,ImageView edit,Handler handler){
+        own =new ArrayList<>();
+        if (currentUser == null) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
+                    Intent loginIntent = new Intent(context, LoginActivity.class);
+                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    context.startActivity(loginIntent);
+                }
+            });
+
+        } else {
+            String id=currentUser.getUid();
+            userRef.child(id).child("Own").get().addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    DataSnapshot snapshot=task.getResult();
+                    for(DataSnapshot ss:snapshot.getChildren()){
+                        String key1 =ss.getKey();
+                        own.add(key1);
+                    }
+                    if(own.contains(key)){
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                edit.setVisibility(View.VISIBLE);
+                            }
+                        });
+                    }
+
+                }
+            }).addOnFailureListener(e ->{
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });});
+
+        }
     }
 }
