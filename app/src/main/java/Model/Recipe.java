@@ -1,12 +1,13 @@
 package Model;
 
 import static android.content.ContentValues.TAG;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.constraintlayout.widget.ConstraintLayoutStates;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.gms.tasks.Task;
@@ -18,10 +19,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
+
 import View.LoginActivity;
 import View.MainActivity;
 import View.RecipeViewActivity;
+import View.SearchActivity;
+import Viewmodel.CustomComparator;
+import Viewmodel.SearchAdapters.RecipeAdapter;
 
 public class Recipe {
     String key;
@@ -156,6 +163,7 @@ public class Recipe {
             }
         });
     }
+    //Mapping the firebase Data structure of a Recipe back to a recipe-Object
     public Recipe rebuildFromFirebase( DataSnapshot snapshot) {
         Recipe selectedRecipe=new Recipe();
         String key = snapshot.child("key").getValue(String.class);
@@ -212,7 +220,7 @@ public class Recipe {
             }
         }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
     }
-
+    //Retreive All recipes from firebase and display them
 
 }
 

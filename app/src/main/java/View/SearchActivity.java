@@ -2,8 +2,10 @@ package View;
 
 import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,7 +17,6 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -23,20 +24,18 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
-import java.util.Collections;
+
+import Model.Database;
 import Model.Ingredient;
 import Model.Recipe;
-import Viewmodel.CustomComparator;
+import Model.User;
 import Viewmodel.SearchAdapters.RecipeAdapter;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
 import Viewmodel.SearchAdapters.RecyclerAdapterDietary;
@@ -45,9 +44,6 @@ import Viewmodel.SearchAdapters.RecyclerAdapterLo;
 public class SearchActivity extends AppCompatActivity {
     RecyclerView recipeSearchView;
     FloatingActionButton filter;
-    DatabaseReference databaseReference, dbRefUsers;
-    FirebaseDatabase database;
-    FirebaseAuth auth;
     String id;
     ConstraintLayout filterContainer;
     SearchView searchView;
@@ -72,41 +68,41 @@ public class SearchActivity extends AppCompatActivity {
     public ArrayList<String> leftoverList = new ArrayList<>();
     ArrayList<Recipe>currentList;
     ArrayList<String>favlist,ownlist;
-    Recipe selectedRecipe;
+    User user=new User();
+    Context context;
+    Handler userHandler=new Handler();
+    Handler getListHandler=new Handler();
+    FirebaseUser fbUser;
+    Database database=new Database();
+    Thread listThread;
+    Intent previousIntent;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getUserFav();
         setContentView(R.layout.activity_search);
+        context=getApplicationContext();
+        fbUser=FirebaseAuth.getInstance().getCurrentUser();
+        recipeSearchView= findViewById(R.id.recipeSearchView);
+        GridLayoutManager layoutManagerSearch=new GridLayoutManager(this,2);
+        layoutManagerSearch.setOrientation(LinearLayoutManager.VERTICAL);
+        recipeSearchView.setLayoutManager(layoutManagerSearch);
+        if(fbUser!=null){
+            id=user.getUID(fbUser);
+        }else{
+            Intent loginIntent=new Intent(this,LoginActivity.class);
+            startActivity(loginIntent);
+            finish();
+        }
+        //Intentfilter to see which activity the user is coming from (source)
+        previousIntent = getIntent();
+        //Set up List depending on source
+        setUpList();
 
 
-//Intentfilter to see which activity the user is coming from
-        Intent previousIntent = getIntent();
-        //User selected a category
-        if (previousIntent.hasExtra("filter")) {
-            String catFilter = previousIntent.getStringExtra("filter");
-            selectedCategoryList.add(catFilter);
-            source="categories";
-            fetchList(catFilter, source);
-        }
-        //User clicked leftovers Button
-        if (previousIntent.hasExtra("action")) {
-            source="leftovers";
-            String catFilter="";
-            fetchList(catFilter,source);
-        }
-        //User clicked search Icon
-        if(previousIntent.hasExtra("search")) {
-            setupList();
-        }
-        //User clicked Own-recipes
-        if(previousIntent.hasExtra("select")){
-            source=previousIntent.getStringExtra("select");
-            if(source.equals("ownRecipes")){
-                getUserOwn();
-            }
-        }
 //Searchfilter
         filter = findViewById(R.id.filterBtn);
         filterContainer = findViewById(R.id.filterContainer);
@@ -133,7 +129,6 @@ public class SearchActivity extends AppCompatActivity {
                 valueView.setText(String.valueOf(progress));
                 time = progress;
             }
-
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
             }
@@ -285,86 +280,7 @@ public class SearchActivity extends AppCompatActivity {
             recipeAdapter.searchList(filteredList);
         }
     }
-    //retreive recipes from firebase that meet the source criteria
-    private void fetchList(String catFilter,String source){
-        currentList=new ArrayList<>();
-        recyclerconfig(currentList);
-        databaseReference.get().addOnCompleteListener(task -> {
-            if(task.isSuccessful()) {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    for(DataSnapshot dsS:snapshot.getChildren()){
-                        createRecipe(dsS);
-                        if(source.equals("categories")){
-                            if (selectedRecipe.getCategory().equals(catFilter)) {
-                                currentList.add(selectedRecipe);
-                            }
-                        }
-                        if(source.equals("leftovers")){
-                            Intent previousIntent=getIntent();
-                            leftoverList=previousIntent.getStringArrayListExtra("action");
-                            ArrayList<String>ingredientStringList=new ArrayList<>();
-                            for(Ingredient ingredient:selectedRecipe.getIngredientList()){
-                                String name=ingredient.getIngredientName();
-                                ingredientStringList.add(name);
-                            }
-                            if(ingredientStringList.containsAll(leftoverList)){
-                                Log.d(TAG, " applied");
 
-                            } else{
-                                continue;}
-                            currentList.add(selectedRecipe);
-                        }
-                    }
-                    Collections.sort(currentList,new CustomComparator());
-                    recipeAdapter.notifyItemInserted(currentList.indexOf(selectedRecipe));
-                    if(source.equals("categories")){
-                        if(currentList.isEmpty()){
-                            Toast.makeText(SearchActivity.this,R.string.noMatch,Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    if(source.equals("leftovers")){
-                        if(currentList.isEmpty()){
-                            Toast.makeText(SearchActivity.this,R.string.noMatch,Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    Toast.makeText(SearchActivity.this,R.string.retreived,Toast.LENGTH_SHORT).show();
-
-                }else{
-                    Toast.makeText(SearchActivity.this,R.string.dBEmpty,Toast.LENGTH_SHORT).show();
-                }
-            }else{
-                Toast.makeText(SearchActivity.this,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();
-            }
-            Log.d(TAG, currentList.toString());
-        });
-    }
-
-    //Retreive All recipes from firebase and display them
-    private void setupList() {
-        currentList=new ArrayList<>();
-        recyclerconfig(currentList);
-        databaseReference.get().addOnCompleteListener(task -> {
-            if(task.isSuccessful()) {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    for(DataSnapshot dsS:snapshot.getChildren()){
-                        createRecipe(dsS);
-                        currentList.add(selectedRecipe);
-                    }
-                    Collections.sort(currentList,new CustomComparator());
-                    recipeAdapter.notifyDataSetChanged();
-                    Toast.makeText(SearchActivity.this,R.string.retreived,Toast.LENGTH_SHORT).show();
-                }else{
-                    Toast.makeText(SearchActivity.this,R.string.dBEmpty,Toast.LENGTH_SHORT).show();
-                }
-            }else{
-                Toast.makeText(SearchActivity.this,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
-    }
     //Create a List of selected Checkbox Items and update the view accordingly
     //Category Checkboxes
 //Function to add checked items to List and remove them when theyre unchecked
@@ -397,7 +313,6 @@ public class SearchActivity extends AppCompatActivity {
             dietary.remove(getResources().getString(R.string.vegetar));
         }
         for(Recipe recipe:currentList){
-            Log.d("Recipe", recipe.getRecipeName());
             if (time != null){
                 if(recipe.getPrepTime()<=time){
                     Log.d("timeFilter", "applied");
@@ -433,142 +348,111 @@ public class SearchActivity extends AppCompatActivity {
         }else{
             recipeAdapter.searchList(filteredRecipes);
         }
+    }
 
-    }
-    //Generate a list of Keys to the Recipes the user liked
-    public void getUserFav() {
-        database = FirebaseDatabase.getInstance();
-        dbRefUsers = database.getReference("/Cookdome/Users");
-        auth= FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-//Send User to sign in if no current user found
-        if (currentUser == null) {
-            Toast.makeText(SearchActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
-            Intent loginIntent = new Intent(SearchActivity.this, LoginActivity.class);
-            startActivity(loginIntent);
-        }
-//Otherwise use UserID to find liked Recipes and add their keys to the List favlist
-        else {
-            id = currentUser.getUid();
-            favlist = new ArrayList<>();
-            dbRefUsers.child(id).child("Favourites").get().addOnCompleteListener(task -> {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    // dBRecipeList= snapshot.getValue(listType);
-                    for (DataSnapshot dsS : snapshot.getChildren()) {
-                        String favkey = dsS.getKey();
-                        favlist.add(favkey);
-                    }
-                    if(source!=null){
-                        if(source.equals("likedRecipes")){
-                            getOwnFavList(favlist);}
-                    }
-                }
-            }).addOnFailureListener(e -> Toast.makeText(SearchActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
-    }
-    //Creating a list of Keys to the Recipes the user created themselves
-    public void getUserOwn() {
-        database = FirebaseDatabase.getInstance();
-        dbRefUsers = database.getReference("/Cookdome/Users");
-        auth= FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-//Send to login if User not found
-        if (currentUser == null) {
-            Toast.makeText(SearchActivity.this, R.string.signedOut, Toast.LENGTH_SHORT).show();
-            Intent loginIntent = new Intent(SearchActivity.this, LoginActivity.class);
-            startActivity(loginIntent);
-//If user found, use userID to create the List of Keys from Firebase
-        } else {
-            id = currentUser.getUid();
-            ownlist = new ArrayList<>();
-            //In case of Issues with the download a case specific Error message is displayed to the user
-            dbRefUsers.child(id).child("Own").get().addOnCompleteListener(task -> {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    for (DataSnapshot dsS : snapshot.getChildren()) {
-                        String ownkey = dsS.getKey();
-                        ownlist.add(ownkey);
-                    }
-                    getOwnFavList(ownlist);
-                }
-            }).addOnFailureListener(e -> Toast.makeText(SearchActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
-    }
-    //Download and display a List of Recipes that the User either liked or created
-    public void getOwnFavList(ArrayList<String> keylist){
-        currentList=new ArrayList<>();
-        recyclerconfig(currentList);
-        for(String key:keylist){
-            databaseReference.child(key).get().addOnCompleteListener(task -> {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    createRecipe(snapshot);
-                    currentList.add(selectedRecipe);
-                    recipeAdapter.notifyItemInserted(currentList.indexOf(selectedRecipe));
-                }else{
-                    dbRefUsers.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
-                        if (task1.getResult().exists()) {
-                            DataSnapshot snapshot2 = task1.getResult();
-                            createRecipe(snapshot2);
-                            currentList.add(selectedRecipe);
-                            recipeAdapter.notifyItemInserted(currentList.indexOf(selectedRecipe));
+    public void setUpList(){
+        Runnable recyclerRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                    while(currentList==null){
+                        try {
+                            Log.d(TAG, "waiting");
+                            Thread.currentThread().wait();
+
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
-                    }).addOnFailureListener(e -> Toast.makeText(SearchActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-                }
-
-            }).addOnFailureListener(e2 -> Toast.makeText(SearchActivity.this, e2.getMessage(), Toast.LENGTH_SHORT).show());;
-        }
-    }
-
-    //Mapping the firebase Data structure of a Recipe back to a recipe-Object
-    public void createRecipe(DataSnapshot dsS){
-        String dBKey = dsS.child("key").getValue(String.class);
-        String dBrecipeName = dsS.child("recipeName").getValue(String.class);
-        String dBcat = String.valueOf(dsS.child("category").getValue());
-        int dBprepTime = Integer.parseInt(String.valueOf(dsS.child("prepTime").getValue()));
-        int dBportions = Integer.parseInt(String.valueOf(dsS.child("portions").getValue()));
-        String dBImage = dsS.child("image").getValue(String.class);
-        ArrayList<String> dBstepList = new ArrayList<>();
-        String index="0";
-        for(DataSnapshot stepSS:dsS.child("stepList").getChildren()){
-            String stepTry=String.valueOf(dsS.child("stepList").child(index).getValue());
-            dBstepList.add(stepTry);
-            int i=Integer.parseInt(index);
-            i++;
-            index= Integer.toString(i);
-        }
-        String index2="0";
-        ArrayList<String> dBdietList = new ArrayList<>();
-        for(DataSnapshot stepSS:dsS.child("dietRec").getChildren()){
-            String dietTry=String.valueOf(dsS.child("dietRec").child(index2).getValue());
-            int i=Integer.parseInt(index2);
-            i++;
-            index2= Integer.toString(i);
-            dBdietList.add(dietTry);
-        }
-        ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
-        for(DataSnapshot IngSS:dsS.child("ingredientList").getChildren()){
-            Double amount=IngSS.child("amount").getValue(Double.class);
-            if(amount==null){
-                amount=0.0;
+                    }}
+                getListHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        recyclerconfig(currentList);
+                    }
+                });
             }
-            String unit=IngSS.child("unit").getValue(String.class);
-            String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+        };
+        Thread recyclerThread=new Thread(recyclerRunnable);
+        recyclerThread.start();
+        Runnable ownRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                    while(ownlist==null){
+                        try {
+                            Log.d(TAG, "waiting");
+                            Thread.currentThread().wait();
 
-            Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-                dBIngredientList.add(ingredient);}
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id,getListHandler,recyclerThread);
+                }
+            }
+        };
+        Thread ownThread=new Thread(ownRunnable);
+        ownThread.start();
+        Runnable listRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                    while(favlist==null){
+                        try {
+                            Log.d(TAG, "waiting");
+                            Thread.currentThread().wait();
 
-        selectedRecipe = new Recipe(dBKey, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }}
+                Log.d("favs", favlist.toString());
+
+                // User clicked search Icon
+                if(previousIntent.hasExtra("search")) {
+                    currentList=database.getAllRecipes(context,getListHandler,recyclerThread);
+                }
+                //User selected a category
+                if (previousIntent.hasExtra("filter")) {
+                    String catFilter = previousIntent.getStringExtra("filter");
+                    selectedCategoryList.add(catFilter);
+                    source="categories";
+                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent,getListHandler,recyclerThread);
+                }
+                //User clicked leftovers Button
+                if (previousIntent.hasExtra("action")) {
+                    source="leftovers";
+                    String catFilter="";
+                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent,getListHandler,recyclerThread);
+                }
+                //User clicked Own-recipes/liked Recipes
+                if(previousIntent.hasExtra("select")){
+                    source=previousIntent.getStringExtra("select");
+
+                    if(source.equals("ownRecipes")){
+                        ownlist=user.getOwn(context,fbUser,userHandler,ownThread);
+                    }
+                    if(source.equals("likedRecipes")){
+                        currentList=database.getFavouriteOrOwnRecipes(favlist,context,id,getListHandler,recyclerThread);
+                    }
+                }
+            }
+        };
+        listThread=new Thread(listRunnable);
+        listThread.start();
+        Runnable favRunnable=new Runnable() {
+            @Override
+            public void run() {
+                Log.d("TAG", "run: favThread");
+                favlist=user.getFavourites(context,fbUser,userHandler,listThread);
+            }
+        };
+        Thread favThread=new Thread(favRunnable);
+        favThread.start();
+
     }
+
     //Configuring the Recyclerview to display the given List of Recipes
     public void recyclerconfig(ArrayList<Recipe> list){
-        recipeSearchView= findViewById(R.id.recipeSearchView);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        databaseReference = database.getReference("/Cookdome/Recipes");
-        GridLayoutManager layoutManagerSearch=new GridLayoutManager(this,2);
-        layoutManagerSearch.setOrientation(LinearLayoutManager.VERTICAL);
-        recipeSearchView.setLayoutManager(layoutManagerSearch);
         recipeAdapter = new RecipeAdapter(getApplicationContext(),list,favlist,id);
         recipeSearchView.setAdapter(recipeAdapter);
     }

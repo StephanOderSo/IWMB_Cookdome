@@ -3,9 +3,11 @@ package View;
 import static android.content.ContentValues.TAG;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
@@ -38,15 +40,20 @@ public class RegisterActivity extends AppCompatActivity {
     EditText nameView,emailView,passwordView,passwordRepeatView;
     Button registerBtn;
     DatabaseReference databaseReference;
-    ArrayList<String> dBUsers;
     ProgressBar progressBar;
-    private FirebaseAuth auth;
+     FirebaseAuth auth;
+     User user=new User();
+     Thread registerThread;
+     Handler handler=new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         databaseReference=database.getReference("Cookdome");
+        auth=FirebaseAuth.getInstance();
+
+        Context context=getApplicationContext();
         setContentView(R.layout.activity_register);
         nameView=findViewById(R.id.name);
         emailView=findViewById(R.id.email);
@@ -101,84 +108,30 @@ public class RegisterActivity extends AppCompatActivity {
             else if (passwordRepeatView.getText().toString().equals("")) {
                 Toast.makeText(RegisterActivity.this, R.string.repeatPasword, Toast.LENGTH_SHORT).show();
             } else {
-                Log.d(TAG, "step1");
                 name = nameView.getText().toString();
                 email = emailView.getText().toString();
                 password = passwordView.getText().toString();
                 String repeatPassword = passwordRepeatView.getText().toString();
                 if (!password.equals(repeatPassword)) {
-                    Toast.makeText(RegisterActivity.this, R.string.wrongPassword, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RegisterActivity.this, R.string.wrongPassword, Toast.LENGTH_LONG).show();
                     passwordView.clearComposingText();
                     passwordRepeatView.clearComposingText();
-                } else {
-                    checkUsers();
-                    if (dBUsers.contains(email)) {
-                        Toast.makeText(RegisterActivity.this, R.string.userExists, Toast.LENGTH_SHORT).show();
-                    } else {
-                        uploadToFirebase();
-                    }
+                } else{
+                    Runnable runnable=new Runnable() {
+                        @Override
+                        public void run() {
+                            user.uploadToFirebase(imageUri,name,email,password,context,handler);
+                        }
+                    };
+                    registerThread=new Thread(runnable);
+                    registerThread.start();
                 }
+
             }
         });
 
     }
 
-    private void checkUsers() {
-        dBUsers= new ArrayList<>();
 
 
-    }
-    public void saveUser(Uri uri){
-        auth= FirebaseAuth.getInstance();
-        auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d(TAG, "createUserWithEmail:success");
-                        FirebaseUser dBUser=auth.getCurrentUser();
-                        String userID=dBUser.getUid();
-                        User user=new User(name,uri.toString());
-                        databaseReference.child("Users").child(userID).setValue(user).addOnCompleteListener(task1 -> {
-                            if(task1.isSuccessful()){
-                                Toast.makeText(RegisterActivity.this,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                                //                                    dBUser.sendEmailVerification();
-                                Intent toLoginIntent=new Intent(getApplicationContext(), LoginActivity.class);
-                                toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                                toLoginIntent.putExtra("email",email);
-                                startActivity(toLoginIntent);
-                                finish();
-
-                            }
-                        }).addOnFailureListener(e -> Toast.makeText(RegisterActivity.this, e.getMessage(),Toast.LENGTH_SHORT));
-
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                        Toast.makeText(RegisterActivity.this, R.string.authFailed,
-                                Toast.LENGTH_SHORT).show();
-                        try{
-                            throw task.getException();
-                        }catch(Exception e){
-                            Log.d(TAG, e.getMessage());
-                        }
-                    }
-
-                });
-
-
-
-    }
-    public void uploadToFirebase(){
-        StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("UserImages").child(imageUri.getLastPathSegment());
-        storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-            Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-            while(!uriTask.isComplete());
-            Uri imageUriNew= uriTask.getResult();
-            saveUser(imageUriNew);
-        }).addOnFailureListener(e -> Toast.makeText(RegisterActivity.this, e.getMessage(),Toast.LENGTH_SHORT).show()).addOnProgressListener(snapshot -> {
-            long progress=(100*snapshot.getBytesTransferred())/snapshot.getTotalByteCount();
-            progressBar.setProgress(Integer.parseInt(Long.toString(progress)));
-        });
-
-    }
 }

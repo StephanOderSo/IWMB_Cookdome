@@ -69,7 +69,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         }
         holder.favourite.setOnClickListener(view -> {
             auth = FirebaseAuth.getInstance();
-            addToFavouritesList(recipe, holder.favourite);
+            addToFavouritesList(recipe, holder.favourite, recipe.getKey());
         });
         StringBuilder dietaryTxt = new StringBuilder();
         if (recipe.getDietaryRec() == null) {
@@ -140,12 +140,12 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         list = searchList;
         notifyDataSetChanged();
     }
-    public void addToFavouritesList (Recipe recipe, ImageView view){
-        Log.d(TAG, view.getContentDescription().toString());
+    public void addToFavouritesList (Recipe recipe, ImageView view,String key){
                     if (view.getContentDescription().equals(liked)) {
                         databaseReference.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                favlist.remove(id);
+                                favlist.remove(key);
+                                Log.d(TAG, favlist.toString());
                                 view.setContentDescription(unliked);
                                 view.setImageResource(R.drawable.unliked);
                                 Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
@@ -156,7 +156,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
                     }else{
                         databaseReference.child(id).child("Favourites").child(recipe.getKey()).setValue(recipe).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
-                                favlist.add(id);
+                                favlist.add(key);
                                 view.setContentDescription(liked);
                                 view.setImageResource(R.drawable.liked);
                                 Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
@@ -165,6 +165,10 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
                             }
                         }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
                     }
+    }
+    public  void changeList(ArrayList <Recipe> list){
+        this.list=list;
+        notifyDataSetChanged();
     }
 }
 

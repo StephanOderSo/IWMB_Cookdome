@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,6 +22,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -31,7 +32,6 @@ import java.util.Objects;
 
 import View.LoginActivity;
 import View.MainActivity;
-import View.CreateRecipeActivity;
 
 public class User {
     String name,photo,email;
@@ -72,12 +72,54 @@ public class User {
         return photo;
     }
 
+    public synchronized void uploadToFirebase(Uri imageUri,String name,String email,String password,Context context,Handler handler){
+        StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("UserImages").child(imageUri.getLastPathSegment());
+        storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
+            Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
+            while(!uriTask.isComplete());
+            Uri imageUriNew= uriTask.getResult();
+            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener( task -> {
+                        if (task.isSuccessful()) {
+                            User user=new User(name,imageUriNew.toString());
+                            String userID=setUID(email);
+                            userRef.child(userID).setValue(user).addOnCompleteListener(task1 -> {
+                                if(task1.isSuccessful()){
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
+                                            //dBUser.sendEmailVerification();
+                                            Intent toLoginIntent=new Intent(context, LoginActivity.class);
+                                            toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                                            toLoginIntent.putExtra("email",email);
+                                            context.startActivity(toLoginIntent);
+                                        }
+                                    });
+                                }
+                            }).addOnFailureListener(e -> {handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});
+                            });
+                        }
+            }).addOnFailureListener(e -> {handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});
+            });
+        }).addOnFailureListener(e -> {handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});
+        });
+    }
+
 
     public User getUserFromFirebase(Context context, FirebaseUser fbuser, TextView nameView, TextView emailView, ImageView imageView, Handler userHandler){
 
         if(fbuser!=null) {
-            String id = fbuser.getUid();
             email = fbuser.getEmail();
+            String id = getUID(fbuser);
             userRef.child(id).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
@@ -130,7 +172,7 @@ public class User {
             if(task1.isSuccessful()){
                 Log.d("TAG", "login success");
                 if(fbuser!=null){
-                    String id=fbuser.getUid();
+                    String id=getUID(fbuser);
                     Intent toMainIntent=new Intent(context, MainActivity.class);
                     toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     HashMap<String,Object> update=new HashMap<>();
@@ -219,7 +261,9 @@ public class User {
             }
         });
     }
-    public ArrayList<String> getFav(Context context,FirebaseUser currentUser,ImageView favView,String key,Handler handler) {
+    //Generate a list of Keys to the Recipes the user liked
+    public synchronized ArrayList<String> getFavourites(Context context, FirebaseUser currentUser, Handler handler,Thread thread) {
+        //Send User to sign in if no current user found
         if (currentUser == null) {
             handler.post(new Runnable() {
                 @Override
@@ -230,9 +274,9 @@ public class User {
                     context.startActivity(loginIntent);
                 }
             });
-
+//Otherwise use UserID to find liked Recipes and add their keys to the List favlist
         } else {
-            String id = currentUser.getUid();
+            String id =getUID(currentUser);
             favourites = new ArrayList<>();
             userRef.child(id).child("Favourites").get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
@@ -241,35 +285,34 @@ public class User {
                         String favkey = dsS.getKey();
                         favourites.add(favkey);
                     }
-                    if(favourites.contains(key)){
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                favView.setImageResource(R.drawable.liked);
-                            }
-                        });
+                    synchronized (thread){
+                        thread.notify();
+                    }
 
-                    }else{
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                favView.setImageResource(R.drawable.unliked);
-                            }
-                        });
-
+                    //checkFav(favView,key,handler);
+                }else{
+                    Log.d("TAG", "noFavourites yet");
+                    favourites=new ArrayList<>();
+                    synchronized (thread){
+                        thread.notify();
                     }
                 }
             }).addOnFailureListener(e -> {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+                        Intent toMainIntent=new Intent(context,MainActivity.class);
+                        toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        context.startActivity(toMainIntent);
                     }
                 });
             });
         }return favourites;
     }
-    public ArrayList<String> updateFav (Recipe recipe,Context context,ImageView favView,String id,Handler handler){
+
+    public synchronized ArrayList<String> updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser currentUser, Handler handler){
+        String id=getUID(currentUser);
         if (favourites.contains(recipe.getKey())) {
             userRef.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
@@ -279,8 +322,7 @@ public class User {
                         public void run() {
                             favView.setImageResource(R.drawable.unliked);
                             Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                        }});
 
                 } else {
                     handler.post(new Runnable() {
@@ -298,9 +340,8 @@ public class User {
                             Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();}});
                     });
         }else{
-            userRef.child(id).child("Favourites").child(recipe.getKey()).setValue(recipe).addOnCompleteListener(task -> {
+            userRef.child(id).child("Favourites").child(recipe.getKey()).setValue(recipe.getKey()).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
-
                     favourites.add(recipe.getKey());
                     handler.post(new Runnable() {
                         @Override
@@ -329,8 +370,10 @@ public class User {
             });
         }return favourites;
     }
-    public void getUserOwn(Context context,String key,FirebaseUser currentUser,ImageView edit,Handler handler){
+    //Creating a list of Keys to the Recipes the user created themselves
+    public synchronized ArrayList<String> getOwn(Context context, FirebaseUser currentUser, Handler handler,Thread thread){
         own =new ArrayList<>();
+        //Send to login if User not found
         if (currentUser == null) {
             handler.post(new Runnable() {
                 @Override
@@ -339,36 +382,43 @@ public class User {
                     Intent loginIntent = new Intent(context, LoginActivity.class);
                     loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     context.startActivity(loginIntent);
-                }
-            });
-
+                }});
+//If user found, use userID to create the List of Keys from Firebase
         } else {
-            String id=currentUser.getUid();
+            String id=getUID(currentUser);
+            //In case of Issues with the download a case specific Error message is displayed to the user
             userRef.child(id).child("Own").get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     DataSnapshot snapshot=task.getResult();
                     for(DataSnapshot ss:snapshot.getChildren()){
                         String key1 =ss.getKey();
                         own.add(key1);
+                    } synchronized (thread){
+                        Log.d("TAG", own.toString());
+                        thread.notify();
                     }
-                    if(own.contains(key)){
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                edit.setVisibility(View.VISIBLE);
-                            }
-                        });
-                    }
-
                 }
             }).addOnFailureListener(e ->{
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    });});
-
-        }
+                        }});});
+        }return own;
+    }
+    public String setUID(String email){
+        email=email.replace(".","*");
+        email=email.replace("$","*");
+        email=email.replace("[","*");
+        email=email.replace("]","*");
+        return email;
+    }
+    public String getUID(FirebaseUser fbuser){
+        String email=fbuser.getEmail();
+        email=email.replace(".","*");
+        email=email.replace("$","*");
+        email=email.replace("[","*");
+        email=email.replace("]","*");
+        return email;
     }
 }

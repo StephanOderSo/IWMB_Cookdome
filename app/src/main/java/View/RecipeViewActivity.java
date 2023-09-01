@@ -1,9 +1,12 @@
 package View;
+import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -31,11 +34,10 @@ import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
 
 public class RecipeViewActivity extends AppCompatActivity {
     DatabaseReference databaseReference,databaseReferenceFav;
-    String id;
     FirebaseDatabase database;
     FirebaseAuth auth=FirebaseAuth.getInstance();
-    ArrayList<String> favlist=new ArrayList<>();
-    ArrayList<String> ownlist=new ArrayList<>();
+    ArrayList<String> favlist;
+    ArrayList<String> ownlist;
     ImageView favView;
     Boolean portionsChanged;
 
@@ -51,6 +53,8 @@ public class RecipeViewActivity extends AppCompatActivity {
     FirebaseUser fbUser;
     Context context;
     Handler userHandler=new Handler();
+    String source="RecipeView";
+    Thread checkFavThread;
 
 
 
@@ -62,9 +66,28 @@ public class RecipeViewActivity extends AppCompatActivity {
         database=FirebaseDatabase.getInstance();
         databaseReferenceFav = database.getReference("/Cookdome/Users");
         fbUser=auth.getCurrentUser();
-        id=fbUser.getUid();
 
         context=getApplicationContext();
+        Runnable checkFavRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                    while(favlist==null){
+                        try {
+                            Log.d(TAG, "waiting");
+                            Thread.currentThread().wait();
+
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }}
+                checkFav();
+            }
+        };
+        checkFavThread=new Thread(checkFavRunnable);
+        checkFavThread.start();
+
+
         Runnable runnable=new Runnable() {
             @Override
             public void run() {
@@ -81,7 +104,7 @@ public class RecipeViewActivity extends AppCompatActivity {
             finish();
         });
         favView=findViewById(R.id.favourite);
-        favView.setOnClickListener(view -> favlist=user.updateFav(selectedRecipe,context,favView,id,userHandler));
+        favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser,userHandler));
         portionsChanged=false;
         portionsCard=findViewById(R.id.portionsBtn);
         portionsText=findViewById(R.id.portions);
@@ -135,14 +158,24 @@ public class RecipeViewActivity extends AppCompatActivity {
         key = previousIntent.getStringExtra("key");
         databaseReference.child(key).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                favlist=user.getFav(context,fbUser,favView,key,userHandler);
-                user.getUserOwn(context,key,fbUser,edit,userHandler);
+                favlist=user.getFavourites(context,fbUser,userHandler,checkFavThread);
+                ownlist=user.getOwn(context,fbUser,userHandler,Thread.currentThread());
+                while(favlist==null){}
+                if(ownlist.contains(key)){
+                    userHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            edit.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
                     portionsOrigin=selectedRecipe.getPortions();
                     setValues(selectedRecipe);
                 } else {
+                    String id=user.getUID(fbUser);
                     databaseReferenceFav.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();
@@ -155,7 +188,23 @@ public class RecipeViewActivity extends AppCompatActivity {
             }
         });
     }
-
+    public void checkFav(){
+        if(favlist.contains(key)){
+            userHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    favView.setImageResource(R.drawable.liked);
+                }
+            });
+        }else{
+            userHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    favView.setImageResource(R.drawable.unliked);
+                }
+            });
+        }
+    }
 
     private void setValues (Recipe selectedRecipe) {
         TextView textView = findViewById(R.id.recipeName);
