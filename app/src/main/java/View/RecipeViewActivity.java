@@ -175,7 +175,7 @@ public class RecipeViewActivity extends AppCompatActivity {
                     portionsOrigin=selectedRecipe.getPortions();
                     setValues(selectedRecipe);
                 } else {
-                    String id=user.getUID(fbUser);
+                    String id=user.getUID(fbUser,context);
                     databaseReferenceFav.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();

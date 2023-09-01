@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +37,7 @@ import View.MainActivity;
 public class User {
     String name,photo,email;
     ArrayList<String> favourites, own;
+    ArrayList<Ingredient>shoppingList=new ArrayList<>();
     FirebaseDatabase database=FirebaseDatabase.getInstance();
     DatabaseReference userRef=database.getReference("/Cookdome/Users");
     FirebaseAuth auth=FirebaseAuth.getInstance();
@@ -116,10 +118,10 @@ public class User {
 
 
     public User getUserFromFirebase(Context context, FirebaseUser fbuser, TextView nameView, TextView emailView, ImageView imageView, Handler userHandler){
-
         if(fbuser!=null) {
             email = fbuser.getEmail();
-            String id = getUID(fbuser);
+            String id = getUID(fbuser,context);
+            Log.d("TAG", id);
             userRef.child(id).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
@@ -172,7 +174,7 @@ public class User {
             if(task1.isSuccessful()){
                 Log.d("TAG", "login success");
                 if(fbuser!=null){
-                    String id=getUID(fbuser);
+                    String id=getUID(fbuser,context);
                     Intent toMainIntent=new Intent(context, MainActivity.class);
                     toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     HashMap<String,Object> update=new HashMap<>();
@@ -276,7 +278,7 @@ public class User {
             });
 //Otherwise use UserID to find liked Recipes and add their keys to the List favlist
         } else {
-            String id =getUID(currentUser);
+            String id =getUID(currentUser,context);
             favourites = new ArrayList<>();
             userRef.child(id).child("Favourites").get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
@@ -312,7 +314,7 @@ public class User {
     }
 
     public synchronized ArrayList<String> updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser currentUser, Handler handler){
-        String id=getUID(currentUser);
+        String id=getUID(currentUser,context);
         if (favourites.contains(recipe.getKey())) {
             userRef.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
@@ -385,7 +387,7 @@ public class User {
                 }});
 //If user found, use userID to create the List of Keys from Firebase
         } else {
-            String id=getUID(currentUser);
+            String id=getUID(currentUser,context);
             //In case of Issues with the download a case specific Error message is displayed to the user
             userRef.child(id).child("Own").get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -413,12 +415,88 @@ public class User {
         email=email.replace("]","*");
         return email;
     }
-    public String getUID(FirebaseUser fbuser){
-        String email=fbuser.getEmail();
-        email=email.replace(".","*");
-        email=email.replace("$","*");
-        email=email.replace("[","*");
-        email=email.replace("]","*");
+    public String getUID(FirebaseUser fbuser,Context context){
+        String email=new String();
+        if(fbuser!=null){
+            email=fbuser.getEmail();
+            email=email.replace(".","*");
+            email=email.replace("$","*");
+            email=email.replace("[","*");
+            email=email.replace("]","*");
+            Log.d("TAG", email);
+        }else{
+            loginIntent(context);
+        }
         return email;
+    }
+    public void setShoppingList(Context context,String uID,Handler handler,Thread thread,Ingredient ingredient){
+        userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).get().addOnCompleteListener(task -> {
+            if (task.getResult().exists()) {
+                DataSnapshot snapshot = task.getResult();
+                Double amount=snapshot.child("amount").getValue(Double.class);
+                String unit=snapshot.child("unit").getValue(String.class);
+                String name=snapshot.child("ingredientName").getValue(String.class);
+                if (amount != null) {
+                    amount += ingredient.getAmount();}else{
+                    amount=ingredient.getAmount();
+                }
+                Ingredient updatedIngredient=new Ingredient(amount,unit,name);
+                userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(updatedIngredient).addOnCompleteListener(task12 -> {
+                    if(task12.isSuccessful()){
+                        synchronized (thread){
+                            thread.notify();
+                        }
+                    }
+                }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
+
+            }else{
+                userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(ingredient).addOnCompleteListener(task1 -> {
+                    if(task1.isSuccessful()){
+                        synchronized (thread){
+                            thread.notify();
+                        }
+                    }
+                }).addOnFailureListener(e -> {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                });
+
+            }
+        });
+    }
+    public synchronized ArrayList<Ingredient>getShoppingList(Context context,String uID,Thread thread){
+        userRef.child(uID).child("Shoppinglist").get().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                DataSnapshot snapshot=task.getResult();
+                for(DataSnapshot IngSS:snapshot.getChildren()){
+                    Double amount=IngSS.child("amount").getValue(Double.class);
+                    String unit=IngSS.child("unit").getValue(String.class);
+                    String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+                    Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
+                    shoppingList.add(ingredient);
+                    Log.d("ingredient", ingredient.toString());}
+            } synchronized (thread){
+                thread.notify();
+            }
+
+        }).addOnFailureListener(e -> {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+            synchronized (thread){
+                thread.notify();
+            }
+        });
+
+        return shoppingList;
+    }
+    public void loginIntent(Context context){
+        Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
+        Intent loginIntent = new Intent(context, LoginActivity.class);
+        loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(loginIntent);
     }
 }

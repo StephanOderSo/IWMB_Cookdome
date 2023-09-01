@@ -1,6 +1,11 @@
 package Viewmodel.RecipeViewAdapters;
 
+import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
+
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -22,12 +28,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 
 import Model.Ingredient;
+import Model.User;
 
 
 public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
-    FirebaseDatabase database=FirebaseDatabase.getInstance();
-    DatabaseReference dbRefUsers;
-    FirebaseAuth auth;
+    FirebaseAuth auth=FirebaseAuth.getInstance();
     public IngrListAdapterwSLBtn(@NonNull Context context, int resource, @NonNull ArrayList<Ingredient> ingredientList) {
         super(context, resource,ingredientList);
     }
@@ -56,45 +61,45 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
     }
 
     public void addToSList(Ingredient ingredient,ImageButton imageButton){
-        dbRefUsers =database.getReference("Cookdome/Users");
-        auth=FirebaseAuth.getInstance();
-        FirebaseUser user=auth.getCurrentUser();
-        String uID= user.getUid();
-        dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).get().addOnCompleteListener(task -> {
-            if (task.getResult().exists()) {
-                DataSnapshot snapshot = task.getResult();
-                Double amount=snapshot.child("amount").getValue(Double.class);
-                String unit=snapshot.child("unit").getValue(String.class);
-                String name=snapshot.child("ingredientName").getValue(String.class);
-                    try{
-                    amount+=ingredient.getAmount();}
-                    catch (NullPointerException e){
-                        amount=ingredient.getAmount();
-                    }
-                Ingredient updatedIngredient=new Ingredient(amount,unit,name);
-                dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(updatedIngredient).addOnCompleteListener(task12 -> {
-                    if(task12.isSuccessful()){
-                        imageButton.setImageResource(R.drawable.tick);
-                        imageButton.setBackground(null);
-                        imageButton.setBackgroundColor(0);
-                        Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
-                    }
-                }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+        Context context=getContext();
+        FirebaseUser fbUser=auth.getCurrentUser();
+        User user=new User();
+        String uID= user.getUID(fbUser,context);
+        Handler handler=new Handler();
+        Runnable viewRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
 
-            }else{
-                dbRefUsers.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(ingredient).addOnCompleteListener(task1 -> {
-                    if(task1.isSuccessful()){
-                        Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
-                        imageButton.setImageResource(R.drawable.tick);
-                        imageButton.setBackground(null);
-                        imageButton.setBackgroundColor(0);
+                        try {
+                            Log.d(TAG, "waiting");
+                            Thread.currentThread().wait();
+
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                            imageButton.setImageResource(R.drawable.tick);
+                            imageButton.setBackground(null);
+                            imageButton.setBackgroundColor(0);
+                            Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
             }
-        });
-    }
-    public void changePortions(double portions){
-
+        };
+        Thread viewThread=new Thread(viewRunnable);
+        viewThread.start();
+        Runnable slRunnable=new Runnable() {
+            @Override
+            public void run() {
+                user.setShoppingList(context,uID,handler,viewThread,ingredient);
+            }
+        };
+        Thread slThread=new Thread(slRunnable);
+        slThread.start();
     }
 }

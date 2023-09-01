@@ -90,13 +90,8 @@ public class SearchActivity extends AppCompatActivity {
         GridLayoutManager layoutManagerSearch=new GridLayoutManager(this,2);
         layoutManagerSearch.setOrientation(LinearLayoutManager.VERTICAL);
         recipeSearchView.setLayoutManager(layoutManagerSearch);
-        if(fbUser!=null){
-            id=user.getUID(fbUser);
-        }else{
-            Intent loginIntent=new Intent(this,LoginActivity.class);
-            startActivity(loginIntent);
-            finish();
-        }
+        id=user.getUID(fbUser,context);
+
         //Intentfilter to see which activity the user is coming from (source)
         previousIntent = getIntent();
         //Set up List depending on source
@@ -448,7 +443,6 @@ public class SearchActivity extends AppCompatActivity {
         };
         Thread favThread=new Thread(favRunnable);
         favThread.start();
-
     }
 
     //Configuring the Recyclerview to display the given List of Recipes

@@ -1,7 +1,11 @@
 package View;
 
+import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
+
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
@@ -20,59 +24,70 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 
 import Model.Ingredient;
+import Model.User;
 import Viewmodel.ShoppinglistAdapter;
 
 public class ShoppinglistActivity extends AppCompatActivity {
-    FirebaseDatabase database=FirebaseDatabase.getInstance();
-    DatabaseReference dbRefUsers;
     ArrayList<Ingredient> shoppingList;
-
-
+    User user=new User();
+    String uID;
+    Context context;
+    Handler handler=new Handler();
+    ListView shoppinglistView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shoppinglist);
         FirebaseAuth auth;
+        context=getApplicationContext();
         auth= FirebaseAuth.getInstance();
-        FirebaseUser user=auth.getCurrentUser();
-        String uID="";
-        try{
-            uID=user.getUid();
-        }catch(NullPointerException e){
-            Toast.makeText(this, R.string.signedOut, Toast.LENGTH_SHORT).show();
-            Intent i=new Intent(ShoppinglistActivity.this,LoginActivity.class);
-            startActivity(i);
-        }
+        FirebaseUser fbUser=auth.getCurrentUser();
+        uID=user.getUID(fbUser,context);
 
-        dbRefUsers =database.getReference("Cookdome/Users");
-        shoppingList=new ArrayList<>();
-        ShoppinglistAdapter adapter=new ShoppinglistAdapter(getApplicationContext(),0,shoppingList);
-        ListView shoppinglistView=findViewById(R.id.shoppinglistView);
+        setupList();
+        shoppinglistView=findViewById(R.id.shoppinglistView);
         shoppinglistView.setBackground(null);
-        shoppinglistView.setAdapter(adapter);
-        dbRefUsers.child(uID).child("Shoppinglist").get().addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                DataSnapshot snapshot=task.getResult();
-                for(DataSnapshot IngSS:snapshot.getChildren()){
-                    Double amount=IngSS.child("amount").getValue(Double.class);
-                    String unit=IngSS.child("unit").getValue(String.class);
-                    String ingredientName=IngSS.child("ingredientName").getValue(String.class);
-                    Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-                    shoppingList.add(ingredient);
-                    Log.d("ingredient", ingredient.toString());}
-                adapter.notifyDataSetChanged();
-                if(shoppingList.isEmpty()){
-                    TextView slEmpty=findViewById(R.id.shoppinngListEmpty);
-                    shoppinglistView.setVisibility(View.GONE);
-                    slEmpty.setVisibility(View.VISIBLE);
+    }
 
+    public void setupList(){
+        Runnable setListRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                    while(shoppingList==null){
+                        try {
+                            Log.d(TAG, "waiting");
+                            Thread.currentThread().wait();
 
-                }
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }}
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        ShoppinglistAdapter adapter=new ShoppinglistAdapter(getApplicationContext(),0,shoppingList);
+                        shoppinglistView.setAdapter(adapter);
+                        if(shoppingList.isEmpty()){
 
+                            TextView slEmpty=findViewById(R.id.shoppinngListEmpty);
+                            shoppinglistView.setVisibility(View.GONE);
+                            slEmpty.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
             }
-
-        }).addOnFailureListener(e -> Toast.makeText(ShoppinglistActivity.this, e.getMessage(), Toast.LENGTH_LONG).show());
-
+        };
+        Thread setListThread=new Thread(setListRunnable);
+        setListThread.start();
+        Runnable getListRunnable=new Runnable() {
+            @Override
+            public void run() {
+                shoppingList=user.getShoppingList(context,uID,setListThread);
+            }
+        };
+        Thread getListThread=new Thread(getListRunnable);
+        getListThread.start();
     }
 }
