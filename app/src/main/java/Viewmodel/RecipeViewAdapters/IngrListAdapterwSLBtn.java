@@ -3,7 +3,6 @@ package Viewmodel.RecipeViewAdapters;
 import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,16 +13,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -64,7 +59,6 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
         Context context=getContext();
         FirebaseUser fbUser=auth.getCurrentUser();
         User user=new User();
-        String uID= user.getUID(fbUser,context);
         Handler handler=new Handler();
         Runnable viewRunnable=new Runnable() {
             @Override
@@ -96,7 +90,7 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
         Runnable slRunnable=new Runnable() {
             @Override
             public void run() {
-                user.setShoppingList(context,uID,handler,viewThread,ingredient);
+                user.addToShoppingList(context,fbUser,handler,viewThread,ingredient);
             }
         };
         Thread slThread=new Thread(slRunnable);

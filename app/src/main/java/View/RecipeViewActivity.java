@@ -104,7 +104,7 @@ public class RecipeViewActivity extends AppCompatActivity {
             finish();
         });
         favView=findViewById(R.id.favourite);
-        favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser,userHandler));
+        favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser,userHandler,favlist));
         portionsChanged=false;
         portionsCard=findViewById(R.id.portionsBtn);
         portionsText=findViewById(R.id.portions);

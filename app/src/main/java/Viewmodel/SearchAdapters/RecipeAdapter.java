@@ -6,6 +6,7 @@ import static android.view.View.GONE;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
@@ -24,13 +26,14 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import Model.Recipe;
+import Model.User;
 import View.RecipeViewActivity;
 import View.RecyclerViewHolder;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     private final Context context;
     private ArrayList<Recipe> list;
-    FirebaseAuth auth;
+    FirebaseAuth auth=FirebaseAuth.getInstance();
     FirebaseDatabase database=FirebaseDatabase.getInstance();
     DatabaseReference databaseReference;
     ArrayList<String>favlist;
@@ -55,6 +58,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     public void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position) {
         database = FirebaseDatabase.getInstance();
         databaseReference=database.getReference("/Cookdome/Users");
+        FirebaseUser fbUser=auth.getCurrentUser();
+        Handler handler=new Handler();
         Recipe recipe = list.get(position);
         holder.recipe_name.setText(recipe.getRecipeName());
         holder.time_show.setImageResource(R.drawable.time_white);
@@ -69,7 +74,16 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         }
         holder.favourite.setOnClickListener(view -> {
             auth = FirebaseAuth.getInstance();
-            addToFavouritesList(recipe, holder.favourite, recipe.getKey());
+            User user=new User();
+            Runnable favRunnable=new Runnable() {
+                @Override
+                public void run() {
+                    user.updateFavourites(recipe,context,holder.favourite,fbUser,handler,favlist);
+                }
+            };
+            Thread favThread=new Thread(favRunnable);
+            favThread.start();
+
         });
         StringBuilder dietaryTxt = new StringBuilder();
         if (recipe.getDietaryRec() == null) {
@@ -140,32 +154,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         list = searchList;
         notifyDataSetChanged();
     }
-    public void addToFavouritesList (Recipe recipe, ImageView view,String key){
-                    if (view.getContentDescription().equals(liked)) {
-                        databaseReference.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                favlist.remove(key);
-                                Log.d(TAG, favlist.toString());
-                                view.setContentDescription(unliked);
-                                view.setImageResource(R.drawable.unliked);
-                                Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
-                    }else{
-                        databaseReference.child(id).child("Favourites").child(recipe.getKey()).setValue(recipe).addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                favlist.add(key);
-                                view.setContentDescription(liked);
-                                view.setImageResource(R.drawable.liked);
-                                Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-                            }
-                        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
-                    }
-    }
+
     public  void changeList(ArrayList <Recipe> list){
         this.list=list;
         notifyDataSetChanged();

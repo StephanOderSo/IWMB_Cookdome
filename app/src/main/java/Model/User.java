@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -121,7 +120,6 @@ public class User {
         if(fbuser!=null) {
             email = fbuser.getEmail();
             String id = getUID(fbuser,context);
-            Log.d("TAG", id);
             userRef.child(id).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
@@ -172,8 +170,6 @@ public class User {
     public void updateUserOnFirebase(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
             if(task1.isSuccessful()){
-                Log.d("TAG", "login success");
-                if(fbuser!=null){
                     String id=getUID(fbuser,context);
                     Intent toMainIntent=new Intent(context, MainActivity.class);
                     toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -244,11 +240,6 @@ public class User {
                                 Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
                             }
                         }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());}
-                }
-                else{
-                    Intent toLoginIntent=new Intent(context, LoginActivity.class);
-                    context.startActivity(toLoginIntent);
-                }
             }else{
                 Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
                 try{
@@ -265,19 +256,6 @@ public class User {
     }
     //Generate a list of Keys to the Recipes the user liked
     public synchronized ArrayList<String> getFavourites(Context context, FirebaseUser currentUser, Handler handler,Thread thread) {
-        //Send User to sign in if no current user found
-        if (currentUser == null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
-                    Intent loginIntent = new Intent(context, LoginActivity.class);
-                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    context.startActivity(loginIntent);
-                }
-            });
-//Otherwise use UserID to find liked Recipes and add their keys to the List favlist
-        } else {
             String id =getUID(currentUser,context);
             favourites = new ArrayList<>();
             userRef.child(id).child("Favourites").get().addOnCompleteListener(task -> {
@@ -290,7 +268,6 @@ public class User {
                     synchronized (thread){
                         thread.notify();
                     }
-
                     //checkFav(favView,key,handler);
                 }else{
                     Log.d("TAG", "noFavourites yet");
@@ -310,10 +287,10 @@ public class User {
                     }
                 });
             });
-        }return favourites;
+        return favourites;
     }
 
-    public synchronized ArrayList<String> updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser currentUser, Handler handler){
+    public synchronized ArrayList<String> updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser currentUser, Handler handler,ArrayList<String>favourites){
         String id=getUID(currentUser,context);
         if (favourites.contains(recipe.getKey())) {
             userRef.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
@@ -326,17 +303,12 @@ public class User {
                             Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
                         }});
 
-                } else {
-                    handler.post(new Runnable() {
+                } else { handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
+                            Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();}});
                 }
-            }).addOnFailureListener(e ->
-                    {handler.post(new Runnable() {
+            }).addOnFailureListener(e -> {handler.post(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();}});
@@ -357,38 +329,20 @@ public class User {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
+                            Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();}});
                 }
             }).addOnFailureListener(e -> {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();}});
             });
         }return favourites;
     }
     //Creating a list of Keys to the Recipes the user created themselves
     public synchronized ArrayList<String> getOwn(Context context, FirebaseUser currentUser, Handler handler,Thread thread){
         own =new ArrayList<>();
-        //Send to login if User not found
-        if (currentUser == null) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
-                    Intent loginIntent = new Intent(context, LoginActivity.class);
-                    loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    context.startActivity(loginIntent);
-                }});
-//If user found, use userID to create the List of Keys from Firebase
-        } else {
-            String id=getUID(currentUser,context);
-            //In case of Issues with the download a case specific Error message is displayed to the user
+        String id=getUID(currentUser,context);
             userRef.child(id).child("Own").get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     DataSnapshot snapshot=task.getResult();
@@ -396,17 +350,15 @@ public class User {
                         String key1 =ss.getKey();
                         own.add(key1);
                     } synchronized (thread){
-                        Log.d("TAG", own.toString());
                         thread.notify();
                     }
                 }
-            }).addOnFailureListener(e ->{
-                    handler.post(new Runnable() {
+            }).addOnFailureListener(e ->{ handler.post(new Runnable() {
                         @Override
                         public void run() {
                             Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
                         }});});
-        }return own;
+        return own;
     }
     public String setUID(String email){
         email=email.replace(".","*");
@@ -423,13 +375,13 @@ public class User {
             email=email.replace("$","*");
             email=email.replace("[","*");
             email=email.replace("]","*");
-            Log.d("TAG", email);
         }else{
             loginIntent(context);
         }
         return email;
     }
-    public void setShoppingList(Context context,String uID,Handler handler,Thread thread,Ingredient ingredient){
+    public synchronized void addToShoppingList(Context context, FirebaseUser fbuser, Handler handler, Thread thread, Ingredient ingredient){
+        String uID=getUID(fbuser,context);
         userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).get().addOnCompleteListener(task -> {
             if (task.getResult().exists()) {
                 DataSnapshot snapshot = task.getResult();
@@ -469,6 +421,22 @@ public class User {
             }
         });
     }
+    public synchronized void removeFromShoppingList(FirebaseUser user,Context context,Ingredient ingredient,Handler handler){
+        String uID=getUID(user,context);
+            userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).removeValue().addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();}});
+                }
+            }).addOnFailureListener(e -> {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();}});
+            });
+    }
     public synchronized ArrayList<Ingredient>getShoppingList(Context context,String uID,Thread thread){
         userRef.child(uID).child("Shoppinglist").get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
@@ -479,7 +447,7 @@ public class User {
                     String ingredientName=IngSS.child("ingredientName").getValue(String.class);
                     Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
                     shoppingList.add(ingredient);
-                    Log.d("ingredient", ingredient.toString());}
+                    }
             } synchronized (thread){
                 thread.notify();
             }

@@ -1,6 +1,7 @@
 package Viewmodel;
 
 import android.content.Context;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,9 +22,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 
 import Model.Ingredient;
+import Model.User;
 
 
 public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
+    Handler handler=new Handler();
     public ShoppinglistAdapter(@NonNull Context context, int ressource, ArrayList<Ingredient> shoppingList) {
         super(context,ressource,shoppingList);
     }
@@ -35,6 +38,7 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.shoppinglist_item,parent,false);
         }
+
         TextView amountView= convertView.findViewById(R.id.amountColumnSl);
         TextView unitView= convertView.findViewById(R.id.unitColumnSl);
         TextView ingredientView= convertView.findViewById(R.id.ingredientColumnSl);
@@ -49,32 +53,25 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         return convertView;
     }
     private void onCheck(CheckBox checkbox,Ingredient ingredient){
-        FirebaseDatabase database=FirebaseDatabase.getInstance();
-        DatabaseReference dbrefUsers;
-        FirebaseAuth auth;
-        auth= FirebaseAuth.getInstance();
-        FirebaseUser user=auth.getCurrentUser();
-        String uID="";
-        try{
-            uID= user.getUid();
-        }catch(Exception e){
-            Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        Runnable run=new Runnable() {
+            @Override
+            public void run() {
+                FirebaseAuth auth;
+                auth= FirebaseAuth.getInstance();
+                FirebaseUser fbuser=auth.getCurrentUser();
+                User user=new User();
+                Context context=getContext();
 
-        dbrefUsers=database.getReference("Cookdome/Users");
-        if(checkbox.isChecked()){
-            dbrefUsers.child(uID).child("Shoppinglist").child(ingredient.getIngredientName()).removeValue().addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    Toast.makeText(getContext(), R.string.removed, Toast.LENGTH_SHORT).show();
+                if(checkbox.isChecked()){
+                    user.removeFromShoppingList(fbuser,context,ingredient,handler);
                 }
-            }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
-        else{
-            dbrefUsers.child(uID).child("Shoppinglist").child(ingredient.getIngredientName()).setValue(ingredient).addOnCompleteListener(task -> {
-                if(task.isSuccessful()){
-                    Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
+                else{
+                    user.addToShoppingList(context,fbuser,handler,Thread.currentThread(),ingredient);
                 }
-            }).addOnFailureListener(e -> Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show());
-        }
+            }
+        };
+        Thread thread=new Thread(run);
+        thread.start();
+
     }
 }
