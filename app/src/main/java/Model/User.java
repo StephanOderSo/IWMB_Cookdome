@@ -1,5 +1,7 @@
 package Model;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -32,15 +34,16 @@ import java.util.Objects;
 
 import View.LoginActivity;
 import View.MainActivity;
+import View.RecipeViewActivity;
 
 public class User {
     String name,photo,email;
     ArrayList<String> favourites, own;
     ArrayList<Ingredient>shoppingList=new ArrayList<>();
-    FirebaseDatabase database=FirebaseDatabase.getInstance();
-    DatabaseReference userRef=database.getReference("/Cookdome/Users");
+    DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
     FirebaseAuth auth=FirebaseAuth.getInstance();
     User user;
+
 
 
 
@@ -359,6 +362,38 @@ public class User {
                             Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
                         }});});
         return own;
+    }
+    public void addToOwn(Context context,String uid,String key,Handler handler){
+        userRef.child(uid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
+            if(task1.isSuccessful()){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {Intent toRecipeViewIntent=new Intent(context, RecipeViewActivity.class);
+                        toRecipeViewIntent.putExtra("key",key);
+                        toRecipeViewIntent.putExtra("fromCreate",0);
+                        toRecipeViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        context.getApplicationContext().startActivity(toRecipeViewIntent);  }});}
+            else{
+                Log.d(TAG, "failed");
+            }
+        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+    public void removeRecipe(String key, Context context, Handler handler, FirebaseUser fbuser){
+        String uid=getUID(fbuser,context);
+        userRef.child(uid).child("Own").child(key).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Database database=new Database();
+                userRef.child("Privates").child(key).removeValue();
+                database.removeFromPublicList(key,context,handler);
+                handler.post(() -> {  Toast.makeText(context, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
+                    Intent toMainIntent=new Intent(context, MainActivity.class);
+                    toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    context.startActivity(toMainIntent); });
+            }
+        });
+
+
     }
     public String setUID(String email){
         email=email.replace(".","*");

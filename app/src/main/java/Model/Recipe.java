@@ -1,50 +1,43 @@
 package Model;
 
-import static android.content.ContentValues.TAG;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
+import android.os.Handler;
 import android.widget.Toast;
 
-import androidx.constraintlayout.widget.ConstraintLayoutStates;
+import androidx.annotation.NonNull;
 
 import com.bienhuels.iwmb_cookdome.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collections;
-
-import View.LoginActivity;
 import View.MainActivity;
-import View.RecipeViewActivity;
-import View.SearchActivity;
-import Viewmodel.CustomComparator;
-import Viewmodel.SearchAdapters.RecipeAdapter;
 
 public class Recipe {
     String key;
-
     private String image;
     private String recipeName;
     private int prepTime;
-    private ArrayList<Ingredient> ingredientList;
+    private ArrayList<Ingredient> ingredientList=new ArrayList<>();
     private String category;
     private Integer portions;
-    private ArrayList<String> StepList;
-    private ArrayList<String> dietaryRec;
-    FirebaseDatabase database=FirebaseDatabase.getInstance();
-    FirebaseAuth auth;
-    DatabaseReference userRef=database.getReference("/Cookdome/Users");
-    DatabaseReference recipeRef=database.getReference("/Cookdome/Recipes");
+    private ArrayList<String> stepList=new ArrayList<>();
+    private ArrayList<String> dietaryRec =new ArrayList<>();
+    Database database;
+    DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
+    DatabaseReference recipeRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");
+    StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images");
+    User user=new User();
+    Recipe selectedRecipe;
+
 
 
     public Recipe(){}
@@ -58,8 +51,8 @@ public class Recipe {
         this.portions=portions;
         this.ingredientList = ingredientList;
         this.category = category;
-        this.StepList = stepList;
-        this.dietaryRec=dietRec;
+        this.stepList = stepList;
+        this.dietaryRec =dietRec;
     }
 
     public String getKey() {
@@ -98,100 +91,135 @@ public class Recipe {
     }
 
     public ArrayList<String> getStepList() {
-        return StepList;
+        return stepList;
     }
 
     public ArrayList<String> getDietaryRec() {
         return dietaryRec;
     }
-    public void uploadToFirebase(Uri imageUri, Context context, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, String priv){
-        StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images").child(imageUri.getLastPathSegment());
-        storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-            Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-            while(!uriTask.isComplete()) {
-            }
-            Uri imageUriNew=uriTask.getResult();
-            auth= FirebaseAuth.getInstance();
-            FirebaseUser user=auth.getCurrentUser();
-            String uid;
-            String key;
-            if(user!=null){
-                uid=user.getUid();
-                key=recipeRef.push().getKey();
-                Recipe recipe=new Recipe(key,imageUriNew.toString(),recipeName,category,time,portions,ingredientList,stepList,dietaryRecList);
-                String publics=context.getResources().getString(R.string.publics);
-                if(priv.equals(publics)){
-                    recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
-                        if(task.isSuccessful()){
-                            Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                            userRef.child(uid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
-                                if(task1.isSuccessful()){
-                                    Log.d(TAG, "Added");}
-                                else{
-                                    Log.d(TAG, "failed");
-                                }
-                            }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
-                        }
-                    }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(),Toast.LENGTH_SHORT));
-                }else{
-                    userRef.child(uid).child("Privates").child(key).setValue(recipe).addOnCompleteListener(task -> {
-                        if(task.isSuccessful()){
-                            Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                            userRef.child(uid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
-                                if(task1.isSuccessful()){
-                                    Log.d(TAG, "Added to privates");}
-                                else{
-                                    Log.d(TAG, "failed to add to privates");
-                                }
-                            }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
-                        }
-                    });
-                    removeFromFirebase(key,context);
 
+    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, Thread nextThread,Context context,Handler handler){
+        if(imageUri!=null){
+            storageRef.child(imageUri.getLastPathSegment()).putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
+                Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
+                while(!uriTask.isComplete());
+                this.image=uriTask.getResult().toString();
+                this.recipeName=recipeName;
+                this.category=category;
+                this.prepTime=time;
+                this.portions=portions;
+                this.dietaryRec =dietaryRecList;
+                this.ingredientList=ingredientList;
+                this.stepList=stepList;
+                synchronized (nextThread){
+                    nextThread.notify();
                 }
-                Intent toRecipeViewIntent=new Intent(context, RecipeViewActivity.class);
-                toRecipeViewIntent.putExtra("key",recipe.getKey());
-                toRecipeViewIntent.putExtra("fromCreate",0);
-                toRecipeViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                context.getApplicationContext().startActivity(toRecipeViewIntent);
-
-
-            }else {
-                Intent toLoginIntent=new Intent(context, LoginActivity.class);
-                toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                context.startActivity(toLoginIntent);
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});
+                }
+            });
+        }else{
+            this.recipeName=recipeName;
+            this.category=category;
+            this.prepTime=time;
+            this.portions=portions;
+            this.dietaryRec =dietaryRecList;
+            this.ingredientList=ingredientList;
+            this.stepList=stepList;
+            synchronized (nextThread){
+                nextThread.notify();
             }
-        });
+        }
+    }
+    public void uploadUpdate(Context context,String priv,Handler handler,FirebaseUser fbuser){
+        if(this.key==null){
+            key=recipeRef.push().getKey();
+        }
+        Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec);
+        String publics=context.getResources().getString(R.string.publics);
+        String uid=user.getUID(fbuser,context);
+        if(priv.equals(publics)){
+            recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    handler.post(() -> Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show());
+                    user.addToOwn(context,uid,key,handler);
+                }
+            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+        }else{
+            userRef.child(uid).child("Privates").child(key).setValue(recipe).addOnCompleteListener(task -> {
+                if(task.isSuccessful()){
+                    handler.post(() -> Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show());
+                    user.addToOwn(context,uid,key,handler);
+                }
+            });
+            database.removeFromPublicList(key,context,handler);
+        }
+    }
+    public void downloadSelectedRecipe(String key, Context context, Handler handler, Thread setDatathread, FirebaseUser fbUser){
+        recipeRef.child(key).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                if (task.getResult().exists()) {
+                    DataSnapshot snapshot = task.getResult();
+                    this.selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
+                    synchronized (setDatathread){
+                        setDatathread.notify();
+                    }
+                } else {
+                    String id=user.getUID(fbUser,context);
+                    userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
+                        if (task1.getResult().exists()) {
+                            DataSnapshot snapshot = task1.getResult();
+                            this.selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
+                            synchronized (setDatathread){
+                                setDatathread.notify();
+                            }
+                        }else{
+                            handler.post(() -> {
+                                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
+                                Intent toMainIntent=new Intent(context, MainActivity.class);
+                                toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                context.startActivity(toMainIntent);
+                            });
+                        }
+                    }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+                }
+            }
+        }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+    }
+
+    public Recipe getRecipe(){
+        return selectedRecipe;
     }
     //Mapping the firebase Data structure of a Recipe back to a recipe-Object
     public Recipe rebuildFromFirebase( DataSnapshot snapshot) {
         Recipe selectedRecipe=new Recipe();
-        String key = snapshot.child("key").getValue(String.class);
-        String dBrecipeName = String.valueOf(snapshot.child("recipeName").getValue());
-        String dBcat = String.valueOf(snapshot.child("category").getValue());
-        int dBprepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
-        int dBportions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
-        String dBImage = snapshot.child("image").getValue(String.class);
-
-        ArrayList<String> dBstepList = new ArrayList<>();
+        key = snapshot.child("key").getValue(String.class);
+        recipeName = String.valueOf(snapshot.child("recipeName").getValue());
+        category = String.valueOf(snapshot.child("category").getValue());
+        prepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
+        portions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
+        image = snapshot.child("image").getValue(String.class);
         String index="0";
         for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
             String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
-            dBstepList.add(stepTry);
+            stepList.add(stepTry);
             int i=Integer.parseInt(index);
             i++;
             index= Integer.toString(i);
         }
         String index2="0";
-        ArrayList<String> dBdietList = new ArrayList<>();
         for(DataSnapshot stepSS:snapshot.child("dietaryRec").getChildren()){
             String dietTry=String.valueOf(snapshot.child("dietaryRec").child(index2).getValue());
             int i=Integer.parseInt(index2);
             i++;
             index2= Integer.toString(i);
-            dBdietList.add(dietTry);
+            dietaryRec.add(dietTry);
         }
-        ArrayList<Ingredient>dBIngredientList=new ArrayList<>();
         for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
             Double amount;
             if(IngSS.child("amount").getValue(Double.class)!=null){
@@ -202,25 +230,15 @@ public class Recipe {
             String unit=IngSS.child("unit").getValue(String.class);
             String ingredientName=IngSS.child("ingredientName").getValue(String.class);
             Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
-            dBIngredientList.add(ingredient);
-            selectedRecipe = new Recipe(key, dBImage, dBrecipeName, dBcat, dBprepTime, dBportions, dBIngredientList, dBstepList,dBdietList);
+            ingredientList.add(ingredient);
+            selectedRecipe = new Recipe(key, image, recipeName, category, prepTime, portions, ingredientList, stepList, dietaryRec);
         }return selectedRecipe;
 
     }
 
-    public void removeFromFirebase(String key,Context context){
-        recipeRef.child(key).removeValue().addOnCompleteListener(task -> {
-            if(task.isSuccessful()) {
-                Toast.makeText(context, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
-                Intent toMainIntent=new Intent(context, MainActivity.class);
-                toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                context.startActivity(toMainIntent);
-            } else{
-                Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
-            }
-        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
-    //Retreive All recipes from firebase and display them
+
+
+
 
 }
 

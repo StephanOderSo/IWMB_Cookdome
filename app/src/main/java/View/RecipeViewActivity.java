@@ -1,5 +1,4 @@
 package View;
-import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
 
 import android.content.Context;
 import android.content.Intent;
@@ -22,8 +21,6 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import Model.Ingredient;
@@ -33,15 +30,14 @@ import Viewmodel.RecipeViewAdapters.IngrListAdapterwSLBtn;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
 
 public class RecipeViewActivity extends AppCompatActivity {
-    DatabaseReference databaseReference,databaseReferenceFav;
-    FirebaseDatabase database;
+
     FirebaseAuth auth=FirebaseAuth.getInstance();
     ArrayList<String> favlist;
     ArrayList<String> ownlist;
     ImageView favView;
     Boolean portionsChanged;
 
-    Recipe selectedRecipe;
+    Recipe selectedRecipe=new Recipe();
     int portionsOrigin;
     CardView portionsCard;
     TextView portionsText;
@@ -52,10 +48,10 @@ public class RecipeViewActivity extends AppCompatActivity {
     User user=new User();
     FirebaseUser fbUser;
     Context context;
-    Handler userHandler=new Handler();
-    String source="RecipeView";
-    Thread checkFavThread;
-
+    Handler handler =new Handler();
+    Thread checkFavThread,setDataThread;
+    Intent previousIntent;
+    DataSnapshot snapshot;
 
 
 
@@ -63,39 +59,11 @@ public class RecipeViewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_view);
-        database=FirebaseDatabase.getInstance();
-        databaseReferenceFav = database.getReference("/Cookdome/Users");
         fbUser=auth.getCurrentUser();
-
+        previousIntent = getIntent();
         context=getApplicationContext();
-        Runnable checkFavRunnable=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                    while(favlist==null){
-                        try {
-                            Log.d(TAG, "waiting");
-                            Thread.currentThread().wait();
+        getData();
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }}
-                checkFav();
-            }
-        };
-        checkFavThread=new Thread(checkFavRunnable);
-        checkFavThread.start();
-
-
-        Runnable runnable=new Runnable() {
-            @Override
-            public void run() {
-                getSelectedRecipe();
-            }
-        };
-        Thread getRecipeThread=new Thread(runnable);
-        getRecipeThread.start();
         edit=findViewById(R.id.edit);
         edit.setOnClickListener(view -> {
             Intent toEditIntent=new Intent(this, CreateRecipeActivity.class);
@@ -104,7 +72,7 @@ public class RecipeViewActivity extends AppCompatActivity {
             finish();
         });
         favView=findViewById(R.id.favourite);
-        favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser,userHandler,favlist));
+        favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser, handler,favlist));
         portionsChanged=false;
         portionsCard=findViewById(R.id.portionsBtn);
         portionsText=findViewById(R.id.portions);
@@ -151,60 +119,106 @@ public class RecipeViewActivity extends AppCompatActivity {
         });
         portionsDialog.show();
     }
-    private void getSelectedRecipe() {
-        Intent previousIntent = getIntent();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        databaseReference = database.getReference("/Cookdome/Recipes");
-        key = previousIntent.getStringExtra("key");
-        databaseReference.child(key).get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                favlist=user.getFavourites(context,fbUser,userHandler,checkFavThread);
-                ownlist=user.getOwn(context,fbUser,userHandler,Thread.currentThread());
-                while(favlist==null){}
-                if(ownlist.contains(key)){
-                    userHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            edit.setVisibility(View.VISIBLE);
-                        }
-                    });
-                }
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
-                    portionsOrigin=selectedRecipe.getPortions();
-                    setValues(selectedRecipe);
-                } else {
-                    String id=user.getUID(fbUser,context);
-                    databaseReferenceFav.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
-                        if (task1.getResult().exists()) {
-                            DataSnapshot snapshot = task1.getResult();
-                            selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
-                            portionsOrigin=selectedRecipe.getPortions();
-                            setValues(selectedRecipe);
-                        }
-                    }).addOnFailureListener(e -> Toast.makeText(RecipeViewActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show());
-                }
-            }
-        });
-    }
-    public void checkFav(){
-        if(favlist.contains(key)){
-            userHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    favView.setImageResource(R.drawable.liked);
-                }
-            });
-        }else{
-            userHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    favView.setImageResource(R.drawable.unliked);
-                }
-            });
-        }
-    }
+   private void getData(){
+       Runnable checkFavRunnable=new Runnable() {
+           @Override
+           public void run() {
+               synchronized (Thread.currentThread()){
+                   while(favlist==null){
+                       try {
+                           Thread.currentThread().wait();
+                       } catch (InterruptedException e) {
+                           throw new RuntimeException(e);
+                       }
+                   }}
+               if(favlist.contains(key)){
+                   handler.post(new Runnable() {
+                       @Override
+                       public void run() {
+                           favView.setImageResource(R.drawable.liked);
+                       }
+                   });
+               }else{
+                   handler.post(new Runnable() {
+                       @Override
+                       public void run() {
+                           favView.setImageResource(R.drawable.unliked);
+                       }
+                   });
+               }
+           }
+       };
+       checkFavThread=new Thread(checkFavRunnable);
+       checkFavThread.start();
+       Runnable checkOwnRun=new Runnable() {
+           @Override
+           public void run() {
+               synchronized (Thread.currentThread()){
+                   while(ownlist==null){
+                       try {
+                           Thread.currentThread().wait();
+                       } catch (InterruptedException e) {
+                           throw new RuntimeException(e);
+                       }
+                   }}
+               if(ownlist.contains(key)){
+                   handler.post(new Runnable() {
+                       @Override
+                       public void run() {
+                           edit.setVisibility(View.VISIBLE);
+                       }
+                   });
+               }
+           }
+       };
+       Thread checkOwnThread=new Thread(checkOwnRun);
+       checkOwnThread.start();
+       Runnable getOwnFavRun=new Runnable() {
+           @Override
+           public void run() {
+               favlist=user.getFavourites(context,fbUser, handler,checkFavThread);
+               ownlist=user.getOwn(context,fbUser, handler,checkOwnThread);
+           }
+       };
+       Thread getOwnFavThread=new Thread(getOwnFavRun);
+       getOwnFavThread.start();
+       Runnable setDataRun=new Runnable() {
+           @Override
+           public void run() {
+               synchronized (Thread.currentThread()){
+                       try {
+                           Thread.currentThread().wait();
+
+                       } catch (InterruptedException e) {
+                           throw new RuntimeException(e);
+                       }
+                   }
+               selectedRecipe=selectedRecipe.getRecipe();
+               Log.d("TAG", selectedRecipe.getRecipeName().toString());
+               portionsOrigin=selectedRecipe.getPortions();
+               handler.post(new Runnable() {
+                   @Override
+                   public void run() {
+                       setValues(selectedRecipe);
+                   }
+               });
+
+           }
+       };
+       setDataThread=new Thread(setDataRun);
+       setDataThread.start();
+
+       Runnable runnable=new Runnable() {
+           @Override
+           public void run() {
+               key = previousIntent.getStringExtra("key");
+               selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
+           }
+       };
+       Thread getRecipeThread=new Thread(runnable);
+       getRecipeThread.start();
+   }
+
 
     private void setValues (Recipe selectedRecipe) {
         TextView textView = findViewById(R.id.recipeName);
@@ -227,6 +241,8 @@ public class RecipeViewActivity extends AppCompatActivity {
         Integer tempPortions=selectedRecipe.getPortions();
         portionsText.setText(String.format(tempPortions.toString()));
         StringBuilder dietaryTxt=new StringBuilder();
+        Log.d("TAG", selectedRecipe.getDietaryRec().toString()
+        );
         for(String diet: selectedRecipe.getDietaryRec()){
             String dietShort = "";
             if (diet.equals(getResources().getString(R.string.vegetar))) {
@@ -248,6 +264,7 @@ public class RecipeViewActivity extends AppCompatActivity {
                 dietShort = "LF";
             }
             dietaryTxt.append(dietShort);
+            Log.d("TAG", dietaryTxt.toString());
             int i;
             i=selectedRecipe.getDietaryRec().indexOf(diet);
             if(i!=selectedRecipe.getDietaryRec().size()-1){
@@ -300,9 +317,11 @@ public class RecipeViewActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent previousIntent = getIntent();
+        selectedRecipe=null;
         if(previousIntent.hasExtra("fromCreate")){
             Intent toMainIntent=new Intent(RecipeViewActivity.this,MainActivity.class);
             startActivity(toMainIntent);
+            finish();
         }else{
             super.onBackPressed();
         }

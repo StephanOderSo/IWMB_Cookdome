@@ -28,7 +28,6 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 
@@ -70,8 +69,7 @@ public class SearchActivity extends AppCompatActivity {
     ArrayList<String>favlist,ownlist;
     User user=new User();
     Context context;
-    Handler userHandler=new Handler();
-    Handler getListHandler=new Handler();
+    Handler handler =new Handler();
     FirebaseUser fbUser;
     Database database=new Database();
     Thread listThread;
@@ -247,18 +245,7 @@ public class SearchActivity extends AppCompatActivity {
         //pass entered String to Method typeFilter() at each text-change
         searchView = findViewById(R.id.search);
         searchView.clearFocus();
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                return false;
-            }
 
-            @Override
-            public boolean onQueryTextChange(String s) {
-                typeFilter(s);
-                return false;
-            }
-        });
 
     }
     //Filter Current list based on given String and display result
@@ -270,9 +257,10 @@ public class SearchActivity extends AppCompatActivity {
             }
         }
         if(filteredList.isEmpty()){
-            Toast.makeText(this,R.string.noMatch,Toast.LENGTH_SHORT).show();
+             Toast.makeText(SearchActivity.this,R.string.noMatch,Toast.LENGTH_SHORT).show();
+
         }else{
-            recipeAdapter.searchList(filteredList);
+           recipeAdapter.searchList(filteredList);
         }
     }
 
@@ -359,10 +347,22 @@ public class SearchActivity extends AppCompatActivity {
                             throw new RuntimeException(e);
                         }
                     }}
-                getListHandler.post(new Runnable() {
+                handler.post(new Runnable() {
                     @Override
                     public void run() {
                         recyclerconfig(currentList);
+                        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                            @Override
+                            public boolean onQueryTextSubmit(String s) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onQueryTextChange(String s) {
+                                typeFilter(s);
+                                return false;
+                            }
+                        });
                     }
                 });
             }
@@ -381,7 +381,7 @@ public class SearchActivity extends AppCompatActivity {
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                    }currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id,getListHandler,recyclerThread);
+                    }currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
                 }
             }
         };
@@ -404,30 +404,30 @@ public class SearchActivity extends AppCompatActivity {
 
                 // User clicked search Icon
                 if(previousIntent.hasExtra("search")) {
-                    currentList=database.getAllRecipes(context,getListHandler,recyclerThread);
+                    currentList=database.getAllRecipes(context, handler,recyclerThread);
                 }
                 //User selected a category
                 if (previousIntent.hasExtra("filter")) {
                     String catFilter = previousIntent.getStringExtra("filter");
                     selectedCategoryList.add(catFilter);
                     source="categories";
-                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent,getListHandler,recyclerThread);
+                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
                 }
                 //User clicked leftovers Button
                 if (previousIntent.hasExtra("action")) {
                     source="leftovers";
                     String catFilter="";
-                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent,getListHandler,recyclerThread);
+                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
                 }
                 //User clicked Own-recipes/liked Recipes
                 if(previousIntent.hasExtra("select")){
                     source=previousIntent.getStringExtra("select");
 
                     if(source.equals("ownRecipes")){
-                        ownlist=user.getOwn(context,fbUser,userHandler,ownThread);
+                        ownlist=user.getOwn(context,fbUser, handler,ownThread);
                     }
                     if(source.equals("likedRecipes")){
-                        currentList=database.getFavouriteOrOwnRecipes(favlist,context,id,getListHandler,recyclerThread);
+                        currentList=database.getFavouriteOrOwnRecipes(favlist,context,id, handler,recyclerThread);
                     }
                 }
             }
@@ -438,7 +438,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void run() {
                 Log.d("TAG", "run: favThread");
-                favlist=user.getFavourites(context,fbUser,userHandler,listThread);
+                favlist=user.getFavourites(context,fbUser, handler,listThread);
             }
         };
         Thread favThread=new Thread(favRunnable);

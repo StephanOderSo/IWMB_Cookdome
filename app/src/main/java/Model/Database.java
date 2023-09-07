@@ -6,10 +6,14 @@ import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayoutStates;
 
 import com.bienhuels.iwmb_cookdome.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -17,6 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import View.MainActivity;
 import Viewmodel.CustomComparator;
 import Viewmodel.SearchAdapters.RecipeAdapter;
 
@@ -39,7 +44,6 @@ public class Database {
                         recipes.add(selectedRecipe);
                     }
                     Collections.sort(recipes,new CustomComparator());
-                    Log.d("TAG", "notified ");
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -148,6 +152,7 @@ public class Database {
                             DataSnapshot snapshot2 = task1.getResult();
                             Recipe selectedRecipe=new Recipe().rebuildFromFirebase(snapshot2);
                             recipes.add(selectedRecipe);
+                            Log.d("TAG", "PRIVATE");
                                }
                     }).addOnFailureListener(e -> {
                         handler.post(new Runnable() {
@@ -171,5 +176,18 @@ public class Database {
         }
         Collections.sort(recipes,new CustomComparator());
         return recipes;
+    }
+
+
+    public void removeFromPublicList(String key, Context context, Handler handler){
+        recipeRef.child(key).removeValue().addOnCompleteListener(task -> {
+            if(task.isSuccessful()) {
+                handler.post(() -> {  Toast.makeText(context, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
+                    Intent toMainIntent=new Intent(context, MainActivity.class);
+                    toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    context.startActivity(toMainIntent); });
+            } else{handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());
+            }
+        }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
 }
