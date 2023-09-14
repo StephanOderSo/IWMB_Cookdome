@@ -4,13 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,12 +20,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.squareup.picasso.Picasso;
-
-import java.util.Objects;
 
 import Model.User;
 
@@ -102,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Runnable runnable=new Runnable() {
             @Override
             public void run() {
-                User user= new User().getUserFromFirebase(context,fbuser,nameHeader,mailHeader,profileImage,userHandler);
+                User user= new User().downloadFromFirebase(context,fbuser,nameHeader,mailHeader,profileImage,userHandler);
             }
         };
         Thread getUserThread=new Thread(runnable);
@@ -123,27 +115,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(item.getItemId()==R.id.profile){
             Intent editprofileIntent = new Intent(MainActivity.this, EditProfileActivity.class);
             startActivity(editprofileIntent);
+            finish();
         }
         if(item.getItemId()==R.id.ownRecipes){
             Intent ownIntent = new Intent(MainActivity.this, SearchActivity.class);
             ownIntent.putExtra("select", "ownRecipes");
             startActivity(ownIntent);
+            finish();
         }
         if(item.getItemId()==R.id.likedRecipes){
             Intent likedIntent = new Intent(MainActivity.this, SearchActivity.class);
             likedIntent.putExtra("select", "likedRecipes");
             startActivity(likedIntent);
-
+            finish();
         }
         if(item.getItemId()==R.id.logout){
             auth = FirebaseAuth.getInstance();
             auth.signOut();
             Intent signoutIntent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(signoutIntent);
+            finish();
         }
         if(item.getItemId()==R.id.shoppingList){
             Intent toSlIntent = new Intent(MainActivity.this, ShoppinglistActivity.class);
-            startActivity(toSlIntent);}
+            startActivity(toSlIntent);
+            finish();}
+        if(item.getItemId()==R.id.sharedRecipes){
+            Intent toSlIntent = new Intent(MainActivity.this, SearchActivity.class);
+            toSlIntent.putExtra("shared","");
+            startActivity(toSlIntent);
+            finish();
+        }
         return false;
     }
 

@@ -113,6 +113,10 @@
     <string name="loginsuccess">login successful</string>
     <string name="invalidCred">invalid Credentials</string>
     <string name="UserNotExist">user doesnt exist</string>
+    <string name="shared">shared successfully</string>
+    <string name="share">share</string>
+    <string name="cantShare"><![CDATA[This Recipe is private & shouldnt be shared]]></string>
+    <string name="sharedRecipes">Shared recipes</string>
 
 
 </resources>

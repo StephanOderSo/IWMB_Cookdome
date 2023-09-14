@@ -155,7 +155,7 @@ public class EditProfileActivity extends AppCompatActivity {
             AlertDialog.Builder builder=new AlertDialog.Builder(this);
             builder.setTitle(R.string.confirmIdentity);
             builder.setCancelable(false);
-            final EditText passView=new EditText(this);
+            EditText passView=new EditText(this);
             passView.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
             builder.setView(passView);
 
@@ -172,7 +172,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     String pass=passView.getText().toString();
                     String mail=fbuser.getEmail();
                     User user=new User();
-                    user.updateUserOnFirebase(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
+                    user.updateOnFirebase(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
                 }
             });
             builder.show();
@@ -211,7 +211,7 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     public void setUserData(){
-        user=new User().getUserFromFirebase(context,fbuser,nameView,emailView,photo,userHandler);
+        user=new User().downloadFromFirebase(context,fbuser,nameView,emailView,photo,userHandler);
     }
     @Override
     public void onBackPressed() {

@@ -28,6 +28,8 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -66,13 +68,15 @@ public class SearchActivity extends AppCompatActivity {
     public ArrayList<String> selectedDietaryRecList=new ArrayList<>();
     public ArrayList<String> leftoverList = new ArrayList<>();
     ArrayList<Recipe>currentList;
-    ArrayList<String>favlist,ownlist;
+    ArrayList<String>favlist;
+    ArrayList<String>ownlist;
     User user=new User();
     Context context;
     Handler handler =new Handler();
     FirebaseUser fbUser;
     Database database=new Database();
     Thread listThread;
+    Thread getThread;
     Intent previousIntent;
 
 
@@ -340,7 +344,6 @@ public class SearchActivity extends AppCompatActivity {
                 synchronized (Thread.currentThread()){
                     while(currentList==null){
                         try {
-                            Log.d(TAG, "waiting");
                             Thread.currentThread().wait();
 
                         } catch (InterruptedException e) {
@@ -387,21 +390,53 @@ public class SearchActivity extends AppCompatActivity {
         };
         Thread ownThread=new Thread(ownRunnable);
         ownThread.start();
+        Runnable getSharedList=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                        try {
+                            Thread.currentThread().wait();
+
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    currentList=database.getRecipes();
+                synchronized (recyclerThread){
+                    recyclerThread.notify();
+                }
+            }
+        };
+        Thread getSharedListThread=new Thread(getSharedList);
+        getSharedListThread.start();
+        Runnable setprivRunnable=new Runnable() {
+            @Override
+            public void run() {
+                synchronized (Thread.currentThread()){
+                        try {
+                            Thread.currentThread().wait();
+
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                database.setSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
+            }
+        };
+        Thread setPrivThread=new Thread(setprivRunnable);
+        setPrivThread.start();
         Runnable listRunnable=new Runnable() {
             @Override
             public void run() {
                 synchronized (Thread.currentThread()){
                     while(favlist==null){
                         try {
-                            Log.d(TAG, "waiting");
                             Thread.currentThread().wait();
 
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
                     }}
-                Log.d("favs", favlist.toString());
-
                 // User clicked search Icon
                 if(previousIntent.hasExtra("search")) {
                     currentList=database.getAllRecipes(context, handler,recyclerThread);
@@ -430,6 +465,9 @@ public class SearchActivity extends AppCompatActivity {
                         currentList=database.getFavouriteOrOwnRecipes(favlist,context,id, handler,recyclerThread);
                     }
                 }
+                if(previousIntent.hasExtra("shared")){
+                    database.setSharedPublRecipes(context,fbUser,handler,setPrivThread);
+                }
             }
         };
         listThread=new Thread(listRunnable);
@@ -437,7 +475,6 @@ public class SearchActivity extends AppCompatActivity {
         Runnable favRunnable=new Runnable() {
             @Override
             public void run() {
-                Log.d("TAG", "run: favThread");
                 favlist=user.getFavourites(context,fbUser, handler,listThread);
             }
         };

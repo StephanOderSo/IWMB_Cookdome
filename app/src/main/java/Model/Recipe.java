@@ -9,7 +9,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
@@ -18,6 +17,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
 import java.util.ArrayList;
 import View.MainActivity;
 
@@ -31,7 +31,10 @@ public class Recipe {
     private Integer portions;
     private ArrayList<String> stepList=new ArrayList<>();
     private ArrayList<String> dietaryRec =new ArrayList<>();
-    Database database;
+    ArrayList<String>sharedWith=new ArrayList<>();
+    Boolean priv;
+    Database database=new Database();
+    String owner;
     DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
     DatabaseReference recipeRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");
     StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images");
@@ -43,7 +46,7 @@ public class Recipe {
     public Recipe(){}
 
 
-    public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietRec) {
+    public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietRec,Boolean priv,String owner) {
        this.key=key;
         this.image=image;
         this.recipeName = recipeName;
@@ -53,6 +56,8 @@ public class Recipe {
         this.category = category;
         this.stepList = stepList;
         this.dietaryRec =dietRec;
+        this.priv=priv;
+        this.owner=owner;
     }
 
     public String getKey() {
@@ -97,10 +102,32 @@ public class Recipe {
     public ArrayList<String> getDietaryRec() {
         return dietaryRec;
     }
+    public Boolean getPriv() {
+        return priv;
+    }
+    public void setPriv(Boolean priv) {
+        this.priv = priv;
+    }
 
-    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, Thread nextThread,Context context,Handler handler){
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public ArrayList<String> getSharedWith() {
+        return sharedWith;
+    }
+
+    public void setSharedWith(ArrayList<String> sharedWith) {
+        this.sharedWith = sharedWith;
+    }
+
+    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, Thread nextThread, Context context, Handler handler, Boolean priv, String owner){
         if(imageUri!=null){
-            storageRef.child(imageUri.getLastPathSegment()).putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
+            storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
                 Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
                 while(!uriTask.isComplete());
                 this.image=uriTask.getResult().toString();
@@ -111,6 +138,8 @@ public class Recipe {
                 this.dietaryRec =dietaryRecList;
                 this.ingredientList=ingredientList;
                 this.stepList=stepList;
+                this.priv=priv;
+                this.owner=owner;
                 synchronized (nextThread){
                     nextThread.notify();
                 }
@@ -131,19 +160,20 @@ public class Recipe {
             this.dietaryRec =dietaryRecList;
             this.ingredientList=ingredientList;
             this.stepList=stepList;
+            this.priv=priv;
+            this.owner=owner;
             synchronized (nextThread){
                 nextThread.notify();
             }
         }
     }
-    public void uploadUpdate(Context context,String priv,Handler handler,FirebaseUser fbuser){
+    public void uploadUpdate(Context context,Boolean priv,Handler handler,FirebaseUser fbuser){
         if(this.key==null){
             key=recipeRef.push().getKey();
         }
-        Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec);
-        String publics=context.getResources().getString(R.string.publics);
+        Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec,priv,owner);
         String uid=user.getUID(fbuser,context);
-        if(priv.equals(publics)){
+        if(!priv){
             recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     handler.post(() -> Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show());
@@ -204,6 +234,8 @@ public class Recipe {
         prepTime = Integer.parseInt(String.valueOf(snapshot.child("prepTime").getValue()));
         portions = Integer.parseInt(String.valueOf(snapshot.child("portions").getValue()));
         image = snapshot.child("image").getValue(String.class);
+        priv=snapshot.child("priv").getValue(Boolean.class);
+        owner=snapshot.child("owner").getValue(String.class);
         String index="0";
         for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
             String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
@@ -231,14 +263,42 @@ public class Recipe {
             String ingredientName=IngSS.child("ingredientName").getValue(String.class);
             Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
             ingredientList.add(ingredient);
-            selectedRecipe = new Recipe(key, image, recipeName, category, prepTime, portions, ingredientList, stepList, dietaryRec);
+            selectedRecipe = new Recipe(key, image, recipeName, category, prepTime, portions, ingredientList, stepList, dietaryRec,priv,owner);
         }return selectedRecipe;
 
     }
-
-
-
-
+    public void addUserToSharedListPublic(String userID, String key, Context context){
+        sharedWith.add(userID);
+        recipeRef.child(key).child("sharedWith").child(userID).setValue(userID).addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                Toast.makeText(context, R.string.shared, Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+    }
+    public void addUserToSharedListPrivate(String userID, String key, String owner,Context context){
+        sharedWith.add(userID);
+        userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).setValue(userID).addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                Toast.makeText(context, R.string.shared, Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e -> {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+    }
+    public void removeUserFromShareListPublic(String userID,String key,Context context){
+        sharedWith.remove(userID);
+        recipeRef.child(key).child("sharedWith").child(userID).removeValue().addOnFailureListener(e -> {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+    }
+    public void removeUserFromShareListPrivate(String userID,String key,Context context,String owner){
+        sharedWith.remove(userID);
+        userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).removeValue().addOnFailureListener(e -> {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+    }
 
 }
 

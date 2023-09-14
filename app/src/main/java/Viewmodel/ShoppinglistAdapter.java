@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,8 +15,6 @@ import androidx.annotation.Nullable;
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -36,7 +33,7 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         Ingredient ingredient= getItem(position);
 
         if(convertView==null) {
-            convertView= LayoutInflater.from(getContext()).inflate(R.layout.shoppinglist_item,parent,false);
+            convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_shoppinglist_item,parent,false);
         }
 
         TextView amountView= convertView.findViewById(R.id.amountColumnSl);

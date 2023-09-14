@@ -26,7 +26,7 @@ public class StepListAdapter extends ArrayAdapter<String> {
         String stepItem = getItem(position);
 
         if(convertView==null) {
-            convertView= LayoutInflater.from(getContext()).inflate(R.layout.step_list_item,parent,false);
+            convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_step_list_item,parent,false);
         }
         TextView counterView= convertView.findViewById(R.id.counter);
         TextView stepView=convertView.findViewById(R.id.step);

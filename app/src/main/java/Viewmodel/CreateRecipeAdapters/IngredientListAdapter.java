@@ -29,7 +29,7 @@ public class IngredientListAdapter extends ArrayAdapter<Ingredient> {
         Ingredient ingredient = getItem(position);
 
         if(convertView==null) {
-            convertView= LayoutInflater.from(getContext()).inflate(R.layout.ingredient_list_item,parent,false);
+            convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_ingredient_list_item,parent,false);
         }
         TextView amountView= convertView.findViewById(R.id.amountColumn);
         TextView unitView= convertView.findViewById(R.id.unitColumn);

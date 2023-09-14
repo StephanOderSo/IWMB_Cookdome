@@ -14,9 +14,9 @@ import com.bienhuels.iwmb_cookdome.R;
 
 public class RecyclerViewHolder extends RecyclerView.ViewHolder {
     public TextView textView2,recipe_time,recipe_diet;
-    public ImageButton remove;
-    public TextView recipe_name;
-    public ImageView recipe_image,diet_show,time_show,favourite;
+    public ImageButton remove,share;
+    public TextView recipe_name,userName;
+    public ImageView recipe_image,diet_show,time_show,favourite,userImage;
     public CardView recipeItem;
 
 
@@ -35,7 +35,10 @@ public class RecyclerViewHolder extends RecyclerView.ViewHolder {
         time_show=(itemView.findViewById(R.id.timeshow));
         favourite=(itemView.findViewById(R.id.favouritebtn));
         remove=(itemView.findViewById(R.id.remove));
-
+        //Users/User Cell
+        userImage=(itemView.findViewById(R.id.userImage));
+        userName=(itemView.findViewById(R.id.userName));
+        share=(itemView.findViewById(R.id.share));
 
     }
 }

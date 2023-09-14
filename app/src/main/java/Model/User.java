@@ -17,6 +17,7 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -37,8 +38,8 @@ import View.MainActivity;
 import View.RecipeViewActivity;
 
 public class User {
-    String name,photo,email;
-    ArrayList<String> favourites, own;
+    String name,photo,email,id;
+    ArrayList<String> favourites, own,privShared,publShared;
     ArrayList<Ingredient>shoppingList=new ArrayList<>();
     DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
     FirebaseAuth auth=FirebaseAuth.getInstance();
@@ -48,15 +49,11 @@ public class User {
 
 
     public User(){}
-    public User(String name, String photo) {
-        this.name = name;
-        this.photo = photo;
-    }
 
-    public User(String name, String photo,String email) {
-        this.name = name;
+    public User(String name, String photo,String id) {
+        this.name = name.toLowerCase();
         this.photo = photo;
-        this.email=email;
+        this.id=id;
     }
 
     public String getEmail() {
@@ -70,8 +67,11 @@ public class User {
     public void setName(String name) {
         this.name = name;
     }
+    public String getId(){return id;}
 
-
+    public void setId(String id){
+        this.id=id;
+    }
     public String getPhoto() {
         return photo;
     }
@@ -84,26 +84,32 @@ public class User {
             Uri imageUriNew= uriTask.getResult();
             auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener( task -> {
                         if (task.isSuccessful()) {
-                            User user=new User(name,imageUriNew.toString());
-                            String userID=setUID(email);
-                            userRef.child(userID).setValue(user).addOnCompleteListener(task1 -> {
-                                if(task1.isSuccessful()){
-                                    handler.post(new Runnable() {
+                            auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    FirebaseUser fbuser=auth.getCurrentUser();
+                                    id=getUID(fbuser,context);
+                                    auth.signOut();
+                                    User user=new User(name,imageUriNew.toString(),id);
+                                    userRef.child(id).setValue(user).addOnCompleteListener(task1 -> {
+                                        if(task1.isSuccessful()){
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
+                                                    //dBUser.sendEmailVerification();
+                                                    Intent toLoginIntent=new Intent(context, LoginActivity.class);
+                                                    toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                    toLoginIntent.putExtra("email",email);
+                                                    context.startActivity(toLoginIntent);
+                                                }
+                                            });
+                                        }
+                                    }).addOnFailureListener(e -> {handler.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                                            //dBUser.sendEmailVerification();
-                                            Intent toLoginIntent=new Intent(context, LoginActivity.class);
-                                            toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            toLoginIntent.putExtra("email",email);
-                                            context.startActivity(toLoginIntent);
-                                        }
-                                    });
+                                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});});
                                 }
-                            }).addOnFailureListener(e -> {handler.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});
                             });
                         }
             }).addOnFailureListener(e -> {handler.post(new Runnable() {
@@ -119,10 +125,10 @@ public class User {
     }
 
 
-    public User getUserFromFirebase(Context context, FirebaseUser fbuser, TextView nameView, TextView emailView, ImageView imageView, Handler userHandler){
+    public User downloadFromFirebase(Context context, FirebaseUser fbuser, TextView nameView, TextView emailView, ImageView imageView, Handler userHandler){
         if(fbuser!=null) {
             email = fbuser.getEmail();
-            String id = getUID(fbuser,context);
+            id = getUID(fbuser,context);
             userRef.child(id).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
@@ -139,7 +145,7 @@ public class User {
                                     .centerCrop()
                                     .into(imageView);
                             nameView.setText(user.getName());
-                            emailView.setText(user.getEmail());
+                            emailView.setText(fbuser.getEmail());
                         }
                     });
                 } else {
@@ -170,10 +176,10 @@ public class User {
         }
         return user;
     }
-    public void updateUserOnFirebase(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
+    public void updateOnFirebase(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
             if(task1.isSuccessful()){
-                    String id=getUID(fbuser,context);
+                    id=getUID(fbuser,context);
                     Intent toMainIntent=new Intent(context, MainActivity.class);
                     toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     HashMap<String,Object> update=new HashMap<>();
@@ -259,7 +265,7 @@ public class User {
     }
     //Generate a list of Keys to the Recipes the user liked
     public synchronized ArrayList<String> getFavourites(Context context, FirebaseUser currentUser, Handler handler,Thread thread) {
-            String id =getUID(currentUser,context);
+            id =getUID(currentUser,context);
             favourites = new ArrayList<>();
             userRef.child(id).child("Favourites").get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
@@ -294,7 +300,7 @@ public class User {
     }
 
     public synchronized ArrayList<String> updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser currentUser, Handler handler,ArrayList<String>favourites){
-        String id=getUID(currentUser,context);
+        id=getUID(currentUser,context);
         if (favourites.contains(recipe.getKey())) {
             userRef.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
@@ -395,26 +401,19 @@ public class User {
 
 
     }
-    public String setUID(String email){
-        email=email.replace(".","*");
-        email=email.replace("$","*");
-        email=email.replace("[","*");
-        email=email.replace("]","*");
-        return email;
-    }
+
     public String getUID(FirebaseUser fbuser,Context context){
-        String email=new String();
         if(fbuser!=null){
-            email=fbuser.getEmail();
-            email=email.replace(".","*");
-            email=email.replace("$","*");
-            email=email.replace("[","*");
-            email=email.replace("]","*");
+            id=fbuser.getUid();
         }else{
             loginIntent(context);
         }
-        return email;
+        return id;
     }
+
+
+
+
     public synchronized void addToShoppingList(Context context, FirebaseUser fbuser, Handler handler, Thread thread, Ingredient ingredient){
         String uID=getUID(fbuser,context);
         userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).get().addOnCompleteListener(task -> {
@@ -486,20 +485,70 @@ public class User {
             } synchronized (thread){
                 thread.notify();
             }
-
         }).addOnFailureListener(e -> {
             Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
             synchronized (thread){
                 thread.notify();
             }
         });
-
         return shoppingList;
     }
+    public  void removeFromShared(String key,String id,String priv,Context context){
+        userRef.child(id).child("Shared").child(priv).child(key).removeValue().addOnCompleteListener(task -> {
+        }).addOnFailureListener(e -> {
+            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+        });
+    }
+    public void addToShared(Recipe recipe,User model,Context context,String uID){
+        if(!recipe.getPriv()){
+            userRef.child(model.getId()).child("Shared").child("public").child(recipe.getKey()).setValue(recipe.getKey()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    recipe.addUserToSharedListPublic(model.getId(),recipe.getKey(),context);
+                    Intent torecipeViewIntent=new Intent(context, RecipeViewActivity.class);
+                    torecipeViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    torecipeViewIntent.putExtra("key",recipe.getKey());
+                }
+            }).addOnFailureListener(e -> {
+                Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+            });
+        }else{
+            boolean own=uID.equals(recipe.getOwner());
+            if(own){
+                userRef.child(model.getId()).child("Shared").child("private").child(recipe.getKey()).setValue(uID).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        recipe.addUserToSharedListPrivate(model.getId(), recipe.getKey(),recipe.getOwner(), context);
+                        Intent torecipeViewIntent=new Intent(context, RecipeViewActivity.class);
+                        torecipeViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        torecipeViewIntent.putExtra("key",recipe.getKey());
+                        context.startActivity(torecipeViewIntent);
+                    }
+                }).addOnFailureListener(e -> {
+                    Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+                });
+            }else{
+                Toast.makeText(context, R.string.cantShare, Toast.LENGTH_LONG).show();
+                Intent torecipeViewIntent=new Intent(context, RecipeViewActivity.class);
+                torecipeViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                torecipeViewIntent.putExtra("key",recipe.getKey());
+                context.startActivity(torecipeViewIntent);
+            }
+        }
+    }
+
     public void loginIntent(Context context){
         Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
         Intent loginIntent = new Intent(context, LoginActivity.class);
         loginIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(loginIntent);
+    }
+    public void setPrivate(String uid,Recipe recipe,Context context){
+        userRef.child(uid).child("Privates").child(recipe.getKey()).setValue(recipe).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Toast.makeText(context, R.string.shared, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

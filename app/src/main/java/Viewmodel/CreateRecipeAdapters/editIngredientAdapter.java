@@ -28,7 +28,7 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
         Ingredient ingredient = getItem(position);
 
         if(convertView==null) {
-            convertView= LayoutInflater.from(getContext()).inflate(R.layout.edit_ingredient,parent,false);
+            convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_edit_ingredient,parent,false);
         }
         Runnable runnable=new Runnable() {
             @Override

@@ -27,7 +27,7 @@ public class EditStepAdapter extends ArrayAdapter<String> {
         String step =  getItem(position);
 
         if(convertView==null) {
-            convertView= LayoutInflater.from(getContext()).inflate(R.layout.edit_step,parent,false);
+            convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_edit_step,parent,false);
         }
         TextView counter= convertView.findViewById(R.id.counter);
         EditText stepView= convertView.findViewById(R.id.editStep);

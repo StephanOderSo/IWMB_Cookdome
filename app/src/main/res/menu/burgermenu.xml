@@ -13,6 +13,9 @@
         <item android:id="@+id/shoppingList"
             android:icon="@drawable/shoppinglist"
             android:title="@string/shoppingList"/>
+        <item android:id="@+id/sharedRecipes"
+            android:icon="@drawable/shared"
+            android:title="@string/sharedRecipes"/>
         <item android:id="@+id/logout"
             android:icon="@drawable/logout"
             android:title="@string/logout"/>

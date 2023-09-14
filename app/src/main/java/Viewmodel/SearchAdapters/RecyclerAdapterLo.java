@@ -1,7 +1,6 @@
 package Viewmodel.SearchAdapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -26,7 +25,7 @@ public class RecyclerAdapterLo extends RecyclerView.Adapter<RecyclerViewHolder>{
     @NonNull
     @Override
     public RecyclerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new RecyclerViewHolder(LayoutInflater.from(context).inflate(R.layout.removable_cell,parent,false));
+        return new RecyclerViewHolder(LayoutInflater.from(context).inflate(R.layout.cell_removable_item,parent,false));
 
 
     }

@@ -34,9 +34,7 @@ public class RecipeViewActivity extends AppCompatActivity {
     FirebaseAuth auth=FirebaseAuth.getInstance();
     ArrayList<String> favlist;
     ArrayList<String> ownlist;
-    ImageView favView;
-    Boolean portionsChanged;
-
+    ImageView favView,share,edit;
     Recipe selectedRecipe=new Recipe();
     int portionsOrigin;
     CardView portionsCard;
@@ -44,14 +42,14 @@ public class RecipeViewActivity extends AppCompatActivity {
     IngrListAdapterwSLBtn ingredientAdapter;
     ArrayList<Ingredient> dBingredientList;
     String key;
-    ImageView edit;
     User user=new User();
     FirebaseUser fbUser;
     Context context;
     Handler handler =new Handler();
     Thread checkFavThread,setDataThread;
     Intent previousIntent;
-    DataSnapshot snapshot;
+    Boolean priv;
+
 
 
 
@@ -73,12 +71,18 @@ public class RecipeViewActivity extends AppCompatActivity {
         });
         favView=findViewById(R.id.favourite);
         favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser, handler,favlist));
-        portionsChanged=false;
         portionsCard=findViewById(R.id.portionsBtn);
         portionsText=findViewById(R.id.portions);
         portionsCard.setOnClickListener(view -> {
                     buildPortionsDialog();
                 });
+        share=findViewById(R.id.share);
+        share.setOnClickListener(view -> {
+            Intent toUsersIntent=new Intent(this,UsersActivity.class);
+            toUsersIntent.putExtra("key",key);
+            startActivity(toUsersIntent);
+            finish();
+        });
     }
 
     public void buildPortionsDialog(){
@@ -194,7 +198,6 @@ public class RecipeViewActivity extends AppCompatActivity {
                        }
                    }
                selectedRecipe=selectedRecipe.getRecipe();
-               Log.d("TAG", selectedRecipe.getRecipeName().toString());
                portionsOrigin=selectedRecipe.getPortions();
                handler.post(new Runnable() {
                    @Override

@@ -63,7 +63,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     TextView catBtn,unitBtn;
     IngredientListAdapter ingredientAdapter;
     StepListAdapter stepListAdapter;
-    String priv;
+    Boolean priv;
     Recipe selectedRecipe=new Recipe();
     Switch privateswitch;
     Handler handler=new Handler();
@@ -71,6 +71,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     User user=new User();
     Button save;
     Context context;
+    String uID;
 
 
 
@@ -81,13 +82,15 @@ public class CreateRecipeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_recipe);
         fbuser=FirebaseAuth.getInstance().getCurrentUser();
+        context=getApplicationContext();
+        uID= user.getUID(fbuser,context);
 //create Arraylists for Alert Dialog selections
         String[] dietArray={getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.vegan),getResources().getString(R.string.vegetar),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)};
         String[] catArray={getResources().getString(R.string.breakki),getResources().getString(R.string.mainMeal),getResources().getString(R.string.dessert),getResources().getString(R.string.snack),getResources().getString(R.string.soup),getResources().getString(R.string.salad)};
         String[] unitArray={" ","cup","tsp","tbsp","ml","l","g","kg","mg","oz","pound"};
 //assign strings to variables for access outside of onCreate
         //Intentfilter for correct Adapter and content
-        context=getApplicationContext();
+
         Intent previousIntent=getIntent();
         ingredientsView=findViewById(R.id.ingredientlist);
         stepsView=findViewById(R.id.stepList);
@@ -318,8 +321,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
         privateswitch.setOnClickListener(view -> {
             if(!privateswitch.isChecked()){
                 privateswitch.setText(R.string.privates);
+                priv=true;
             }else{
                 privateswitch.setText(R.string.publics);
+                priv=false;
             }
         });
 
@@ -366,7 +371,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
             time = Integer.parseInt(timeView.getText().toString());
             portions=Integer.parseInt(portionsView.getText().toString());
             progressbar.setVisibility(View.VISIBLE);
-            priv=privateswitch.getText().toString();
             Handler handler=new Handler();
             FirebaseUser fbuser= FirebaseAuth.getInstance().getCurrentUser();
             Runnable uploadRunnable=new Runnable() {
@@ -387,7 +391,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             Runnable setRun=new Runnable() {
                 @Override
                 public void run() {
-                    selectedRecipe.setRecipe(imageUri,recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,uploadThread,context,handler);
+                    selectedRecipe.setRecipe(imageUri,recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,uploadThread,context,handler,priv,uID);
                 }
             };
             Thread setThread=new Thread(setRun);
