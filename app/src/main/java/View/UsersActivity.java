@@ -1,15 +1,14 @@
 package View;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.widget.ImageButton;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -29,7 +28,6 @@ public class UsersActivity extends AppCompatActivity {
     Handler handler=new Handler();
     Context context;
     FirebaseUser fbUser;
-    ImageButton share;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,30 +57,22 @@ public class UsersActivity extends AppCompatActivity {
         });
     }
     private void getRecipe(){
-        Runnable setDataRun=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                    try {
-                        Thread.currentThread().wait();
+        Runnable setDataRun= () -> {
+            synchronized (Thread.currentThread()){
+                try {
+                    Thread.currentThread().wait();
 
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-                recipe=recipe.getRecipe();
-
             }
+            recipe=recipe.getRecipe();
+
         };
         Thread setDataThread=new Thread(setDataRun);
         setDataThread.start();
 
-        Runnable runnable=new Runnable() {
-            @Override
-            public void run() {
-                recipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
-            }
-        };
+        Runnable runnable= () -> recipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
         Thread getRecipeThread=new Thread(runnable);
         getRecipeThread.start();
     }

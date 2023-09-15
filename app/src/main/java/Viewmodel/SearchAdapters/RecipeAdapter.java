@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -36,12 +37,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     String id;
     String liked="liked";
     String unliked="unliked";
+    String source;
 
-    public RecipeAdapter(Context context, ArrayList<Recipe> list, ArrayList<String>favlist, String id) {
+    public RecipeAdapter(Context context, ArrayList<Recipe> list, ArrayList<String>favlist, String id,String source) {
         this.context = context;
         this.list = list;
         this.favlist=favlist;
         this.id=id;
+        this.source=source;
     }
 
     @NonNull
@@ -71,12 +74,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         holder.favourite.setOnClickListener(view -> {
             auth = FirebaseAuth.getInstance();
             User user=new User();
-            Runnable favRunnable=new Runnable() {
-                @Override
-                public void run() {
-                    user.updateFavourites(recipe,context,holder.favourite,fbUser,handler,favlist);
-                }
-            };
+            Runnable favRunnable= () -> user.updateFavourites(recipe,context,holder.favourite,fbUser,handler,favlist);
             Thread favThread=new Thread(favRunnable);
             favThread.start();
 
@@ -138,7 +136,38 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             context.startActivity(intent);
         });
 
-
+        if(source.equals("shared")){
+            holder.removeRecipe.setVisibility(View.VISIBLE);
+            holder.removeRecipe.setImageResource(R.drawable.remove_filled);
+            holder.removeRecipe.setOnClickListener(view -> {
+                Runnable dataRun=()->{
+                    synchronized (Thread.currentThread()){
+                        try {
+                            Thread.currentThread().wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    handler.post(() -> notifyItemRemoved(position));
+                    };
+                Thread updateDataThread=new Thread(dataRun);
+                updateDataThread.start();
+                Runnable run= () -> {
+                    String priv;
+                    User user=new User();
+                    if(recipe.getPriv()){
+                        priv="private";
+                    }else{
+                        priv="public";
+                    }
+                    user.removeFromShared(recipe.getKey(),id,priv,context,handler);
+                    recipe.removeUserFromShareList(id, recipe.getKey(),context,recipe.getOwner(),recipe.getPriv(),handler,updateDataThread);
+                    list.remove(recipe);
+                };
+                Thread removeThread=new Thread(run);
+                removeThread.start();
+            });
+        }
     }
 
     @Override
@@ -148,11 +177,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
 
     public void searchList(ArrayList<Recipe> searchList) {
         list = searchList;
-        notifyDataSetChanged();
-    }
-
-    public  void changeList(ArrayList <Recipe> list){
-        this.list=list;
         notifyDataSetChanged();
     }
 }

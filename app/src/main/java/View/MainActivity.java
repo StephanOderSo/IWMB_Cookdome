@@ -91,11 +91,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TextView nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
         TextView mailHeader=navView.getHeaderView(0).findViewById(R.id.mailHeader);
 
-        Runnable runnable=new Runnable() {
-            @Override
-            public void run() {
-                User user= new User().downloadFromFirebase(context,fbuser,nameHeader,mailHeader,profileImage,userHandler);
-            }
+        Runnable runnable= () -> {
+            User user= new User().downloadFromFirebase(context,fbuser,nameHeader,mailHeader,profileImage,userHandler);
         };
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();

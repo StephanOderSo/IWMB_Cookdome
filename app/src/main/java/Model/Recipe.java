@@ -6,10 +6,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -19,6 +16,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+
 import View.MainActivity;
 
 public class Recipe {
@@ -46,7 +44,7 @@ public class Recipe {
     public Recipe(){}
 
 
-    public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietRec,Boolean priv,String owner) {
+    public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietRec,Boolean priv,String owner,ArrayList<String>sharedWith) {
        this.key=key;
         this.image=image;
         this.recipeName = recipeName;
@@ -58,6 +56,7 @@ public class Recipe {
         this.dietaryRec =dietRec;
         this.priv=priv;
         this.owner=owner;
+        this.sharedWith=sharedWith;
     }
 
     public String getKey() {
@@ -105,24 +104,13 @@ public class Recipe {
     public Boolean getPriv() {
         return priv;
     }
-    public void setPriv(Boolean priv) {
-        this.priv = priv;
-    }
 
     public String getOwner() {
         return owner;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
     public ArrayList<String> getSharedWith() {
         return sharedWith;
-    }
-
-    public void setSharedWith(ArrayList<String> sharedWith) {
-        this.sharedWith = sharedWith;
     }
 
     public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, Thread nextThread, Context context, Handler handler, Boolean priv, String owner){
@@ -143,15 +131,7 @@ public class Recipe {
                 synchronized (nextThread){
                     nextThread.notify();
                 }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();}});
-                }
-            });
+            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }else{
             this.recipeName=recipeName;
             this.category=category;
@@ -171,7 +151,7 @@ public class Recipe {
         if(this.key==null){
             key=recipeRef.push().getKey();
         }
-        Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec,priv,owner);
+        Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec,priv,owner,sharedWith);
         String uid=user.getUID(fbuser,context);
         if(!priv){
             recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
@@ -195,7 +175,7 @@ public class Recipe {
             if (task.isSuccessful()) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    this.selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
+                    this.selectedRecipe=rebuildFromFirebase(snapshot);
                     synchronized (setDatathread){
                         setDatathread.notify();
                     }
@@ -204,7 +184,7 @@ public class Recipe {
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();
-                            this.selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
+                            this.selectedRecipe=rebuildFromFirebase(snapshot);
                             synchronized (setDatathread){
                                 setDatathread.notify();
                             }
@@ -227,7 +207,7 @@ public class Recipe {
     }
     //Mapping the firebase Data structure of a Recipe back to a recipe-Object
     public Recipe rebuildFromFirebase( DataSnapshot snapshot) {
-        Recipe selectedRecipe=new Recipe();
+        Recipe selectedRecipe;
         key = snapshot.child("key").getValue(String.class);
         recipeName = String.valueOf(snapshot.child("recipeName").getValue());
         category = String.valueOf(snapshot.child("category").getValue());
@@ -261,10 +241,17 @@ public class Recipe {
             }
             String unit=IngSS.child("unit").getValue(String.class);
             String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+            if (amount == null) { amount=0.0;}
+
             Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
             ingredientList.add(ingredient);
-            selectedRecipe = new Recipe(key, image, recipeName, category, prepTime, portions, ingredientList, stepList, dietaryRec,priv,owner);
-        }return selectedRecipe;
+        }
+        for(DataSnapshot ss:snapshot.child("sharedWith").getChildren()){
+            String userID=ss.getValue(String.class);
+            sharedWith.add(userID);
+        }
+            selectedRecipe = new Recipe(key, image, recipeName, category, prepTime, portions, ingredientList, stepList, dietaryRec,priv,owner,sharedWith);
+        return selectedRecipe;
 
     }
     public void addUserToSharedListPublic(String userID, String key, Context context){
@@ -273,9 +260,7 @@ public class Recipe {
             if(task.isSuccessful()){
                 Toast.makeText(context, R.string.shared, Toast.LENGTH_SHORT).show();
             }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-        });
+        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show());
     }
     public void addUserToSharedListPrivate(String userID, String key, String owner,Context context){
         sharedWith.add(userID);
@@ -283,21 +268,23 @@ public class Recipe {
             if(task.isSuccessful()){
                 Toast.makeText(context, R.string.shared, Toast.LENGTH_SHORT).show();
             }
-        }).addOnFailureListener(e -> {
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-        });
+        }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show());
     }
-    public void removeUserFromShareListPublic(String userID,String key,Context context){
+    public void removeUserFromShareList(String userID,String key,Context context,String owner,Boolean priv,Handler handler,Thread nextThread){
+        if(priv){
+            userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> {
+                synchronized (nextThread){
+                    nextThread.notify();
+                }
+            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+        }else{
+            recipeRef.child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> {
+                synchronized (nextThread){
+                    nextThread.notify();
+                }
+            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+        }
         sharedWith.remove(userID);
-        recipeRef.child(key).child("sharedWith").child(userID).removeValue().addOnFailureListener(e -> {
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-        });
-    }
-    public void removeUserFromShareListPrivate(String userID,String key,Context context,String owner){
-        sharedWith.remove(userID);
-        userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).removeValue().addOnFailureListener(e -> {
-            Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-        });
     }
 
 }

@@ -15,13 +15,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.bienhuels.iwmb_cookdome.R;
@@ -65,7 +65,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     StepListAdapter stepListAdapter;
     Boolean priv;
     Recipe selectedRecipe=new Recipe();
-    Switch privateswitch;
+    SwitchCompat privateswitch;
     Handler handler=new Handler();
     FirebaseUser fbuser;
     User user=new User();
@@ -106,41 +106,27 @@ public class CreateRecipeActivity extends AppCompatActivity {
             delete.setVisibility(View.VISIBLE);
             String key=previousIntent.getStringExtra("Edit");
             delete.setOnClickListener(view -> {
-                Runnable removeRun=new Runnable() {
-                    @Override
-                    public void run() { user.removeRecipe(key,context,handler,fbuser);}};
+                Runnable removeRun= () -> user.removeRecipe(selectedRecipe,context,handler,fbuser);
                 Thread removeThread=new Thread(removeRun);
                 removeThread.start();
 
             });
-            Runnable setDataRun=new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (Thread.currentThread()){
+            Runnable setDataRun= () -> {
+                synchronized (Thread.currentThread()){
 
-                            try {
-                                Thread.currentThread().wait();
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
+                        try {
+                            Thread.currentThread().wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
-                    selectedRecipe=selectedRecipe.getRecipe();
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            setRecipeData(selectedRecipe,dietArray);
-                        }});
-                }
+                    }
+                selectedRecipe=selectedRecipe.getRecipe();
+                handler.post(() -> setRecipeData(selectedRecipe,dietArray));
             };
             Thread setDataThread=new Thread(setDataRun);
             setDataThread.start();
 
-            Runnable runnable=new Runnable() {
-                @Override
-                public void run() {
-                    selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbuser);
-                }
-            };
+            Runnable runnable= () -> selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbuser);
             Thread getRThread=new Thread(runnable);
             getRThread.start();
 
@@ -233,12 +219,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 if(dietaryRecList.isEmpty()){
                     Toast.makeText(CreateRecipeActivity.this, R.string.chooseDiet, Toast.LENGTH_SHORT).show();
                 }else{
-                    Runnable runnable=new Runnable() {
-                        @Override
-                        public void run() {
-                            buildDietString();
-                        }
-                    };
+                    Runnable runnable= this::buildDietString;
                     Thread stringBuildThread=new Thread(runnable);
                     stringBuildThread.start();
                 }
@@ -373,27 +354,19 @@ public class CreateRecipeActivity extends AppCompatActivity {
             progressbar.setVisibility(View.VISIBLE);
             Handler handler=new Handler();
             FirebaseUser fbuser= FirebaseAuth.getInstance().getCurrentUser();
-            Runnable uploadRunnable=new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (Thread.currentThread()){
-                        try {
-                            Thread.currentThread().wait();
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+            Runnable uploadRunnable= () -> {
+                synchronized (Thread.currentThread()){
+                    try {
+                        Thread.currentThread().wait();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                    selectedRecipe.uploadUpdate(context,priv,handler,fbuser);
                 }
+                selectedRecipe.uploadUpdate(context,priv,handler,fbuser);
             };
             Thread uploadThread=new Thread(uploadRunnable);
             uploadThread.start();
-            Runnable setRun=new Runnable() {
-                @Override
-                public void run() {
-                    selectedRecipe.setRecipe(imageUri,recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,uploadThread,context,handler,priv,uID);
-                }
-            };
+            Runnable setRun= () -> selectedRecipe.setRecipe(imageUri,recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,uploadThread,context,handler,priv,uID);
             Thread setThread=new Thread(setRun);
             setThread.start();
         }
@@ -410,13 +383,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
         }
         int newTotal=totalHeight;
         Handler adjustListSizeHandler=new Handler();
-        adjustListSizeHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                ViewGroup.LayoutParams params=view.getLayoutParams();
-                params.height=newTotal+view.getDividerHeight()*adapter.getCount();
-                view.setLayoutParams(params);
-            }
+        adjustListSizeHandler.post(() -> {
+            ViewGroup.LayoutParams params=view.getLayoutParams();
+            params.height=newTotal+view.getDividerHeight()*adapter.getCount();
+            view.setLayoutParams(params);
         });
 
     }
@@ -426,31 +396,28 @@ public class CreateRecipeActivity extends AppCompatActivity {
         String portions=String.valueOf(recipe.getPortions());
         String category=recipe.getCategory();
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Picasso.get()
-                        .load(recipe.getImage())
-                        .placeholder(R.drawable.camera)
-                        .fit()
-                        .centerCrop()
-                        .into(imageView);
-                recipeNameView.setText(name);
-                timeView.setText(time);
-                portionsView.setText(portions);
-                catBtn.setText(category);
-                dietaryRecList=recipe.getDietaryRec();
-                buildDietString();
-                setDietInclCheck(dietArray);
-                stepList=recipe.getStepList();
-                ingredientList=recipe.getIngredientList();
-                editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,ingredientList);
-                EditStepAdapter stepAdapter = new EditStepAdapter(getApplicationContext(), 0,stepList);
-                ingredientsView.setAdapter(ingredientAdapter);
-                stepsView.setAdapter(stepAdapter);
-                getListViewSize(stepAdapter,stepsView);
-                getListViewSize(ingredientAdapter,ingredientsView);
-            }
+        handler.post(() -> {
+            Picasso.get()
+                    .load(recipe.getImage())
+                    .placeholder(R.drawable.camera)
+                    .fit()
+                    .centerCrop()
+                    .into(imageView);
+            recipeNameView.setText(name);
+            timeView.setText(time);
+            portionsView.setText(portions);
+            catBtn.setText(category);
+            dietaryRecList=recipe.getDietaryRec();
+            buildDietString();
+            setDietInclCheck(dietArray);
+            stepList=recipe.getStepList();
+            ingredientList=recipe.getIngredientList();
+            editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,ingredientList);
+            EditStepAdapter stepAdapter = new EditStepAdapter(getApplicationContext(), 0,stepList);
+            ingredientsView.setAdapter(ingredientAdapter);
+            stepsView.setAdapter(stepAdapter);
+            getListViewSize(stepAdapter,stepsView);
+            getListViewSize(ingredientAdapter,ingredientsView);
         });
 
     }
@@ -501,12 +468,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
        }else{
            text=dietaryTxt.toString();
        }
-       handler.post(new Runnable() {
-           @Override
-           public void run() {
-               dietaryBtn.setText(text);
-           }
-       });
+       handler.post(() -> dietaryBtn.setText(text));
    }
 
     public void updateListview(){

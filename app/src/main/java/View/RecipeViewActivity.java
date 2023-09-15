@@ -13,16 +13,19 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.cardview.widget.CardView;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
 import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
+
 import Model.Ingredient;
 import Model.Recipe;
 import Model.User;
@@ -48,7 +51,6 @@ public class RecipeViewActivity extends AppCompatActivity {
     Handler handler =new Handler();
     Thread checkFavThread,setDataThread;
     Intent previousIntent;
-    Boolean priv;
 
 
 
@@ -73,9 +75,7 @@ public class RecipeViewActivity extends AppCompatActivity {
         favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser, handler,favlist));
         portionsCard=findViewById(R.id.portionsBtn);
         portionsText=findViewById(R.id.portions);
-        portionsCard.setOnClickListener(view -> {
-                    buildPortionsDialog();
-                });
+        portionsCard.setOnClickListener(view -> buildPortionsDialog());
         share=findViewById(R.id.share);
         share.setOnClickListener(view -> {
             Intent toUsersIntent=new Intent(this,UsersActivity.class);
@@ -90,7 +90,7 @@ public class RecipeViewActivity extends AppCompatActivity {
         portionsDialog.setTitle(R.string.setPortions);
         final EditText editPortions=new EditText(RecipeViewActivity.this);
         editPortions.setInputType(InputType.TYPE_CLASS_NUMBER);
-        editPortions.setBackground(getDrawable(R.drawable.lavender_border));
+        editPortions.setBackground(AppCompatResources.getDrawable(getApplicationContext(),R.drawable.lavender_border));
         editPortions.setHint(R.string.portions);
         editPortions.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         portionsDialog.setView(editPortions);
@@ -124,99 +124,64 @@ public class RecipeViewActivity extends AppCompatActivity {
         portionsDialog.show();
     }
    private void getData(){
-       Runnable checkFavRunnable=new Runnable() {
-           @Override
-           public void run() {
-               synchronized (Thread.currentThread()){
-                   while(favlist==null){
-                       try {
-                           Thread.currentThread().wait();
-                       } catch (InterruptedException e) {
-                           throw new RuntimeException(e);
-                       }
-                   }}
-               if(favlist.contains(key)){
-                   handler.post(new Runnable() {
-                       @Override
-                       public void run() {
-                           favView.setImageResource(R.drawable.liked);
-                       }
-                   });
-               }else{
-                   handler.post(new Runnable() {
-                       @Override
-                       public void run() {
-                           favView.setImageResource(R.drawable.unliked);
-                       }
-                   });
-               }
+       Runnable checkFavRunnable= () -> {
+           synchronized (Thread.currentThread()){
+               while(favlist==null){
+                   try {
+                       Thread.currentThread().wait();
+                   } catch (InterruptedException e) {
+                       throw new RuntimeException(e);
+                   }
+               }}
+           if(favlist.contains(key)){
+               handler.post(() -> favView.setImageResource(R.drawable.liked));
+           }else{
+               handler.post(() -> favView.setImageResource(R.drawable.unliked));
            }
        };
        checkFavThread=new Thread(checkFavRunnable);
        checkFavThread.start();
-       Runnable checkOwnRun=new Runnable() {
-           @Override
-           public void run() {
-               synchronized (Thread.currentThread()){
-                   while(ownlist==null){
-                       try {
-                           Thread.currentThread().wait();
-                       } catch (InterruptedException e) {
-                           throw new RuntimeException(e);
-                       }
-                   }}
-               if(ownlist.contains(key)){
-                   handler.post(new Runnable() {
-                       @Override
-                       public void run() {
-                           edit.setVisibility(View.VISIBLE);
-                       }
-                   });
-               }
+       Runnable checkOwnRun= () -> {
+           synchronized (Thread.currentThread()){
+               while(ownlist==null){
+                   try {
+                       Thread.currentThread().wait();
+                   } catch (InterruptedException e) {
+                       throw new RuntimeException(e);
+                   }
+               }}
+           if(ownlist.contains(key)){
+               handler.post(() -> edit.setVisibility(View.VISIBLE));
            }
        };
        Thread checkOwnThread=new Thread(checkOwnRun);
        checkOwnThread.start();
-       Runnable getOwnFavRun=new Runnable() {
-           @Override
-           public void run() {
-               favlist=user.getFavourites(context,fbUser, handler,checkFavThread);
-               ownlist=user.getOwn(context,fbUser, handler,checkOwnThread);
-           }
+       Runnable getOwnFavRun= () -> {
+           favlist=user.getFavourites(context,fbUser, handler,checkFavThread);
+           ownlist=user.getOwn(context,fbUser, handler,checkOwnThread);
        };
        Thread getOwnFavThread=new Thread(getOwnFavRun);
        getOwnFavThread.start();
-       Runnable setDataRun=new Runnable() {
-           @Override
-           public void run() {
-               synchronized (Thread.currentThread()){
-                       try {
-                           Thread.currentThread().wait();
+       Runnable setDataRun= () -> {
+           synchronized (Thread.currentThread()){
+                   try {
+                       Thread.currentThread().wait();
 
-                       } catch (InterruptedException e) {
-                           throw new RuntimeException(e);
-                       }
+                   } catch (InterruptedException e) {
+                       throw new RuntimeException(e);
                    }
-               selectedRecipe=selectedRecipe.getRecipe();
-               portionsOrigin=selectedRecipe.getPortions();
-               handler.post(new Runnable() {
-                   @Override
-                   public void run() {
-                       setValues(selectedRecipe);
-                   }
-               });
+               }
+           selectedRecipe=selectedRecipe.getRecipe();
+           portionsOrigin=selectedRecipe.getPortions();
+           handler.post(() -> setValues(selectedRecipe));
 
-           }
        };
        setDataThread=new Thread(setDataRun);
        setDataThread.start();
 
-       Runnable runnable=new Runnable() {
-           @Override
-           public void run() {
-               key = previousIntent.getStringExtra("key");
-               selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
-           }
+       Runnable runnable= () -> {
+           key = previousIntent.getStringExtra("key");
+           selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
        };
        Thread getRecipeThread=new Thread(runnable);
        getRecipeThread.start();

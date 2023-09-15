@@ -28,8 +28,6 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
@@ -48,7 +46,7 @@ public class SearchActivity extends AppCompatActivity {
     String id;
     ConstraintLayout filterContainer;
     SearchView searchView;
-    String source;
+    String source="";
     public Integer time;
     SeekBar seekBar;
     TextView valueView;
@@ -76,7 +74,6 @@ public class SearchActivity extends AppCompatActivity {
     FirebaseUser fbUser;
     Database database=new Database();
     Thread listThread;
-    Thread getThread;
     Intent previousIntent;
 
 
@@ -338,126 +335,112 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     public void setUpList(){
-        Runnable recyclerRunnable=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                    while(currentList==null){
-                        try {
-                            Thread.currentThread().wait();
+        Runnable recyclerRunnable= () -> {
+            synchronized (Thread.currentThread()){
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }}
-                handler.post(new Runnable() {
+                    try {
+                        Thread.currentThread().wait();
+
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            Log.d(TAG, "setRecycler");
+            handler.post(() -> {
+                recyclerconfig(currentList);
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
-                    public void run() {
-                        recyclerconfig(currentList);
-                        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                            @Override
-                            public boolean onQueryTextSubmit(String s) {
-                                return false;
-                            }
+                    public boolean onQueryTextSubmit(String s) {
+                        return false;
+                    }
 
-                            @Override
-                            public boolean onQueryTextChange(String s) {
-                                typeFilter(s);
-                                return false;
-                            }
-                        });
+                    @Override
+                    public boolean onQueryTextChange(String s) {
+                        typeFilter(s);
+                        return false;
                     }
                 });
-            }
+            });
         };
         Thread recyclerThread=new Thread(recyclerRunnable);
         recyclerThread.start();
-        Runnable ownRunnable=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                    while(ownlist==null){
-                        try {
-                            Log.d(TAG, "waiting");
-                            Thread.currentThread().wait();
+        Runnable ownRunnable= () -> {
+            synchronized (Thread.currentThread()){
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
-                }
-            }
+                    try {
+
+                        Thread.currentThread().wait();
+
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }Log.d(TAG, "getList");
+                currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
         };
         Thread ownThread=new Thread(ownRunnable);
         ownThread.start();
-        Runnable getSharedList=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                        try {
-                            Thread.currentThread().wait();
+        Runnable getSharedList= () -> {
+            synchronized (Thread.currentThread()){
+                    try {
+                        Thread.currentThread().wait();
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                    currentList=database.getRecipes();
-                synchronized (recyclerThread){
-                    recyclerThread.notify();
                 }
+            Log.d(TAG, "getListShared");
+                currentList=database.getRecipes();
+            Log.d(TAG, currentList.toString());
+            synchronized (recyclerThread){
+                recyclerThread.notify();
             }
         };
         Thread getSharedListThread=new Thread(getSharedList);
         getSharedListThread.start();
-        Runnable setprivRunnable=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                        try {
-                            Thread.currentThread().wait();
+        Runnable setprivRunnable= () -> {
+            synchronized (Thread.currentThread()){
+                    try {
+                        Thread.currentThread().wait();
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                database.setSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
-            }
+                }
+            Log.d(TAG, "addPriv");
+            database.addSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
         };
         Thread setPrivThread=new Thread(setprivRunnable);
         setPrivThread.start();
-        Runnable listRunnable=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
-                    while(favlist==null){
-                        try {
-                            Thread.currentThread().wait();
+        Runnable listRunnable= () -> {
+            synchronized (Thread.currentThread()){
+                    try {
+                        Thread.currentThread().wait();
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }}
-                // User clicked search Icon
-                if(previousIntent.hasExtra("search")) {
-                    currentList=database.getAllRecipes(context, handler,recyclerThread);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-                //User selected a category
-                if (previousIntent.hasExtra("filter")) {
-                    String catFilter = previousIntent.getStringExtra("filter");
-                    selectedCategoryList.add(catFilter);
-                    source="categories";
-                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
-                }
-                //User clicked leftovers Button
-                if (previousIntent.hasExtra("action")) {
-                    source="leftovers";
-                    String catFilter="";
-                    currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
-                }
-                //User clicked Own-recipes/liked Recipes
-                if(previousIntent.hasExtra("select")){
-                    source=previousIntent.getStringExtra("select");
-
+            // User clicked search Icon
+            if(previousIntent.hasExtra("search")) {
+                currentList=database.getAllRecipes(context, handler,recyclerThread);
+            }
+            //User selected a category
+            if (previousIntent.hasExtra("filter")) {
+                String catFilter = previousIntent.getStringExtra("filter");
+                selectedCategoryList.add(catFilter);
+                source="categories";
+                currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
+            }
+            //User clicked leftovers Button
+            if (previousIntent.hasExtra("action")) {
+                source="leftovers";
+                String catFilter="";
+                currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
+            }
+            //User clicked Own-recipes/liked Recipes
+            if(previousIntent.hasExtra("select")){
+                source=previousIntent.getStringExtra("select");
+                if(source!=null){
                     if(source.equals("ownRecipes")){
                         ownlist=user.getOwn(context,fbUser, handler,ownThread);
                     }
@@ -465,26 +448,23 @@ public class SearchActivity extends AppCompatActivity {
                         currentList=database.getFavouriteOrOwnRecipes(favlist,context,id, handler,recyclerThread);
                     }
                 }
-                if(previousIntent.hasExtra("shared")){
-                    database.setSharedPublRecipes(context,fbUser,handler,setPrivThread);
-                }
+            }
+            if(previousIntent.hasExtra("shared")){
+                source="shared";
+                Log.d(TAG, "addPublic");
+                database.addSharedPublRecipes(context,fbUser,handler,setPrivThread);
             }
         };
         listThread=new Thread(listRunnable);
         listThread.start();
-        Runnable favRunnable=new Runnable() {
-            @Override
-            public void run() {
-                favlist=user.getFavourites(context,fbUser, handler,listThread);
-            }
-        };
+        Runnable favRunnable= () -> favlist=user.getFavourites(context,fbUser, handler,listThread);
         Thread favThread=new Thread(favRunnable);
         favThread.start();
     }
 
     //Configuring the Recyclerview to display the given List of Recipes
     public void recyclerconfig(ArrayList<Recipe> list){
-        recipeAdapter = new RecipeAdapter(getApplicationContext(),list,favlist,id);
+        recipeAdapter = new RecipeAdapter(getApplicationContext(),list,favlist,id,source);
         recipeSearchView.setAdapter(recipeAdapter);
     }
     //If user presses return on their phone he is lead back to the main activity

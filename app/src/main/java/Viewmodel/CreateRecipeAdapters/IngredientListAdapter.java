@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,6 +32,9 @@ public class IngredientListAdapter extends ArrayAdapter<Ingredient> {
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_ingredient_list_item,parent,false);
         }
+        if (ingredient != null) {
+
+
         TextView amountView= convertView.findViewById(R.id.amountColumn);
         TextView unitView= convertView.findViewById(R.id.unitColumn);
         TextView ingredientView= convertView.findViewById(R.id.ingredientColumn);
@@ -45,7 +49,9 @@ public class IngredientListAdapter extends ArrayAdapter<Ingredient> {
             remove(toBeRemoved);
             notifyDataSetChanged();
         });
-
+    }else{
+            Toast.makeText(getContext(), R.string.sthWrong, Toast.LENGTH_SHORT).show();
+        }
         return convertView;
     }
 }

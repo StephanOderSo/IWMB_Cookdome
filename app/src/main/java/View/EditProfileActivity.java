@@ -71,12 +71,7 @@ public class EditProfileActivity extends AppCompatActivity {
         Intent toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
         Intent toLoginIntent=new Intent(EditProfileActivity.this,LoginActivity.class);
 
-        Runnable runnable=new Runnable() {
-            @Override
-            public void run() {
-                setUserData();
-            }
-        };
+        Runnable runnable= this::setUserData;
         Thread getInfoThread=new Thread(runnable);
         getInfoThread.start();
 
@@ -87,10 +82,11 @@ public class EditProfileActivity extends AppCompatActivity {
                 result -> {
                     if(result.getResultCode()== Activity.RESULT_OK){
                         Intent data=result.getData();
-                        try{
-                            imageUri=data.getData();
-                            photo.setImageURI(imageUri);
-                        } catch(NullPointerException e){Toast.makeText(EditProfileActivity.this,R.string.no_image_selected,Toast.LENGTH_SHORT).show();}
+                            if(data!=null){
+                                imageUri=data.getData();
+                                photo.setImageURI(imageUri);
+                            }
+                            else{Toast.makeText(EditProfileActivity.this,R.string.no_image_selected,Toast.LENGTH_SHORT).show();}
                     }else {
                         Toast.makeText(EditProfileActivity.this,R.string.no_image_selected,Toast.LENGTH_SHORT).show();
                     }
@@ -146,9 +142,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 Toast.makeText(EditProfileActivity.this, R.string.enterMail, Toast.LENGTH_SHORT).show();
             }
         });
-        passworddone.setOnClickListener(view -> {
-            checkPassword();
-        });
+        passworddone.setOnClickListener(view -> checkPassword());
 
 
         saveUserchange.setOnClickListener(view -> {

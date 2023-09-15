@@ -28,6 +28,7 @@ import Model.User;
 
 public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
     FirebaseAuth auth=FirebaseAuth.getInstance();
+    Context context;
     public IngrListAdapterwSLBtn(@NonNull Context context, int resource, @NonNull ArrayList<Ingredient> ingredientList) {
         super(context, resource,ingredientList);
     }
@@ -36,10 +37,12 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         Ingredient ingredient = getItem(position);
+        context=getContext();
 
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_ingredient_list_item,parent,false);
         }
+        if(ingredient!=null){
         TextView amountView= convertView.findViewById(R.id.amountColumn);
         TextView unitView= convertView.findViewById(R.id.unitColumn);
         TextView ingredientView= convertView.findViewById(R.id.ingredientColumn);
@@ -50,49 +53,39 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
         ImageButton imageButton= convertView.findViewById(R.id.removeStepBtn);
         imageButton.setImageResource(R.drawable.add_to_cart);
         imageButton.setOnClickListener(view -> addToSList(ingredient,imageButton));
-
+        }else{
+            Toast.makeText(getContext(), R.string.sthWrong, Toast.LENGTH_SHORT).show();
+        }
 
         return convertView;
     }
 
     public void addToSList(Ingredient ingredient,ImageButton imageButton){
-        Context context=getContext();
         FirebaseUser fbUser=auth.getCurrentUser();
         User user=new User();
         Handler handler=new Handler();
-        Runnable viewRunnable=new Runnable() {
-            @Override
-            public void run() {
-                synchronized (Thread.currentThread()){
+        Runnable viewRunnable= () -> {
+            synchronized (Thread.currentThread()){
 
-                        try {
-                            Log.d(TAG, "waiting");
-                            Thread.currentThread().wait();
+                    try {
+                        Log.d(TAG, "waiting");
+                        Thread.currentThread().wait();
 
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                            imageButton.setImageResource(R.drawable.tick);
-                            imageButton.setBackground(null);
-                            imageButton.setBackgroundColor(0);
-                            Toast.makeText(getContext(), R.string.added, Toast.LENGTH_SHORT).show();
-                    }
-                });
+                }
+            handler.post(() -> {
+                    imageButton.setImageResource(R.drawable.tick);
+                    imageButton.setBackground(null);
+                    imageButton.setBackgroundColor(0);
+                    Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
+            });
 
-            }
         };
         Thread viewThread=new Thread(viewRunnable);
         viewThread.start();
-        Runnable slRunnable=new Runnable() {
-            @Override
-            public void run() {
-                user.addToShoppingList(context,fbUser,handler,viewThread,ingredient);
-            }
-        };
+        Runnable slRunnable= () -> user.addToShoppingList(context,fbUser,handler,viewThread,ingredient);
         Thread slThread=new Thread(slRunnable);
         slThread.start();
     }

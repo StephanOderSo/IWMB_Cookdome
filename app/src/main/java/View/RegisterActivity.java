@@ -1,14 +1,11 @@
 package View;
 
-import static android.content.ContentValues.TAG;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,15 +18,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-
-import java.util.ArrayList;
 
 import Model.User;
 
@@ -68,8 +59,12 @@ public class RegisterActivity extends AppCompatActivity {
                 result -> {
                     if(result.getResultCode()== Activity.RESULT_OK){
                         Intent data=result.getData();
-                        imageUri=data.getData();
-                        photo.setImageURI(imageUri);
+                        if(data!=null){
+                            imageUri=data.getData();
+                            photo.setImageURI(imageUri);
+                        }else {
+                            Toast.makeText(RegisterActivity.this,R.string.no_image_selected,Toast.LENGTH_SHORT).show();
+                        }
                     }else {
                         Toast.makeText(RegisterActivity.this,R.string.no_image_selected,Toast.LENGTH_SHORT).show();
                     }
@@ -117,12 +112,7 @@ public class RegisterActivity extends AppCompatActivity {
                     passwordView.clearComposingText();
                     passwordRepeatView.clearComposingText();
                 } else{
-                    Runnable runnable=new Runnable() {
-                        @Override
-                        public void run() {
-                            user.uploadToFirebase(imageUri,name,email,password,context,handler);
-                        }
-                    };
+                    Runnable runnable= () -> user.uploadToFirebase(imageUri,name,email,password,context,handler);
                     registerThread=new Thread(runnable);
                     registerThread.start();
                 }

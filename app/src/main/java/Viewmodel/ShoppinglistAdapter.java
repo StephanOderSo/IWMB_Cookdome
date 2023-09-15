@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,7 +36,7 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         if(convertView==null) {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_shoppinglist_item,parent,false);
         }
-
+        if(ingredient!=null){
         TextView amountView= convertView.findViewById(R.id.amountColumnSl);
         TextView unitView= convertView.findViewById(R.id.unitColumnSl);
         TextView ingredientView= convertView.findViewById(R.id.ingredientColumnSl);
@@ -45,26 +46,25 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         unitView.setText(ingredient.getUnit());
         ingredientView.setText(ingredient.getIngredientName());
         checkBox.setOnClickListener(view -> onCheck(checkBox,ingredient));
-
+    }else{
+            Toast.makeText(getContext(), R.string.sthWrong, Toast.LENGTH_SHORT).show();
+        }
 
         return convertView;
     }
     private void onCheck(CheckBox checkbox,Ingredient ingredient){
-        Runnable run=new Runnable() {
-            @Override
-            public void run() {
-                FirebaseAuth auth;
-                auth= FirebaseAuth.getInstance();
-                FirebaseUser fbuser=auth.getCurrentUser();
-                User user=new User();
-                Context context=getContext();
+        Runnable run= () -> {
+            FirebaseAuth auth;
+            auth= FirebaseAuth.getInstance();
+            FirebaseUser fbuser=auth.getCurrentUser();
+            User user=new User();
+            Context context=getContext();
 
-                if(checkbox.isChecked()){
-                    user.removeFromShoppingList(fbuser,context,ingredient,handler);
-                }
-                else{
-                    user.addToShoppingList(context,fbuser,handler,Thread.currentThread(),ingredient);
-                }
+            if(checkbox.isChecked()){
+                user.removeFromShoppingList(fbuser,context,ingredient,handler);
+            }
+            else{
+                user.addToShoppingList(context,fbuser,handler,Thread.currentThread(),ingredient);
             }
         };
         Thread thread=new Thread(run);

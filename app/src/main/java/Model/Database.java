@@ -15,9 +15,6 @@ import androidx.constraintlayout.widget.ConstraintLayoutStates;
 import com.bienhuels.iwmb_cookdome.R;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.firebase.ui.database.SnapshotParser;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
@@ -27,8 +24,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
+
 import View.MainActivity;
-import View.RecipeViewActivity;
 import View.RecyclerViewHolder;
 import Viewmodel.CustomComparator;
 
@@ -51,26 +49,17 @@ public class Database {
                         recipes.add(selectedRecipe);
                     }
                     Collections.sort(recipes,new CustomComparator());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            synchronized (thread){
-                                thread.notify();
-                            }
-                            Toast.makeText(context, R.string.retreived,Toast.LENGTH_SHORT).show();
+                    handler.post(() -> {
+                        synchronized (thread){
+                            thread.notify();
                         }
+                        Toast.makeText(context, R.string.retreived,Toast.LENGTH_SHORT).show();
                     });
                        }else{
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context,R.string.dBEmpty,Toast.LENGTH_SHORT).show();}});
+                    handler.post(() -> Toast.makeText(context,R.string.dBEmpty,Toast.LENGTH_SHORT).show());
                 }
             }else{
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(context,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();}});
+                handler.post(() -> Toast.makeText(context,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show());
             }
         });
         return recipes;
@@ -95,47 +84,42 @@ public class Database {
                                 String name=ingredient.getIngredientName();
                                 ingredientStringList.add(name);
                             }
-                            if(ingredientStringList.containsAll(leftoverList)){
-                                Log.d(ConstraintLayoutStates.TAG, " applied");
-                            } else{
-                                continue;}
+                            if(leftoverList!=null){
+                                if(ingredientStringList.containsAll(leftoverList)){
+                                    Log.d(ConstraintLayoutStates.TAG, " applied");
+                                } else{
+                                    continue;}
+                            }else{
+                                handler.post(() -> {
+                                    Toast.makeText(context, R.string.noLeftoversSelected, Toast.LENGTH_SHORT).show();
+                                    Intent backToLeftverIntent=new Intent(context, LayoutInflater.Filter.class);
+                                    backToLeftverIntent.putExtra("action","");
+                                    backToLeftverIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    context.startActivity(backToLeftverIntent);
+                                });
+                            }
+
                             recipes.add(selectedRecipe);
                         }
                     }
                     Collections.sort(recipes,new CustomComparator());
                     if(source.equals("categories")){
                         if(recipes.isEmpty()){
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(context,R.string.noMatch,Toast.LENGTH_SHORT).show();}});
+                            handler.post(() -> Toast.makeText(context,R.string.noMatch,Toast.LENGTH_SHORT).show());
                               }
                     }
                     if(source.equals("leftovers")){
                         if(recipes.isEmpty()){
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(context,R.string.noMatch,Toast.LENGTH_SHORT).show();}});
+                            handler.post(() -> Toast.makeText(context,R.string.noMatch,Toast.LENGTH_SHORT).show());
                                }
                     }
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context,R.string.retreived,Toast.LENGTH_SHORT).show();
-                            }});
+                    handler.post(() -> Toast.makeText(context,R.string.retreived,Toast.LENGTH_SHORT).show());
 
                 }else{
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(context,R.string.dBEmpty,Toast.LENGTH_SHORT).show();}});
+                    handler.post(() -> Toast.makeText(context,R.string.dBEmpty,Toast.LENGTH_SHORT).show());
                          }
             }else{
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(context,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();}});
+                handler.post(() -> Toast.makeText(context,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show());
                     }
             synchronized (thread){
                 thread.notify();
@@ -160,12 +144,7 @@ public class Database {
                             Recipe selectedRecipe=new Recipe().rebuildFromFirebase(snapshot2);
                             recipes.add(selectedRecipe);
                                }
-                    }).addOnFailureListener(e -> {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show();}});
-                         });
+                    }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
                 }if(i==1){
                     synchronized (thread){
                         thread.notify();
@@ -173,12 +152,7 @@ public class Database {
 
                 }i=i-1;
 
-            }).addOnFailureListener(e2 -> {
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(context, e2.getMessage(), Toast.LENGTH_SHORT).show();}});
-            });
+            }).addOnFailureListener(e2 -> handler.post(() -> Toast.makeText(context, e2.getMessage(), Toast.LENGTH_SHORT).show()));
         }
         Collections.sort(recipes,new CustomComparator());
         return recipes;
@@ -201,15 +175,11 @@ public class Database {
         Query query=userRef.orderByChild("name").startAt(searchInput).endAt(searchInput+"\uf8ff");
         FirebaseRecyclerOptions<User> options =
                 new FirebaseRecyclerOptions.Builder<User>()
-                        .setQuery(query, new SnapshotParser<User>() {
-                            @NonNull
-                            @Override
-                            public User parseSnapshot(@NonNull DataSnapshot snapshot) {
-                                String photo=snapshot.child("photo").getValue(String.class);
-                                String name=snapshot.child("name").getValue(String.class).toLowerCase();
-                                String id=snapshot.child("id").getValue(String.class);
-                                return new User(name,photo,id);
-                            }
+                        .setQuery(query, snapshot -> {
+                            String photo=snapshot.child("photo").getValue(String.class);
+                            String name= Objects.requireNonNull(snapshot.child("name").getValue(String.class)).toLowerCase();
+                            String id=snapshot.child("id").getValue(String.class);
+                            return new User(name,photo,id);
                         })
                         .build();
         return new FirebaseRecyclerAdapter<User, RecyclerViewHolder>(options) {
@@ -223,11 +193,7 @@ public class Database {
                         .into(holder.userImage);
                 holder.userName.setText(model.getName());
                 holder.share.setImageResource(R.drawable.share);
-                holder.share.setOnClickListener(view -> {
-                    user.addToShared(recipe,model,context,uID);
-
-
-                });
+                holder.share.setOnClickListener(view -> user.addToShared(recipe,model,context,uID));
             }
             @NonNull
             @Override
@@ -237,28 +203,32 @@ public class Database {
             }
         };
     }
-    public void setSharedPrivRecipes( Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+    public void addSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
         String id=user.getUID(fbuser, context);
         userRef.child(id).child("Shared").child("private").get().addOnCompleteListener(task -> {
             DataSnapshot snapshot=task.getResult();
             if(snapshot.exists()){
-                int i=1;
+                i=1;
                 int size=Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
                 for(DataSnapshot ss:snapshot.getChildren()){
                     String key=ss.getKey();
                     String userID=ss.getValue(String.class);
-                    userRef.child(userID).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
-                        DataSnapshot snapshot1= task1.getResult();
-                        Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
-                        recipes.add(recipe);
-                    }).addOnFailureListener(e -> {
-                    });
-                    if(i==size){
-                        synchronized (nextThread){
-                            nextThread.notify();
-                        }
+                    if(key!=null&&userID!=null){
+                        userRef.child(userID).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
+                            DataSnapshot snapshot1= task1.getResult();
+                            Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
+                            recipes.add(recipe);
+                            if(i==size){
+                                synchronized (nextThread){
+                                    nextThread.notify();
+                                }
+                            }
+                            i++;
+                        }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+                    }else{
+                        handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());
                     }
-                    i++;
+
                 }
             }else{
                 synchronized (nextThread){
@@ -268,38 +238,37 @@ public class Database {
         });
     }
 
-    public void setSharedPublRecipes( Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+    public void addSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
         String id=user.getUID(fbuser, context);
-        userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                DataSnapshot snapshot= task.getResult();
-                if(snapshot.exists()){
-                    int i=1;
-                    int size=Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
-                    for(DataSnapshot ss:snapshot.getChildren()){
-                        String key=ss.getValue(String.class);
+        userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(task -> {
+            DataSnapshot snapshot= task.getResult();
+            if(snapshot.exists()){
+                i=1;
+                int size=Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
+                for(DataSnapshot ss:snapshot.getChildren()){
+                    String key=ss.getValue(String.class);
+                    if(key!=null){
                         recipeRef.child(key).get().addOnCompleteListener(task1 -> {
                             if(task1.isSuccessful()){
                                 DataSnapshot snapshot1= task1.getResult();
                                 Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
                                 recipes.add(recipe);
+                                if(i==size){
+                                    synchronized (nextThread){
+                                        nextThread.notify();
+                                    }
+                                }
+                                i++;
                             }
-                        });
-                        if(i==size){
-                            synchronized (nextThread){
-                                nextThread.notify();
-                            }
-                        }
-                        i++;
-                    }
-                }else{
-                    synchronized (nextThread){
-                        nextThread.notify();
-                    }
+                        }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+                    }else{  handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());}
+                }
+            }else{
+                synchronized (nextThread){
+                    nextThread.notify();
                 }
             }
-        });
+        }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
     public ArrayList<Recipe> getRecipes(){
         return  this.recipes;
