@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -103,7 +103,6 @@ public class RecipeViewActivity extends AppCompatActivity {
                     for(Ingredient ingredient:dBingredientList){
                         double amount=ingredient.getAmount();
                         ingredient.setAmount(amount/portionsOrigin*newPortions);
-
                     }
                     ingredientAdapter.notifyDataSetChanged();
                     portionsOrigin=newPortions;
@@ -125,14 +124,6 @@ public class RecipeViewActivity extends AppCompatActivity {
     }
    private void getData(){
        Runnable checkFavRunnable= () -> {
-           synchronized (Thread.currentThread()){
-               while(favlist==null){
-                   try {
-                       Thread.currentThread().wait();
-                   } catch (InterruptedException e) {
-                       throw new RuntimeException(e);
-                   }
-               }}
            if(favlist.contains(key)){
                handler.post(() -> favView.setImageResource(R.drawable.liked));
            }else{
@@ -140,22 +131,11 @@ public class RecipeViewActivity extends AppCompatActivity {
            }
        };
        checkFavThread=new Thread(checkFavRunnable);
-       checkFavThread.start();
+
        Runnable checkOwnRun= () -> {
-           synchronized (Thread.currentThread()){
-               while(ownlist==null){
-                   try {
-                       Thread.currentThread().wait();
-                   } catch (InterruptedException e) {
-                       throw new RuntimeException(e);
-                   }
-               }}
-           if(ownlist.contains(key)){
-               handler.post(() -> edit.setVisibility(View.VISIBLE));
-           }
-       };
+           if(ownlist.contains(key)){handler.post(() -> edit.setVisibility(View.VISIBLE));}};
        Thread checkOwnThread=new Thread(checkOwnRun);
-       checkOwnThread.start();
+
        Runnable getOwnFavRun= () -> {
            favlist=user.getFavourites(context,fbUser, handler,checkFavThread);
            ownlist=user.getOwn(context,fbUser, handler,checkOwnThread);
@@ -163,21 +143,11 @@ public class RecipeViewActivity extends AppCompatActivity {
        Thread getOwnFavThread=new Thread(getOwnFavRun);
        getOwnFavThread.start();
        Runnable setDataRun= () -> {
-           synchronized (Thread.currentThread()){
-                   try {
-                       Thread.currentThread().wait();
-
-                   } catch (InterruptedException e) {
-                       throw new RuntimeException(e);
-                   }
-               }
            selectedRecipe=selectedRecipe.getRecipe();
            portionsOrigin=selectedRecipe.getPortions();
            handler.post(() -> setValues(selectedRecipe));
-
        };
        setDataThread=new Thread(setDataRun);
-       setDataThread.start();
 
        Runnable runnable= () -> {
            key = previousIntent.getStringExtra("key");
@@ -209,8 +179,6 @@ public class RecipeViewActivity extends AppCompatActivity {
         Integer tempPortions=selectedRecipe.getPortions();
         portionsText.setText(String.format(tempPortions.toString()));
         StringBuilder dietaryTxt=new StringBuilder();
-        Log.d("TAG", selectedRecipe.getDietaryRec().toString()
-        );
         for(String diet: selectedRecipe.getDietaryRec()){
             String dietShort = "";
             if (diet.equals(getResources().getString(R.string.vegetar))) {
@@ -232,7 +200,6 @@ public class RecipeViewActivity extends AppCompatActivity {
                 dietShort = "LF";
             }
             dietaryTxt.append(dietShort);
-            Log.d("TAG", dietaryTxt.toString());
             int i;
             i=selectedRecipe.getDietaryRec().indexOf(diet);
             if(i!=selectedRecipe.getDietaryRec().size()-1){
@@ -249,37 +216,29 @@ public class RecipeViewActivity extends AppCompatActivity {
         dBingredientList= selectedRecipe.getIngredientList();
         ingredientAdapter = new IngrListAdapterwSLBtn(getApplicationContext(), 0,dBingredientList);
         ingredientList.setAdapter(ingredientAdapter);
-        int totalHeight=0;
-        for (int i = 0; i < ingredientAdapter.getCount(); i++) {
-            View mView = ingredientAdapter.getView(i, null, ingredientList);
-
-            mView.measure(
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            totalHeight += mView.getMeasuredHeight();}
-        int ingrcount=ingredientAdapter.getCount();
-        ViewGroup.LayoutParams ingrparams=ingredientList.getLayoutParams();
-        ingrparams.height=totalHeight+ingredientList.getDividerHeight()*ingrcount;
-        ingredientList.setLayoutParams(ingrparams);
-        ingredientList.setLayoutParams(ingrparams);
+        getListViewSize(ingredientAdapter,ingredientList);
         ArrayList<String>dBStepList;
         dBStepList=selectedRecipe.getStepList();
         StepListAdapterNoBtn stepAdapter = new StepListAdapterNoBtn(getApplicationContext(), 0, dBStepList);
         stepList.setAdapter(stepAdapter);
-        int totalHeight2=0;
-        for (int i = 0; i < stepAdapter.getCount(); i++) {
-            View mView = stepAdapter.getView(i, null, stepList);
-
+        getListViewSize(stepAdapter,stepList);
+    }
+    public void getListViewSize(ArrayAdapter adapter, ListView view){
+        int totalHeight=0;
+        for ( int i=0;i<adapter.getCount();i++) {
+            View mView=adapter.getView(i,null,view);
             mView.measure(
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            totalHeight2 += mView.getMeasuredHeight();}
-        int stepcount=stepAdapter.getCount();
-        ViewGroup.LayoutParams stepparams=stepList.getLayoutParams();
-        stepparams.height=totalHeight2+stepList.getDividerHeight()*stepcount;
-        stepList.setLayoutParams(stepparams);
+            totalHeight += mView.getMeasuredHeight();
+        }
+        int newTotal=totalHeight;
+        handler.post(() -> {
+            ViewGroup.LayoutParams params=view.getLayoutParams();
+            params.height=newTotal+view.getDividerHeight()*adapter.getCount();
+            view.setLayoutParams(params);
+        });
+
     }
 
     @Override

@@ -118,6 +118,7 @@
     <string name="cantShare"><![CDATA[This Recipe is private & shouldnt be shared]]></string>
     <string name="sharedRecipes">Shared recipes</string>
     <string name="noLeftoversSelected">no leftovers selected</string>
+    <string name="haredWith">Shared with</string>
 
 
 </resources>

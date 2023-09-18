@@ -2,8 +2,10 @@ package View;
 
 import static android.view.View.GONE;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -31,6 +33,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.ArrayList;
 import java.util.Random;
 
+import Model.Database;
 import Model.Ingredient;
 import Model.Recipe;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
@@ -59,7 +62,7 @@ public class FilterActivity extends AppCompatActivity {
     RecyclerAdapterDietary dietaryRecyclerAdapter;
     public ArrayList<String> selectedCategoryList= new ArrayList<>();
     public ArrayList<String> selectedDietaryRecList= new ArrayList<>();
-    public static ArrayList<String> resteList = new ArrayList<>();
+    public static ArrayList<String> leftoversList = new ArrayList<>();
     ArrayList<Recipe> dBRecipeList;
 
 
@@ -168,15 +171,15 @@ public class FilterActivity extends AppCompatActivity {
         restelistView= findViewById(R.id.leftoversList);
         StaggeredGridLayoutManager gridM=new StaggeredGridLayoutManager(1,StaggeredGridLayoutManager.HORIZONTAL);
         restelistView.setLayoutManager(gridM);
-        loRecyclerAdapter=new RecyclerAdapterLo(getApplicationContext(),resteList);
+        loRecyclerAdapter=new RecyclerAdapterLo(getApplicationContext(), leftoversList);
         restelistView.setAdapter(loRecyclerAdapter);
         insertIngredient=findViewById(R.id.insertIngredient);
         addIngredientFilter=findViewById(R.id.addIngredientFilter);
         rowsize=3;
         addIngredientFilter.setOnClickListener(view -> {
             String lo=insertIngredient.getText().toString();
-            resteList.add(lo.toLowerCase());
-            int listsize=resteList.size();
+            leftoversList.add(lo.toLowerCase());
+            int listsize= leftoversList.size();
             int rows=gridM.getSpanCount();
             if(listsize>rowsize&&listsize%3==1){
                 rows=rows+1;
@@ -192,11 +195,21 @@ public class FilterActivity extends AppCompatActivity {
         applyFilter.setOnClickListener(view -> {
             if(previousIntent.hasExtra("action")){
                 Intent newIntent=new Intent(FilterActivity.this,SearchActivity.class);
-                newIntent.putExtra("action",resteList);
+                newIntent.putExtra("action", leftoversList);
                 startActivity(newIntent);
                 finish();
             }else{
-                getRandomRecipe();}
+                Runnable getRandomRun= () -> filterAndGetRandom(time,selectedCategoryList,selectedDietaryRecList,leftoversList);
+                Thread getRandomThread=new Thread(getRandomRun);
+
+                Context context=getApplicationContext();
+                Handler handler=new Handler();
+                Runnable download= () -> {
+                    Database database=new Database();
+                    dBRecipeList=database.getAllRecipes(context,handler,getRandomThread);};
+                Thread downloadThread=new Thread(download);
+                downloadThread.start();
+                }
         });
 
 //Cancel Button
@@ -225,29 +238,6 @@ public class FilterActivity extends AppCompatActivity {
             selectedDietaryRecList.remove(selectedFilter);
             recyclerAdapter.notifyDataSetChanged();
         }
-    }
-    private void getRandomRecipe() {
-        dBRecipeList= new ArrayList<>();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference databaseReference = database.getReference("/Cookdome/Recipes");
-        databaseReference.get().addOnCompleteListener(task -> {
-            if(task.isSuccessful()) {
-                if (task.getResult().exists()) {
-                    DataSnapshot snapshot = task.getResult();
-                    for(DataSnapshot dsS:snapshot.getChildren()){
-                        Recipe recipe=new Recipe();
-                        recipe=recipe.rebuildFromFirebase(dsS);
-                        dBRecipeList.add(recipe);
-                    }
-                    Toast.makeText(FilterActivity.this,R.string.retreived,Toast.LENGTH_SHORT).show();
-                    filterAndGetRandom(time,selectedCategoryList,selectedDietaryRecList,resteList);
-                }else{
-                    Toast.makeText(FilterActivity.this,R.string.dBEmpty,Toast.LENGTH_SHORT).show();
-                }
-            }else{
-                Toast.makeText(FilterActivity.this,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void filterAndGetRandom(Integer time, ArrayList<String> categories, ArrayList<String> dietary, ArrayList<String> ingredients) {

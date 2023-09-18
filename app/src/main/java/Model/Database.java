@@ -24,7 +24,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Objects;
 
 import View.MainActivity;
 import View.RecyclerViewHolder;
@@ -32,7 +31,7 @@ import Viewmodel.CustomComparator;
 
 public class Database {
     ArrayList<Recipe> recipes=new ArrayList<>();
-    ArrayList<User>users;
+    ArrayList<User>users=new ArrayList<>();
     FirebaseDatabase database=FirebaseDatabase.getInstance();
     DatabaseReference userRef=database.getReference("/Cookdome/Users");
     DatabaseReference recipeRef=database.getReference("/Cookdome/Recipes");
@@ -50,9 +49,7 @@ public class Database {
                     }
                     Collections.sort(recipes,new CustomComparator());
                     handler.post(() -> {
-                        synchronized (thread){
-                            thread.notify();
-                        }
+                        thread.start();
                         Toast.makeText(context, R.string.retreived,Toast.LENGTH_SHORT).show();
                     });
                        }else{
@@ -121,9 +118,7 @@ public class Database {
             }else{
                 handler.post(() -> Toast.makeText(context,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show());
                     }
-            synchronized (thread){
-                thread.notify();
-            }
+            thread.start();
         });
         return recipes;
     }
@@ -146,10 +141,7 @@ public class Database {
                                }
                     }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
                 }if(i==1){
-                    synchronized (thread){
-                        thread.notify();
-                    }
-
+                    thread.start();
                 }i=i-1;
 
             }).addOnFailureListener(e2 -> handler.post(() -> Toast.makeText(context, e2.getMessage(), Toast.LENGTH_SHORT).show()));
@@ -159,7 +151,7 @@ public class Database {
     }
 
 
-    public void removeFromPublicList(String key, Context context, Handler handler){
+    public void removeRecipeFromPublic(String key, Context context, Handler handler){
         recipeRef.child(key).removeValue().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 handler.post(() -> {  Toast.makeText(context, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
@@ -175,12 +167,7 @@ public class Database {
         Query query=userRef.orderByChild("name").startAt(searchInput).endAt(searchInput+"\uf8ff");
         FirebaseRecyclerOptions<User> options =
                 new FirebaseRecyclerOptions.Builder<User>()
-                        .setQuery(query, snapshot -> {
-                            String photo=snapshot.child("photo").getValue(String.class);
-                            String name= Objects.requireNonNull(snapshot.child("name").getValue(String.class)).toLowerCase();
-                            String id=snapshot.child("id").getValue(String.class);
-                            return new User(name,photo,id);
-                        })
+                        .setQuery(query, snapshot -> new User().rebuildUser(snapshot))
                         .build();
         return new FirebaseRecyclerAdapter<User, RecyclerViewHolder>(options) {
             @Override
@@ -219,21 +206,16 @@ public class Database {
                             Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
                             recipes.add(recipe);
                             if(i==size){
-                                synchronized (nextThread){
-                                    nextThread.notify();
-                                }
+                                nextThread.start();
                             }
                             i++;
                         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
                     }else{
                         handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());
                     }
-
                 }
             }else{
-                synchronized (nextThread){
-                    nextThread.notify();
-                }
+                nextThread.start();
             }
         });
     }
@@ -254,9 +236,7 @@ public class Database {
                                 Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
                                 recipes.add(recipe);
                                 if(i==size){
-                                    synchronized (nextThread){
-                                        nextThread.notify();
-                                    }
+                                    nextThread.start();
                                 }
                                 i++;
                             }
@@ -264,13 +244,30 @@ public class Database {
                     }else{  handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());}
                 }
             }else{
-                synchronized (nextThread){
-                    nextThread.notify();
-                }
+                nextThread.start();
             }
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
     public ArrayList<Recipe> getRecipes(){
         return  this.recipes;
+    }
+
+    public  void setSharedWithUsers(ArrayList<String> sharedWith,Handler handler,Context context,Thread nextThread){
+        i=1;
+        int size=sharedWith.size();
+        for(String userID:sharedWith){
+            userRef.child(userID).get().addOnCompleteListener(task -> {
+                DataSnapshot snapshot= task.getResult();
+                user=user.rebuildUser(snapshot);
+                users.add(user);
+                if(i==size){
+                    nextThread.start();
+                }
+                i++;
+            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+        }
+    }
+    public ArrayList<User> getUsers(){
+        return  this.users;
     }
 }

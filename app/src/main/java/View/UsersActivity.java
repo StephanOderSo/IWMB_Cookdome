@@ -57,20 +57,8 @@ public class UsersActivity extends AppCompatActivity {
         });
     }
     private void getRecipe(){
-        Runnable setDataRun= () -> {
-            synchronized (Thread.currentThread()){
-                try {
-                    Thread.currentThread().wait();
-
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            recipe=recipe.getRecipe();
-
-        };
+        Runnable setDataRun= () -> recipe=recipe.getRecipe();
         Thread setDataThread=new Thread(setDataRun);
-        setDataThread.start();
 
         Runnable runnable= () -> recipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
         Thread getRecipeThread=new Thread(runnable);

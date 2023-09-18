@@ -77,7 +77,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             Runnable favRunnable= () -> user.updateFavourites(recipe,context,holder.favourite,fbUser,handler,favlist);
             Thread favThread=new Thread(favRunnable);
             favThread.start();
-
         });
         StringBuilder dietaryTxt = new StringBuilder();
         if (recipe.getDietaryRec() == null) {
@@ -87,42 +86,48 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             holder.recipe_diet.setVisibility(GONE);
             holder.diet_show.setVisibility(GONE);
         } else {
-            for (String diet : recipe.getDietaryRec()) {
-                String dietShort = "";
+            Runnable textbuild=new Runnable() {
+                @Override
+                public void run() {
+                    for (String diet : recipe.getDietaryRec()) {
+                        String dietShort = "";
 
-                if (diet.equals(context.getResources().getString(R.string.vegetar))) {
-                    dietShort = "VT";
+                        if (diet.equals(context.getResources().getString(R.string.vegetar))) {
+                            dietShort = "VT";
+                        }
+                        if (diet.equals(context.getResources().getString(R.string.vegan))) {
+                            dietShort = "V";
+                        }
+                        if (diet.equals(context.getResources().getString(R.string.glutenfree))) {
+                            dietShort = "GF";
+                        }
+                        if (diet.equals(context.getResources().getString(R.string.lactosefree))) {
+                            dietShort = "LF";
+                        }
+                        if (diet.equals(context.getResources().getString(R.string.paleo))) {
+                            dietShort = "P";
+                        }
+                        if (diet.equals(context.getResources().getString(R.string.lowfat))) {
+                            dietShort = "LF";
+                        }
+                        if (diet.equals(context.getResources().getString(R.string.none))) {
+                            holder.recipe_diet.setVisibility(GONE);
+                            holder.diet_show.setVisibility(GONE);
+                            break;
+                        }
+                        dietaryTxt.append(dietShort);
+                        int i;
+                        i = recipe.getDietaryRec().indexOf(diet);
+                        if (i != recipe.getDietaryRec().size() - 1) {
+                            dietaryTxt.append(" | ");
+                        }
+                    }
+                    holder.recipe_diet.setText(dietaryTxt);
                 }
-                if (diet.equals(context.getResources().getString(R.string.vegan))) {
-                    dietShort = "V";
-                }
-                if (diet.equals(context.getResources().getString(R.string.glutenfree))) {
-                    dietShort = "GF";
-                }
-                if (diet.equals(context.getResources().getString(R.string.lactosefree))) {
-                    dietShort = "LF";
-                }
-                if (diet.equals(context.getResources().getString(R.string.paleo))) {
-                    dietShort = "P";
-                }
-                if (diet.equals(context.getResources().getString(R.string.lowfat))) {
-                    dietShort = "LF";
-                }
-                if (diet.equals(context.getResources().getString(R.string.none))) {
-                    holder.recipe_diet.setVisibility(GONE);
-                    holder.diet_show.setVisibility(GONE);
-                    break;
-                }
-                dietaryTxt.append(dietShort);
-                int i;
-                i = recipe.getDietaryRec().indexOf(diet);
-                if (i != recipe.getDietaryRec().size() - 1) {
-                    dietaryTxt.append(" | ");
-                }
-            }
+            };
+            Thread textBuildThread=new Thread(textbuild);
+            textBuildThread.start();
         }
-
-        holder.recipe_diet.setText(dietaryTxt);
         Picasso.get()
                 .load(recipe.getImage())
                 .placeholder(R.drawable.camera)
@@ -140,27 +145,12 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             holder.removeRecipe.setVisibility(View.VISIBLE);
             holder.removeRecipe.setImageResource(R.drawable.remove_filled);
             holder.removeRecipe.setOnClickListener(view -> {
-                Runnable dataRun=()->{
-                    synchronized (Thread.currentThread()){
-                        try {
-                            Thread.currentThread().wait();
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    handler.post(() -> notifyItemRemoved(position));
-                    };
+                Runnable dataRun=()->{ handler.post(() -> notifyItemRemoved(position));};
                 Thread updateDataThread=new Thread(dataRun);
-                updateDataThread.start();
+
                 Runnable run= () -> {
-                    String priv;
                     User user=new User();
-                    if(recipe.getPriv()){
-                        priv="private";
-                    }else{
-                        priv="public";
-                    }
-                    user.removeFromShared(recipe.getKey(),id,priv,context,handler);
+                    user.removeFromShared(recipe.getKey(),id,recipe.getPriv(),context,handler);
                     recipe.removeUserFromShareList(id, recipe.getKey(),context,recipe.getOwner(),recipe.getPriv(),handler,updateDataThread);
                     list.remove(recipe);
                 };

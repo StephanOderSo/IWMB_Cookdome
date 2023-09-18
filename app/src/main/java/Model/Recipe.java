@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -128,9 +129,7 @@ public class Recipe {
                 this.stepList=stepList;
                 this.priv=priv;
                 this.owner=owner;
-                synchronized (nextThread){
-                    nextThread.notify();
-                }
+                nextThread.start();
             }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }else{
             this.recipeName=recipeName;
@@ -143,7 +142,7 @@ public class Recipe {
             this.priv=priv;
             this.owner=owner;
             synchronized (nextThread){
-                nextThread.notify();
+                nextThread.start();
             }
         }
     }
@@ -167,7 +166,7 @@ public class Recipe {
                     user.addToOwn(context,uid,key,handler);
                 }
             });
-            database.removeFromPublicList(key,context,handler);
+            database.removeRecipeFromPublic(key,context,handler);
         }
     }
     public void downloadSelectedRecipe(String key, Context context, Handler handler, Thread setDatathread, FirebaseUser fbUser){
@@ -176,18 +175,14 @@ public class Recipe {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     this.selectedRecipe=rebuildFromFirebase(snapshot);
-                    synchronized (setDatathread){
-                        setDatathread.notify();
-                    }
+                    setDatathread.start();
                 } else {
                     String id=user.getUID(fbUser,context);
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();
                             this.selectedRecipe=rebuildFromFirebase(snapshot);
-                            synchronized (setDatathread){
-                                setDatathread.notify();
-                            }
+                            setDatathread.start();
                         }else{
                             handler.post(() -> {
                                 Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show();
@@ -205,6 +200,8 @@ public class Recipe {
     public Recipe getRecipe(){
         return selectedRecipe;
     }
+
+
     //Mapping the firebase Data structure of a Recipe back to a recipe-Object
     public Recipe rebuildFromFirebase( DataSnapshot snapshot) {
         Recipe selectedRecipe;
@@ -273,15 +270,11 @@ public class Recipe {
     public void removeUserFromShareList(String userID,String key,Context context,String owner,Boolean priv,Handler handler,Thread nextThread){
         if(priv){
             userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> {
-                synchronized (nextThread){
-                    nextThread.notify();
-                }
+                nextThread.start();
             }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }else{
             recipeRef.child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> {
-                synchronized (nextThread){
-                    nextThread.notify();
-                }
+                nextThread.start();
             }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }
         sharedWith.remove(userID);

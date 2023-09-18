@@ -335,91 +335,35 @@ public class SearchActivity extends AppCompatActivity {
     }
 
     public void setUpList(){
-        Runnable recyclerRunnable= () -> {
-            synchronized (Thread.currentThread()){
-
-                    try {
-                        Thread.currentThread().wait();
-
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+        Runnable recyclerRunnable= () -> handler.post(() -> {
+            recyclerconfig(currentList);
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String s) {
+                    return false;
                 }
-            Log.d(TAG, "setRecycler");
-            handler.post(() -> {
-                recyclerconfig(currentList);
-                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-                    @Override
-                    public boolean onQueryTextSubmit(String s) {
-                        return false;
-                    }
 
-                    @Override
-                    public boolean onQueryTextChange(String s) {
-                        typeFilter(s);
-                        return false;
-                    }
-                });
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    typeFilter(s);
+                    return false;
+                }
             });
-        };
+        });
         Thread recyclerThread=new Thread(recyclerRunnable);
-        recyclerThread.start();
-        Runnable ownRunnable= () -> {
-            synchronized (Thread.currentThread()){
-
-                    try {
-
-                        Thread.currentThread().wait();
-
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }Log.d(TAG, "getList");
-                currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
-        };
+        Runnable ownRunnable= () -> currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
         Thread ownThread=new Thread(ownRunnable);
-        ownThread.start();
-        Runnable getSharedList= () -> {
-            synchronized (Thread.currentThread()){
-                    try {
-                        Thread.currentThread().wait();
 
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            Log.d(TAG, "getListShared");
-                currentList=database.getRecipes();
-            Log.d(TAG, currentList.toString());
-            synchronized (recyclerThread){
-                recyclerThread.notify();
-            }
+        Runnable getSharedList= () -> {
+            currentList=database.getRecipes();
+            recyclerThread.start();
         };
         Thread getSharedListThread=new Thread(getSharedList);
-        getSharedListThread.start();
-        Runnable setprivRunnable= () -> {
-            synchronized (Thread.currentThread()){
-                    try {
-                        Thread.currentThread().wait();
 
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            Log.d(TAG, "addPriv");
-            database.addSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
-        };
+        Runnable setprivRunnable= () -> database.addSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
         Thread setPrivThread=new Thread(setprivRunnable);
-        setPrivThread.start();
-        Runnable listRunnable= () -> {
-            synchronized (Thread.currentThread()){
-                    try {
-                        Thread.currentThread().wait();
 
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
+        Runnable listRunnable= () -> {
             // User clicked search Icon
             if(previousIntent.hasExtra("search")) {
                 currentList=database.getAllRecipes(context, handler,recyclerThread);
@@ -451,12 +395,11 @@ public class SearchActivity extends AppCompatActivity {
             }
             if(previousIntent.hasExtra("shared")){
                 source="shared";
-                Log.d(TAG, "addPublic");
                 database.addSharedPublRecipes(context,fbUser,handler,setPrivThread);
             }
         };
         listThread=new Thread(listRunnable);
-        listThread.start();
+
         Runnable favRunnable= () -> favlist=user.getFavourites(context,fbUser, handler,listThread);
         Thread favThread=new Thread(favRunnable);
         favThread.start();

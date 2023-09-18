@@ -65,26 +65,15 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
         User user=new User();
         Handler handler=new Handler();
         Runnable viewRunnable= () -> {
-            synchronized (Thread.currentThread()){
-
-                    try {
-                        Log.d(TAG, "waiting");
-                        Thread.currentThread().wait();
-
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
             handler.post(() -> {
                     imageButton.setImageResource(R.drawable.tick);
                     imageButton.setBackground(null);
                     imageButton.setBackgroundColor(0);
                     Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
             });
-
         };
         Thread viewThread=new Thread(viewRunnable);
-        viewThread.start();
+
         Runnable slRunnable= () -> user.addToShoppingList(context,fbUser,handler,viewThread,ingredient);
         Thread slThread=new Thread(slRunnable);
         slThread.start();

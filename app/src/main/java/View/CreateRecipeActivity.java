@@ -33,11 +33,13 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import Model.Database;
 import Model.Ingredient;
 import Model.Recipe;
 import Model.User;
 import Viewmodel.CreateRecipeAdapters.EditStepAdapter;
 import Viewmodel.CreateRecipeAdapters.IngredientListAdapter;
+import Viewmodel.CreateRecipeAdapters.ShareListAdapter;
 import Viewmodel.CreateRecipeAdapters.StepListAdapter;
 import Viewmodel.CreateRecipeAdapters.editIngredientAdapter;
 
@@ -49,14 +51,15 @@ public class CreateRecipeActivity extends AppCompatActivity {
     ListView ingredientsView,stepsView;
     Integer portions,time;
     Float amount;
-    String recipeName,category,ingredientName,dietRec,unit,text;
+    String recipeName,category,ingredientName,text;
+    String dietRec="";
+    String unit="";
     EditText ingredientView,enterStepView,portionsView, amountView,timeView;
     ArrayList<Ingredient> ingredientList=new ArrayList<>();
     ArrayList<String> stepList=new ArrayList<>();
     FloatingActionButton addIngredientBtn,addStepBtn;
-    ConstraintLayout details, image;
+    ConstraintLayout image;
     TextView dietaryBtn;
-    Integer clickCount;
     boolean[] selectedDiet;
     ArrayList<Integer> dietIntList =new ArrayList<>();
     ArrayList<String>dietaryRecList=new ArrayList<>();
@@ -72,71 +75,68 @@ public class CreateRecipeActivity extends AppCompatActivity {
     Button save;
     Context context;
     String uID;
-
-
-
+    TextView shareText;
+    ListView sharedView;
+    ArrayList<User>sharedList;
+    ShareListAdapter shareAdapter;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//Connect Logic to View/layout
         setContentView(R.layout.activity_create_recipe);
+
+//Get current Users unique ID for database actions
         fbuser=FirebaseAuth.getInstance().getCurrentUser();
         context=getApplicationContext();
         uID= user.getUID(fbuser,context);
-//create Arraylists for Alert Dialog selections
+
+//create Arraylists for Alert Dialogs
         String[] dietArray={getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.vegan),getResources().getString(R.string.vegetar),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)};
         String[] catArray={getResources().getString(R.string.breakki),getResources().getString(R.string.mainMeal),getResources().getString(R.string.dessert),getResources().getString(R.string.snack),getResources().getString(R.string.soup),getResources().getString(R.string.salad)};
         String[] unitArray={" ","cup","tsp","tbsp","ml","l","g","kg","mg","oz","pound"};
-//assign strings to variables for access outside of onCreate
-        //Intentfilter for correct Adapter and content
 
-        Intent previousIntent=getIntent();
+ //assign variables to related Views
         ingredientsView=findViewById(R.id.ingredientlist);
         stepsView=findViewById(R.id.stepList);
-        //Initialise lists and variables
-        ingredientList=new ArrayList<>();
-        stepList=new ArrayList<>();
-        unit="";
-        dietRec="";
-        clickCount=1;
+        sharedView =findViewById(R.id.sharedList);
+        sharedView.setVisibility(View.VISIBLE);
+        Button delete=findViewById(R.id.delete);
 
+//Intentfilter for correct Adapter and content depending on source
+        Intent previousIntent=getIntent();
+//If Edit Recipe has been clicked to lead to this activity
         if (previousIntent.hasExtra("Edit")){
-            Button delete=findViewById(R.id.delete);
-            delete.setVisibility(View.VISIBLE);
+            //get the passed along key of Recipe thats being edited
             String key=previousIntent.getStringExtra("Edit");
+
+//Thread to return Recipe Data and apply to view, waiting to be activated within downloading Thread
+            Runnable setDataRun= () -> {
+                selectedRecipe=selectedRecipe.getRecipe();
+                handler.post(() -> setRecipeData(selectedRecipe,dietArray));
+            };
+            Thread getRecipeThread=new Thread(setDataRun);
+//Thread to download Recipe from Firebase
+            Runnable runnable= () -> selectedRecipe.downloadSelectedRecipe(key,context,handler,getRecipeThread,fbuser);
+            Thread downloadRThread=new Thread(runnable);
+            downloadRThread.start();
+
+ //Making delete button visible and implementing delete-from-firebase method when clicked
+            delete.setVisibility(View.VISIBLE);
             delete.setOnClickListener(view -> {
                 Runnable removeRun= () -> user.removeRecipe(selectedRecipe,context,handler,fbuser);
                 Thread removeThread=new Thread(removeRun);
                 removeThread.start();
-
             });
-            Runnable setDataRun= () -> {
-                synchronized (Thread.currentThread()){
-
-                        try {
-                            Thread.currentThread().wait();
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                selectedRecipe=selectedRecipe.getRecipe();
-                handler.post(() -> setRecipeData(selectedRecipe,dietArray));
-            };
-            Thread setDataThread=new Thread(setDataRun);
-            setDataThread.start();
-
-            Runnable runnable= () -> selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbuser);
-            Thread getRThread=new Thread(runnable);
-            getRThread.start();
-
+//making shared-with header visible
+            shareText=findViewById(R.id.sharedHeader);
+            shareText.setVisibility(View.VISIBLE);
         }else{
-//Ingredient List
-
+//Set up Ingredient List with simple Adapter
             ingredientAdapter= new IngredientListAdapter(getApplicationContext(),0,ingredientList);
             ingredientsView.setAdapter(ingredientAdapter);
-//Step List
-
+//Set up Step List with simple Adapter
             stepListAdapter= new StepListAdapter(getApplicationContext(),0,stepList);
             stepsView.setAdapter(stepListAdapter);
         }
@@ -145,8 +145,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         save = findViewById(R.id.save);
         imageView=findViewById(R.id.uploadImage);
         recipeNameView=findViewById(R.id.recipeName);
-        progressbar=findViewById(R.id.progressBar);
-        progressbar.setVisibility(View.INVISIBLE);
         timeView = findViewById(R.id.preptime);
         portionsView=findViewById(R.id.portionen);
         amountView=findViewById(R.id.amount);
@@ -154,23 +152,23 @@ public class CreateRecipeActivity extends AppCompatActivity {
         enterStepView=findViewById(R.id.step);
         addStepBtn=findViewById(R.id.addStepbtn);
         addIngredientBtn=findViewById(R.id.addIngredientBtn);
-        details=findViewById(R.id.detail);
         image=findViewById(R.id.uploadImageBorder);
         unitBtn=findViewById(R.id.unit);
         privateswitch=findViewById(R.id.privateswitch);
 
 
 
-//Select Unit Alert Dialog
-
+//create Alert Dialog to select Ingredient-Unit when Unit button is clicked (select one)
         unitBtn.setOnClickListener(view -> {
             AlertDialog.Builder builder=new AlertDialog.Builder(CreateRecipeActivity.this);
             builder.setTitle(R.string.chooseUnit);
             builder.setCancelable(false);
             builder.setSingleChoiceItems(unitArray, -1, (dialogInterface, i) -> unit=unitArray[i]);
+            //when OK is clicked the selection is applied to button-text
             builder.setPositiveButton("OK", (dialogInterface, i) -> {
                 if(unit!=null&&!unit.equals("")){
                     unitBtn.setText(unit);}
+                //if nothing is selected user is requested to choose a Unit
                 else{
                     Toast.makeText(CreateRecipeActivity.this, R.string.chooseUnit, Toast.LENGTH_SHORT).show();
                 }
@@ -178,7 +176,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             builder.show();
         });
 
-//Category Select Alert Dialog
+//Alert Dialog to select a category (select one
         catBtn=findViewById(R.id.category);
         catBtn.setOnClickListener(view -> {
             AlertDialog.Builder builder=new AlertDialog.Builder(CreateRecipeActivity.this);
@@ -186,8 +184,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
             builder.setCancelable(false);
             builder.setSingleChoiceItems(catArray, -1, (dialogInterface, i) -> category=catArray[i]);
             builder.setPositiveButton("OK", (dialogInterface, i) -> {
+                //when OK is clicked the selection is applied to button-text
                 if(category!=null){
                     catBtn.setText(category);}
+                //if nothing is selected user is requested to choose a Category
                 else{
                     Toast.makeText(CreateRecipeActivity.this, R.string.chooseCat, Toast.LENGTH_SHORT).show();
                 }
@@ -195,7 +195,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             builder.show();
         });
 
-//Dietary Button
+//Alert Dialog to select dietary requirements
         dietaryBtn=findViewById(R.id.dietBtn);
         selectedDiet=new boolean[dietArray.length];
         dietaryBtn.setOnClickListener(view -> {
@@ -354,24 +354,17 @@ public class CreateRecipeActivity extends AppCompatActivity {
             progressbar.setVisibility(View.VISIBLE);
             Handler handler=new Handler();
             FirebaseUser fbuser= FirebaseAuth.getInstance().getCurrentUser();
-            Runnable uploadRunnable= () -> {
-                synchronized (Thread.currentThread()){
-                    try {
-                        Thread.currentThread().wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                selectedRecipe.uploadUpdate(context,priv,handler,fbuser);
-            };
+            Runnable uploadRunnable= () -> selectedRecipe.uploadUpdate(context,priv,handler,fbuser);
             Thread uploadThread=new Thread(uploadRunnable);
-            uploadThread.start();
             Runnable setRun= () -> selectedRecipe.setRecipe(imageUri,recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,uploadThread,context,handler,priv,uID);
             Thread setThread=new Thread(setRun);
             setThread.start();
         }
     }
-//Edit Recipe functions
+
+    public void updateListview(){
+        getListViewSize(ingredientAdapter,ingredientsView);
+    }
     public void getListViewSize(ArrayAdapter adapter, ListView view){
         int totalHeight=0;
         for ( int i=0;i<adapter.getCount();i++) {
@@ -382,20 +375,20 @@ public class CreateRecipeActivity extends AppCompatActivity {
             totalHeight += mView.getMeasuredHeight();
         }
         int newTotal=totalHeight;
-        Handler adjustListSizeHandler=new Handler();
-        adjustListSizeHandler.post(() -> {
+        handler.post(() -> {
             ViewGroup.LayoutParams params=view.getLayoutParams();
             params.height=newTotal+view.getDividerHeight()*adapter.getCount();
             view.setLayoutParams(params);
         });
 
     }
+
+    //Insert Data of downloaded Recipe into Create Recipe Views
     public void setRecipeData(Recipe recipe,String[] dietArray){
         String name=recipe.getRecipeName();
         String time=String.valueOf(recipe.getPrepTime());
         String portions=String.valueOf(recipe.getPortions());
         String category=recipe.getCategory();
-
         handler.post(() -> {
             Picasso.get()
                     .load(recipe.getImage())
@@ -408,16 +401,37 @@ public class CreateRecipeActivity extends AppCompatActivity {
             portionsView.setText(portions);
             catBtn.setText(category);
             dietaryRecList=recipe.getDietaryRec();
-            buildDietString();
+            //seperate thread to build dietary string
+            Runnable run= this::buildDietString;
+            Thread buidThread=new Thread(run);
+            buidThread.start();
             setDietInclCheck(dietArray);
             stepList=recipe.getStepList();
             ingredientList=recipe.getIngredientList();
+            //get List of Users the recipe was shared with and pass to List-adapter once activated by download-thread
+            Database database=new Database();
+            Runnable getRun= () -> {
+                sharedList=new ArrayList<>();
+                sharedList=database.getUsers();
+                shareAdapter=new ShareListAdapter(context,0,sharedList,recipe,handler);
+                handler.post(() -> {
+                    sharedView.setAdapter(shareAdapter);
+                    getListViewSize(shareAdapter,sharedView);
+                });
+            };
+            Thread getUserListThread=new Thread(getRun);
+            //start new Thread to get Users the recipe was shared with from firebase
+            database.setSharedWithUsers(recipe.getSharedWith(),handler,context,getUserListThread);
+
+            //setup adapters for lists and pass acquired Lists
             editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,ingredientList);
             EditStepAdapter stepAdapter = new EditStepAdapter(getApplicationContext(), 0,stepList);
             ingredientsView.setAdapter(ingredientAdapter);
             stepsView.setAdapter(stepAdapter);
+            //recalculate ListSize to accomodate Scrollview
             getListViewSize(stepAdapter,stepsView);
             getListViewSize(ingredientAdapter,ingredientsView);
+
         });
 
     }
@@ -434,6 +448,8 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
         }
  }
+
+ //Create one String containing all dietary requirements, shortened and separated by "|"
    public void buildDietString(){
        StringBuilder dietaryTxt=new StringBuilder();
        for(String diet: dietaryRecList){
@@ -471,9 +487,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
        handler.post(() -> dietaryBtn.setText(text));
    }
 
-    public void updateListview(){
-            getListViewSize(ingredientAdapter,ingredientsView);
-        }
+
+
+
     @Override
     public void onBackPressed(){
        Intent toMainIntent=new Intent(CreateRecipeActivity.this,MainActivity.class);

@@ -20,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.squareup.picasso.Picasso;
 
 import Model.User;
 
@@ -32,6 +33,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     FirebaseUser fbuser;
     Context context;
     Handler userHandler=new Handler();
+    User user=new User();
+    ImageView profileImage;
+    TextView mailHeader,nameHeader;
 
 
     @Override
@@ -87,13 +91,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             finish();
         });
 //Burgermenu header
-        ImageView profileImage=navView.getHeaderView(0).findViewById(R.id.profileImage);
-        TextView nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
-        TextView mailHeader=navView.getHeaderView(0).findViewById(R.id.mailHeader);
+        profileImage=navView.getHeaderView(0).findViewById(R.id.profileImage);
+        nameHeader=navView.getHeaderView(0).findViewById(R.id.nameHeader);
+        mailHeader=navView.getHeaderView(0).findViewById(R.id.mailHeader);
+        setData();
 
-        Runnable runnable= () -> {
-            User user= new User().downloadFromFirebase(context,fbuser,nameHeader,mailHeader,profileImage,userHandler);
-        };
+    }
+
+    public void setData(){
+        Runnable setDataRun= () -> userHandler.post(() -> {
+            user=user.getUser();
+            Picasso.get()
+                    .load(user.getPhoto())
+                    .placeholder(R.drawable.camera)
+                    .resize(400, 400)
+                    .centerCrop()
+                    .into(profileImage);
+            nameHeader.setText(user.getName());
+            mailHeader.setText(fbuser.getEmail());
+        });
+        Thread setDataThread=new Thread(setDataRun);
+
+        Runnable runnable= () -> user.downloadFromFirebase(context,fbuser,userHandler,setDataThread);
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();
     }

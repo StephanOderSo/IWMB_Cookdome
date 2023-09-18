@@ -10,7 +10,9 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.bienhuels.iwmb_cookdome.R;
+
+import com.bienhuels.iwmb_cookdome.R
+        ;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
@@ -38,9 +40,6 @@ public class User {
     ArrayList<Ingredient>shoppingList=new ArrayList<>();
     DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
     FirebaseAuth auth=FirebaseAuth.getInstance();
-    User user;
-
-
 
 
     public User(){}
@@ -99,7 +98,7 @@ public class User {
     }
 
 
-    public User downloadFromFirebase(Context context, FirebaseUser fbuser, TextView nameView, TextView emailView, ImageView imageView, Handler userHandler){
+    public void downloadFromFirebase(Context context, FirebaseUser fbuser, Handler userHandler,Thread nextThread){
         if(fbuser!=null) {
             email = fbuser.getEmail();
             id = getUID(fbuser,context);
@@ -108,17 +107,7 @@ public class User {
                     DataSnapshot snapshot = task.getResult();
                     name = snapshot.child("name").getValue(String.class);
                     photo = snapshot.child("photo").getValue(String.class);
-                    user=new User(name,photo,email);
-                    userHandler.post(() -> {
-                        Picasso.get()
-                                .load(user.getPhoto())
-                                .placeholder(R.drawable.camera)
-                                .resize(400, 400)
-                                .centerCrop()
-                                .into(imageView);
-                        nameView.setText(user.getName());
-                        emailView.setText(fbuser.getEmail());
-                    });
+                    nextThread.start();
                 } else {
 
                     userHandler.post(() -> {
@@ -139,7 +128,9 @@ public class User {
                 context.startActivity(toLoginIntent);
             });
         }
-        return user;
+    }
+    public  User  getUser(){
+        return new User(name,photo,id);
     }
     public void updateOnFirebase(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
@@ -217,15 +208,11 @@ public class User {
                         String favkey = dsS.getKey();
                         favourites.add(favkey);
                     }
-                    synchronized (thread){
-                        thread.notify();
-                    }
+                    thread.start();
                     //checkFav(favView,key,handler);
                 }else{
                     favourites=new ArrayList<>();
-                    synchronized (thread){
-                        thread.notify();
-                    }
+                    thread.start();
                 }
             }).addOnFailureListener(e -> handler.post(() -> {
                 Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
@@ -275,9 +262,7 @@ public class User {
                     for(DataSnapshot ss:snapshot.getChildren()){
                         String key1 =ss.getKey();
                         own.add(key1);
-                    } synchronized (thread){
-                        thread.notify();
-                    }
+                    } thread.start();
                 }
             }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         return own;
@@ -298,14 +283,8 @@ public class User {
     public void removeRecipe(Recipe recipe, Context context, Handler handler, FirebaseUser fbuser){
         String uid=getUID(fbuser,context);
         String key=recipe.getKey();
-        String priv;
-        if(recipe.getPriv()){
-            priv="private";
-        }else{
-            priv="public";
-        }
         for(String uID:recipe.getSharedWith()){
-            removeFromShared(key,uID,priv,context,handler);
+            removeFromShared(key,uID,recipe.getPriv(),context,handler);
         }
         userRef.child(uid).child("Own").child(key).removeValue().addOnCompleteListener(task -> {
             if(recipe.getPriv()){
@@ -320,7 +299,7 @@ public class User {
             }
             else{
                 Database database=new Database();
-                database.removeFromPublicList(key,context,handler);
+                database.removeRecipeFromPublic(key,context,handler);
             }
         });
 
@@ -353,19 +332,14 @@ public class User {
                 }
                 Ingredient updatedIngredient=new Ingredient(amount,unit,name);
                 userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(updatedIngredient).addOnCompleteListener(task12 -> {
-                    if(task12.isSuccessful()){
-                        synchronized (thread){
-                            thread.notify();
-                        }
+                    if(task12.isSuccessful()){thread.start();
                     }
                 }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
 
             }else{
                 userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(ingredient).addOnCompleteListener(task1 -> {
                     if(task1.isSuccessful()){
-                        synchronized (thread){
-                            thread.notify();
-                        }
+                        thread.start();
                     }
                 }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
 
@@ -397,19 +371,21 @@ public class User {
                         shoppingList.add(ingredient);
                     }
                     }
-            } synchronized (thread){
-                thread.notify();
-            }
+            } thread.start();
         }).addOnFailureListener(e -> {
             Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
-            synchronized (thread){
-                thread.notify();
-            }
+            thread.start();
         });
         return shoppingList;
     }
-    public  void removeFromShared(String key,String id,String priv,Context context,Handler handler){
-        userRef.child(id).child("Shared").child(priv).child(key).removeValue().addOnCompleteListener(task -> {
+    public  void removeFromShared(String key,String id,Boolean priv,Context context,Handler handler){
+        String privString;
+        if(priv){
+            privString="private";
+        }else{
+            privString="public";
+        }
+        userRef.child(id).child("Shared").child(privString).child(key).removeValue().addOnCompleteListener(task -> {
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
     }
     public void addToShared(Recipe recipe,User model,Context context,String uID){
@@ -439,6 +415,14 @@ public class User {
             }
         }
     }
+
+    public User rebuildUser(DataSnapshot snapshot){
+        photo=snapshot.child("photo").getValue(String.class);
+        name= Objects.requireNonNull(snapshot.child("name").getValue(String.class)).toLowerCase();
+        id=snapshot.child("id").getValue(String.class);
+        return new User(name,photo,id);
+    }
+
 
     public void loginIntent(Context context){
         Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();

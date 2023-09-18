@@ -24,6 +24,7 @@ import com.bienhuels.iwmb_cookdome.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import Model.User;
 
@@ -70,10 +71,7 @@ public class EditProfileActivity extends AppCompatActivity {
         context=getApplicationContext();
         Intent toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
         Intent toLoginIntent=new Intent(EditProfileActivity.this,LoginActivity.class);
-
-        Runnable runnable= this::setUserData;
-        Thread getInfoThread=new Thread(runnable);
-        getInfoThread.start();
+        setUserData();
 
 
 //Edit photo
@@ -205,7 +203,23 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     public void setUserData(){
-        user=new User().downloadFromFirebase(context,fbuser,nameView,emailView,photo,userHandler);
+
+        Runnable setDataRun= () -> userHandler.post(() -> {
+            user=user.getUser();
+            Picasso.get()
+                    .load(user.getPhoto())
+                    .placeholder(R.drawable.camera)
+                    .resize(400, 400)
+                    .centerCrop()
+                    .into(photo);
+            nameView.setText(user.getName());
+            emailView.setText(fbuser.getEmail());
+        });
+        Thread setDataThread=new Thread(setDataRun);
+
+        Runnable runnable= () -> user.downloadFromFirebase(context,fbuser,userHandler,setDataThread);
+        Thread getUserThread=new Thread(runnable);
+        getUserThread.start();
     }
     @Override
     public void onBackPressed() {
