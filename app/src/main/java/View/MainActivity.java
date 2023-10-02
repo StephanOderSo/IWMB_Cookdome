@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             user=user.getUser();
             Picasso.get()
                     .load(user.getPhoto())
-                    .placeholder(R.drawable.camera)
+                    .placeholder(R.drawable.image)
                     .resize(400, 400)
                     .centerCrop()
                     .into(profileImage);

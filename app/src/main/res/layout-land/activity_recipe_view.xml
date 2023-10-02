@@ -1,29 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="View.RecipeViewActivity">
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBaseline_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        >
+            <GridLayout
+                android:id="@+id/grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:columnCount="2"
+                android:rowCount="2">
+            <androidx.cardview.widget.CardView
+                android:id="@+id/image"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                app:cardCornerRadius="20dp"
+                android:layout_margin="5dp">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            >
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    >
 
             <ImageView
                 android:contentDescription="@string/image"
                 android:id="@+id/imageView"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
+                android:layout_height="match_parent"
                 app:srcCompat="@drawable/image"
                 android:scaleType="centerCrop"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -62,13 +72,26 @@
                 app:layout_constraintBottom_toBottomOf="@id/imageView"
                 android:padding="4dp"
                 />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="20dp"
+                    android:layout_margin="5dp">
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
 
             <TextView
                 android:id="@+id/recipeName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/recipe_name"
-                app:layout_constraintTop_toBottomOf="@+id/imageView"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 android:textSize="21sp"
                 android:layout_marginStart="7dp"
@@ -93,7 +116,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginVertical="10dp"
                 android:layout_marginHorizontal="7dp"
-                app:cardBackgroundColor="@color/lavender"
+                app:cardBackgroundColor="@color/pastelBlue"
                 app:cardCornerRadius="15dp"
                 >
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -105,6 +128,7 @@
                     <TextView
                         android:id="@+id/portions"
                         android:textSize="19sp"
+                        android:drawableLeft="@drawable/personwhite"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/portions"
@@ -113,7 +137,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:drawableLeftCompat="@drawable/personwhite" />
+                       />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
@@ -164,37 +188,46 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginBottom="35dp"
                 android:layout_marginTop="10dp"/>
+                    <TextView
+                        android:id="@+id/ingredientHeading"
+                        android:textSize="19sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autoSizeMinTextSize="25dp"
+                        android:fontFamily="@font/abel"
+                        android:textAllCaps="true"
+                        android:textColor="@color/lavender"
+                        android:textStyle="bold"
+                        android:text="@string/ingredients"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/time"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginBottom="15dp"
+                        android:layout_marginTop="15dp"/>
 
-            <TextView
-                android:id="@+id/ingredientHeading"
-                android:textSize="19sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:autoSizeMinTextSize="25dp"
-                android:fontFamily="@font/abel"
-                android:textAllCaps="true"
-                android:textColor="@color/lavender"
-                android:textStyle="bold"
-                android:text="@string/ingredients"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/time"
-                android:layout_marginStart="5dp"
-                android:layout_marginBottom="15dp"
-                android:layout_marginTop="15dp"/>
-
-            <ListView
-                android:id="@+id/ingredientList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@+id/ingredientHeading"
-                app:layout_constraintLeft_toLeftOf="parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_marginBottom="40dp"
-                android:outlineAmbientShadowColor="@color/transparent"
-                android:outlineSpotShadowColor="@color/transparent"
-                android:divider="@color/transparent"
-                />
+                    <ListView
+                        android:id="@+id/ingredientList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toBottomOf="@+id/ingredientHeading"
+                        app:layout_constraintLeft_toLeftOf="parent"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginBottom="40dp"/>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/steps"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="2"
+                    android:layout_columnWeight="1"
+                    android:layout_rowWeight="1"
+                    app:cardCornerRadius="20dp"
+                    android:layout_margin="5dp">
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
             <TextView
                 android:id="@+id/stepHeading"
@@ -209,7 +242,7 @@
                 android:textSize="19sp"
                 android:textStyle="bold"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/ingredientList" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ListView
                 android:id="@+id/stepList"
@@ -219,12 +252,8 @@
                 app:layout_constraintTop_toBottomOf="@+id/stepHeading"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
-                android:outlineAmbientShadowColor="@color/transparent"
-                android:outlineSpotShadowColor="@color/transparent"
-                android:divider="@color/transparent"
                 />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </ScrollView>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.cardview.widget.CardView>
+            </GridLayout>
+</ScrollView>

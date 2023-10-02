@@ -53,6 +53,8 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         return convertView;
     }
     private void onCheck(CheckBox checkbox,Ingredient ingredient){
+        Runnable empty= () -> {};
+        Thread dummyThread=new Thread(empty);
         Runnable run= () -> {
             FirebaseAuth auth;
             auth= FirebaseAuth.getInstance();
@@ -64,7 +66,7 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
                 user.removeFromShoppingList(fbuser,context,ingredient,handler);
             }
             else{
-                user.addToShoppingList(context,fbuser,handler,Thread.currentThread(),ingredient);
+                user.addToShoppingList(context,fbuser,handler,dummyThread,ingredient);
             }
         };
         Thread thread=new Thread(run);

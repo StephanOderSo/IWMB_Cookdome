@@ -19,6 +19,7 @@ import View.CreateRecipeActivity;
 
 public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
     Context contextm;
+    Thread thread;
     public editIngredientAdapter(@NonNull Context context, int resource, @NonNull List<Ingredient> ingredientList) {
         super(context, resource, ingredientList);
         contextm=context;
@@ -33,32 +34,19 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
             convertView= LayoutInflater.from(getContext()).inflate(R.layout.cell_edit_ingredient,parent,false);
         }
         if(ingredient!=null) {
-            Runnable runnable = () -> {
-                if (contextm instanceof CreateRecipeActivity) {
-                    ((CreateRecipeActivity) contextm).updateListview();
-                }
-            };
+
             EditText amountView = convertView.findViewById(R.id.editamount);
             TextView unitView = convertView.findViewById(R.id.unit);
             EditText ingredientView = convertView.findViewById(R.id.editingredient);
             ImageButton removeBtn = convertView.findViewById(R.id.removeIngredient);
             ImageButton updateBtn = convertView.findViewById(R.id.updateIngredient);
-            ImageButton editBtn = convertView.findViewById(R.id.editIngrBtn);
-            editBtn.setImageResource(R.drawable.edit);
             removeBtn.setImageResource(R.drawable.remove);
             updateBtn.setImageResource(R.drawable.sync);
             String amount = Double.toString(ingredient.getAmount());
             amountView.setText(amount);
             unitView.setText(ingredient.getUnit());
             ingredientView.setText(ingredient.getIngredientName());
-            editBtn.setOnClickListener(view -> {
-                editBtn.setVisibility(View.GONE);
-                removeBtn.setVisibility(View.VISIBLE);
-                updateBtn.setVisibility(View.VISIBLE);
-                Thread adjustListSizeThread = new Thread(runnable);
-                adjustListSizeThread.start();
 
-            });
             removeBtn.setOnClickListener(view -> {
                 Ingredient toBeRemoved = getItem(position);
                 remove(toBeRemoved);
@@ -79,7 +67,6 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
                 insert(ingredientnew, position);
                 removeBtn.setVisibility(View.GONE);
                 updateBtn.setVisibility(View.GONE);
-                editBtn.setVisibility(View.VISIBLE);
             });
         }else{
             Toast.makeText(getContext(), R.string.sthWrong, Toast.LENGTH_SHORT).show();

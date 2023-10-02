@@ -340,6 +340,7 @@ public class User {
                 userRef.child(uID).child("Shoppinglist").child((ingredient.getIngredientName())+":"+ingredient.getUnit()).setValue(ingredient).addOnCompleteListener(task1 -> {
                     if(task1.isSuccessful()){
                         thread.start();
+                        handler.post(() -> Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show());
                     }
                 }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
 

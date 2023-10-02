@@ -5,6 +5,104 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:backgroundTint="@color/transparent">
 
+    <GridLayout
+        android:id="@+id/grid"
+        android:layout_margin="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:columnCount="4"
+        android:rowCount="1">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/amountCard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_columnWeight="1"
+        android:layout_rowWeight="1"
+        android:layout_margin="5dp"
+        android:backgroundTint="@color/transparent"
+        android:outlineSpotShadowColor="@color/transparent"
+        android:outlineAmbientShadowColor="@color/transparent">
+        <TextView
+            android:textStyle="bold"
+            android:id="@+id/amountColumnSl"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/amount"
+            android:gravity="start"
+            android:textSize="17sp"
+            />
+    </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/unitCard"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_columnWeight="0.5"
+            android:layout_rowWeight="1"
+            android:layout_margin="5dp"
+            android:backgroundTint="@color/transparent"
+            android:outlineSpotShadowColor="@color/transparent"
+            android:outlineAmbientShadowColor="@color/transparent">
+            <TextView
+                android:textStyle="bold"
+                android:id="@+id/unitColumnSl"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/unit"
+                android:gravity="start"
+                android:textSize="17sp"
+                />
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/ingrCard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="5dp"
+            android:backgroundTint="@color/transparent"
+            android:outlineSpotShadowColor="@color/transparent"
+            android:outlineAmbientShadowColor="@color/transparent">
+            <TextView
+                android:textStyle="bold"
+                android:id="@+id/ingredientColumnSl"
+                android:width="170dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/ingredient"
+                android:gravity="start"
+                android:textSize="17sp"
+                />
+
+        </androidx.cardview.widget.CardView>
+        <androidx.cardview.widget.CardView
+            android:id="@+id/btnCard"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_columnWeight="0.3"
+            android:layout_rowWeight="1"
+            android:layout_margin="5dp"
+            android:backgroundTint="@color/transparent"
+            android:outlineSpotShadowColor="@color/transparent"
+            android:outlineAmbientShadowColor="@color/transparent">
+            <CheckBox
+                android:id="@+id/checkBoxSL"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:buttonTint="@color/lavender"
+                />
+        </androidx.cardview.widget.CardView>
+
+    </GridLayout>
+
 
     <TableLayout
         android:id="@+id/table"
@@ -19,41 +117,10 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <TextView
-                android:textStyle="bold"
-                android:id="@+id/amountColumnSl"
-                android:layout_width="70dp"
-                android:layout_height="match_parent"
-                android:text="@string/amount"
-                android:gravity="start"
-                android:textSize="17sp"
-                />
-            <TextView
-                android:textStyle="bold"
-                android:id="@+id/unitColumnSl"
-                android:layout_width="50dp"
-                android:layout_height="match_parent"
-                android:text="@string/unit"
-                android:gravity="start"
-                android:textSize="17sp"
-                />
-            <TextView
-                android:textStyle="bold"
-                android:id="@+id/ingredientColumnSl"
-                android:width="170dp"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/ingredient"
-                android:gravity="start"
-                android:textSize="17sp"
-                />
-            <CheckBox
-            android:id="@+id/checkBoxSL"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:buttonTint="@color/lavender"
-            />
+
+
+
+
         </TableRow>
     </TableLayout>
 

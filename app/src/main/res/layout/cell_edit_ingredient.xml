@@ -12,7 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/lightpink"
+        android:background="@color/lightblue"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ingredientlist">
 
@@ -25,23 +25,11 @@
             app:layout_constraintStart_toEndOf="@+id/editamount"
             app:layout_constraintTop_toTopOf="parent"
             android:text="@string/unit"
-            android:background="@color/lightpink"
+            android:background="@color/transparent"
             android:paddingHorizontal="10dp"
             android:paddingVertical="10dp"/>
 
-        <ImageButton
-            android:contentDescription="@string/edit"
-            android:id="@+id/editIngrBtn"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_marginBottom="4dp"
-            app:srcCompat="@drawable/edit"
-            android:background="@drawable/lavender_btn"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+
         <ImageButton
             android:contentDescription="@string/update"
             android:id="@+id/updateIngredient"
@@ -54,7 +42,7 @@
             android:background="@drawable/lavender_btn"
             app:layout_constraintBottom_toTopOf="@+id/removeIngredient"
             app:layout_constraintEnd_toEndOf="parent"
-            android:visibility="gone"/>
+            />
 
         <ImageButton
             android:contentDescription="@string/remove"
@@ -68,7 +56,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:srcCompat="@drawable/remove"
             android:background="@drawable/lavender_btn"
-            android:visibility="gone"/>
+            />
 
 
         <EditText
@@ -76,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
-            android:background="@color/lightpink"
+            android:background="@color/transparent"
             android:hint="@string/ingredient"
             android:inputType="textShortMessage"
             android:paddingHorizontal="10dp"
@@ -92,7 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
-            android:background="@color/lightpink"
+            android:background="@color/transparent"
             android:hint="@string/amount"
             android:inputType="numberSigned|number"
             android:paddingHorizontal="10dp"

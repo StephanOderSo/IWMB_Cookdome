@@ -1,12 +1,19 @@
 package View;
 
+import static android.content.Intent.ACTION_GET_CONTENT;
+import static android.provider.MediaStore.ACTION_IMAGE_CAPTURE;
+import static android.provider.MediaStore.ACTION_VIDEO_CAPTURE;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -14,12 +21,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -30,12 +37,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import Model.Database;
 import Model.Ingredient;
 import Model.Recipe;
+import Model.Step;
 import Model.User;
 import Viewmodel.CreateRecipeAdapters.EditStepAdapter;
 import Viewmodel.CreateRecipeAdapters.IngredientListAdapter;
@@ -46,17 +55,15 @@ import Viewmodel.CreateRecipeAdapters.editIngredientAdapter;
 public class CreateRecipeActivity extends AppCompatActivity {
     private ImageView imageView;
     EditText recipeNameView;
-    ProgressBar progressbar;
     Uri imageUri;
     ListView ingredientsView,stepsView;
     Integer portions,time;
     Float amount;
     String recipeName,category,ingredientName,text;
-    String dietRec="";
     String unit="";
     EditText ingredientView,enterStepView,portionsView, amountView,timeView;
     ArrayList<Ingredient> ingredientList=new ArrayList<>();
-    ArrayList<String> stepList=new ArrayList<>();
+    ArrayList<Step> stepList=new ArrayList<>();
     FloatingActionButton addIngredientBtn,addStepBtn;
     ConstraintLayout image;
     TextView dietaryBtn;
@@ -66,7 +73,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
     TextView catBtn,unitBtn;
     IngredientListAdapter ingredientAdapter;
     StepListAdapter stepListAdapter;
-    Boolean priv;
+    Boolean priv=false;
     Recipe selectedRecipe=new Recipe();
     SwitchCompat privateswitch;
     Handler handler=new Handler();
@@ -79,6 +86,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
     ListView sharedView;
     ArrayList<User>sharedList;
     ShareListAdapter shareAdapter;
+    Bitmap stepBitmap;
+    Uri stepImageUri;
+    EditStepAdapter editStepAdapter;
+    int openIngredientItems=0;
+    int openStepItems=0;
+    Thread addToOpenIngredientsThread;
 
 
     @Override
@@ -146,7 +159,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         imageView=findViewById(R.id.uploadImage);
         recipeNameView=findViewById(R.id.recipeName);
         timeView = findViewById(R.id.preptime);
-        portionsView=findViewById(R.id.portionen);
+        portionsView=findViewById(R.id.portion);
         amountView=findViewById(R.id.amount);
         ingredientView=findViewById(R.id.ingredient);
         enterStepView=findViewById(R.id.step);
@@ -256,10 +269,9 @@ public class CreateRecipeActivity extends AppCompatActivity {
         );
         imageView.setOnClickListener(view -> {
             Intent photoPicker = new Intent();
-            photoPicker.setAction(Intent.ACTION_GET_CONTENT);
+            photoPicker.setAction(ACTION_GET_CONTENT);
             photoPicker.setType("*/*");
             activityResultLauncher.launch(photoPicker);
-
         });
 
 
@@ -282,20 +294,105 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 ingredientAdapter.notifyDataSetChanged();
                 amountView.setText("");
                 ingredientView.setText("");
-                getListViewSize(ingredientAdapter,ingredientsView);
+                getListViewSize(ingredientAdapter,ingredientsView,0);
             }
         });
 
 //Add step
+        ImageView addStepImage=findViewById(R.id.addStepImage);
+        ImageView stepImage=findViewById(R.id.stepImage);
+        ActivityResultLauncher<Intent> stepResultLauncher= registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if(result.getResultCode()== Activity.RESULT_OK){
+                        Intent data=result.getData();
+                        assert data != null;
+                        if(data.getData()!=null){
+                            stepImageUri =data.getData();
+                            stepImage.setVisibility(View.VISIBLE);
+                            stepImage.setImageURI(stepImageUri);
+                            addStepImage.setVisibility(View.GONE);
+
+                        } else if (data.getExtras()!=null) {
+                            Bundle extras = data.getExtras();
+                            stepBitmap = (Bitmap) extras.get("data");
+                            stepImage.setVisibility(View.VISIBLE);
+                            stepImage.setImageBitmap(stepBitmap);
+                            addStepImage.setVisibility(View.GONE);
+
+                        }else{
+                            Toast.makeText(this, R.string.no_image_selected, Toast.LENGTH_SHORT).show();
+                        }
+
+                    }else {
+                        Toast.makeText(CreateRecipeActivity.this,R.string.no_image_selected,Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
+        addStepImage.setOnClickListener(view -> {
+            AlertDialog.Builder builder=new AlertDialog.Builder(CreateRecipeActivity.this);
+            builder.setTitle(R.string.chooseSource);
+            builder.setCancelable(true);
+            LayoutInflater inflater = this.getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.cell_select_source, null);
+            builder.setView(dialogView);
+            ImageView camera=dialogView.findViewById(R.id.camera);
+            ImageView video=dialogView.findViewById(R.id.video);
+            ImageView image=dialogView.findViewById(R.id.image);
+            camera.setOnClickListener(view1 -> {
+                Intent takePictureIntent = new Intent(ACTION_IMAGE_CAPTURE);
+                stepResultLauncher.launch(takePictureIntent);
+            });
+            video.setOnClickListener(view1 -> {
+                Intent takeVideoIntent=new Intent(ACTION_VIDEO_CAPTURE);
+                stepResultLauncher.launch(takeVideoIntent);
+            });
+            image.setOnClickListener(view1 -> {
+                Intent chooseMediaIntent=new Intent(ACTION_GET_CONTENT);
+                chooseMediaIntent.setType("*/*");
+                stepResultLauncher.launch(chooseMediaIntent);
+            });
+            AlertDialog dialog=builder.create();
+            dialog.show();
+
+        });
+
+
         addStepBtn.setOnClickListener(view -> {
             if(enterStepView.getText()==null||enterStepView.getText().toString().equals("")){
                 Toast.makeText(CreateRecipeActivity.this,R.string.enterStep,Toast.LENGTH_SHORT).show();
             }else{
-                String step=enterStepView.getText().toString();
-                stepList.add(step);
-                stepListAdapter.notifyDataSetChanged();
+                Step step=new Step(enterStepView.getText().toString());
+                Runnable addStepRun= () -> {
+                    stepList.add(step);
+                    handler.post(() -> {
+                        if(stepListAdapter!=null){
+                            stepListAdapter.notifyDataSetChanged();
+                            getListViewSize(stepListAdapter,stepsView,0);
+                        }else{
+                            editStepAdapter.notifyDataSetChanged();
+                            getListViewSize(editStepAdapter,stepsView,0);
+                        }
+                    });
+                };
+                Thread addStepThread=new Thread(addStepRun);
+
                 enterStepView.setText("");
-                getListViewSize(stepListAdapter,stepsView);
+                if(stepBitmap!=null){
+                    Uri uri=getImageUri(getApplicationContext(),stepBitmap);
+                    step.setMediaUri(uri,addStepThread);
+                    stepBitmap=null;
+                    stepImage.setImageBitmap(null);
+                    addStepImage.setVisibility(View.VISIBLE);
+                }else if(stepImageUri!=null){
+                    step.setMediaUri(stepImageUri,addStepThread);
+                    stepImageUri=null;
+                    stepImage.setImageBitmap(null);
+                    addStepImage.setVisibility(View.VISIBLE);
+                }else{
+                    addStepThread.start();
+                }
                 }
         });
 //Private or Public switch
@@ -351,7 +448,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
             recipeName= recipeNameView.getText().toString();
             time = Integer.parseInt(timeView.getText().toString());
             portions=Integer.parseInt(portionsView.getText().toString());
-            progressbar.setVisibility(View.VISIBLE);
             Handler handler=new Handler();
             FirebaseUser fbuser= FirebaseAuth.getInstance().getCurrentUser();
             Runnable uploadRunnable= () -> selectedRecipe.uploadUpdate(context,priv,handler,fbuser);
@@ -362,22 +458,24 @@ public class CreateRecipeActivity extends AppCompatActivity {
         }
     }
 
-    public void updateListview(){
-        getListViewSize(ingredientAdapter,ingredientsView);
-    }
-    public void getListViewSize(ArrayAdapter adapter, ListView view){
+    public void getListViewSize(ArrayAdapter adapter, ListView view,int openTabs){
+        adapter.notifyDataSetChanged();
         int totalHeight=0;
+        int viewHeight=0;
         for ( int i=0;i<adapter.getCount();i++) {
             View mView=adapter.getView(i,null,view);
             mView.measure(
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
             totalHeight += mView.getMeasuredHeight();
+            viewHeight=mView.getMeasuredHeight();
         }
         int newTotal=totalHeight;
+        int extraHeight=openTabs*viewHeight;
         handler.post(() -> {
             ViewGroup.LayoutParams params=view.getLayoutParams();
             params.height=newTotal+view.getDividerHeight()*adapter.getCount();
+            params.height+=extraHeight;
             view.setLayoutParams(params);
         });
 
@@ -392,7 +490,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
         handler.post(() -> {
             Picasso.get()
                     .load(recipe.getImage())
-                    .placeholder(R.drawable.camera)
+                    .placeholder(R.drawable.image)
                     .fit()
                     .centerCrop()
                     .into(imageView);
@@ -416,7 +514,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 shareAdapter=new ShareListAdapter(context,0,sharedList,recipe,handler);
                 handler.post(() -> {
                     sharedView.setAdapter(shareAdapter);
-                    getListViewSize(shareAdapter,sharedView);
+                    getListViewSize(shareAdapter,sharedView,0);
                 });
             };
             Thread getUserListThread=new Thread(getRun);
@@ -425,12 +523,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
 
             //setup adapters for lists and pass acquired Lists
             editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,ingredientList);
-            EditStepAdapter stepAdapter = new EditStepAdapter(getApplicationContext(), 0,stepList);
+            editStepAdapter = new EditStepAdapter(getApplicationContext(), 0,stepList,stepsView);
             ingredientsView.setAdapter(ingredientAdapter);
-            stepsView.setAdapter(stepAdapter);
+            stepsView.setAdapter(editStepAdapter);
             //recalculate ListSize to accomodate Scrollview
-            getListViewSize(stepAdapter,stepsView);
-            getListViewSize(ingredientAdapter,ingredientsView);
+            getListViewSize(editStepAdapter,stepsView,0);
+            getListViewSize(ingredientAdapter,ingredientsView,0);
 
         });
 
@@ -448,6 +546,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
             }
         }
  }
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "recipeShot", null);
+        return Uri.parse(path);
+    }
 
  //Create one String containing all dietary requirements, shortened and separated by "|"
    public void buildDietString(){
@@ -486,9 +590,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
        }
        handler.post(() -> dietaryBtn.setText(text));
    }
-
-
-
 
     @Override
     public void onBackPressed(){

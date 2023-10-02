@@ -4,6 +4,7 @@ import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import Model.Database;
 import Model.Ingredient;
 import Model.Recipe;
+import Model.Step;
 import Model.User;
 import Viewmodel.SearchAdapters.RecipeAdapter;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
@@ -86,9 +88,16 @@ public class SearchActivity extends AppCompatActivity {
         context=getApplicationContext();
         fbUser=FirebaseAuth.getInstance().getCurrentUser();
         recipeSearchView= findViewById(R.id.recipeSearchView);
-        GridLayoutManager layoutManagerSearch=new GridLayoutManager(this,2);
-        layoutManagerSearch.setOrientation(LinearLayoutManager.VERTICAL);
-        recipeSearchView.setLayoutManager(layoutManagerSearch);
+        if(this.getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
+            GridLayoutManager layoutManagerSearch=new GridLayoutManager(this,3);
+            layoutManagerSearch.setOrientation(LinearLayoutManager.VERTICAL);
+            recipeSearchView.setLayoutManager(layoutManagerSearch);
+        }else{
+            GridLayoutManager layoutManagerSearch=new GridLayoutManager(this,2);
+            layoutManagerSearch.setOrientation(LinearLayoutManager.VERTICAL);
+            recipeSearchView.setLayoutManager(layoutManagerSearch);
+        }
+
         id=user.getUID(fbUser,context);
 
         //Intentfilter to see which activity the user is coming from (source)
@@ -407,6 +416,9 @@ public class SearchActivity extends AppCompatActivity {
 
     //Configuring the Recyclerview to display the given List of Recipes
     public void recyclerconfig(ArrayList<Recipe> list){
+        if(this.getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
+
+        }
         recipeAdapter = new RecipeAdapter(getApplicationContext(),list,favlist,id,source);
         recipeSearchView.setAdapter(recipeAdapter);
     }

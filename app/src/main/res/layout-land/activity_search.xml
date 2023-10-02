@@ -2,32 +2,51 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    tools:context="View.FilterActivity"
-    android:id="@+id/mainLayout">
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        >
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-      >
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:id="@+id/subContainer">
+    tools:context="View.SearchActivity"
+    android:id="@+id/constraintLayout">
 
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/lavender_border"
+        android:hint="@string/search"
+        android:searchIcon="@drawable/ic_search"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/filterBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:srcCompat="@drawable/filter"
+        android:backgroundTint="@color/lavender"
+        android:layout_marginTop="5dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/search"
+        app:layout_constraintRight_toRightOf="parent"
+        android:contentDescription="@string/filter"
+
+        />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/filterBtn"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:id="@+id/filterContainer"
+        android:visibility="gone">
         <TextView
             android:id="@+id/timeselectheading"
+            android:textSize="17sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -38,6 +57,7 @@
 
         <TextView
             android:id="@+id/valueView"
+            android:textSize="17sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -48,6 +68,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:textSize="17sp"
             android:id="@+id/minutes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -100,7 +121,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:layout_marginTop="15dp"
-                android:padding="12dp"
+                android:padding="10dp"
                 android:background="@drawable/lavender_btn"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -109,6 +130,7 @@
 
             <TextView
                 android:id="@+id/categories"
+                android:textSize="17sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
@@ -150,7 +172,7 @@
                     android:buttonTint="@color/lavender"
                     />
                 <CheckBox
-                    android:id="@+id/snacks"
+                    android:id="@+id/snack"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/snack"
@@ -174,7 +196,7 @@
                     android:id="@+id/soup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/soup"
+                    android:text="@string/Soup"
                     android:buttonTint="@color/lavender"
                     />
             </LinearLayout>
@@ -203,6 +225,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
+                android:textSize="17sp"
                 android:layout_marginTop="17dp"
                 android:text="@string/dietary"
                 app:layout_constraintStart_toEndOf="@+id/extendBtn2"
@@ -214,7 +237,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:layout_marginTop="15dp"
-                android:padding="12dp"
+                android:padding="10dp"
                 android:background="@drawable/lavender_btn"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -278,7 +301,16 @@
                     android:buttonTint="@color/lavender"
                     android:text="@string/lowfat" />
             </LinearLayout>
+            <!--<androidx.fragment.app.FragmentContainerView
+                android:id="@+id/dietaryFragment"
+                android:name="com.example.a3rdtry.empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/dietary"/>
+                -->
         </androidx.constraintlayout.widget.ConstraintLayout>
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/line2"
             android:layout_width="match_parent"
@@ -288,142 +320,89 @@
             app:layout_constraintLeft_toLeftOf="parent"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginTop="10dp"
-            ></androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    <androidx.cardview.widget.CardView
-        android:id="@+id/headercard"
-        android:visibility="gone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="40dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/subContainer"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="15dp"
-        android:layout_marginTop="5dp">
+            android:layout_marginTop="10dp" />
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/insertIngredientBlock"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <ImageView
-                android:id="@+id/background"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:background="@android:color/transparent"
-                android:contentDescription="@string/leftovers"
-                android:scaleType="centerCrop"
-                app:srcCompat="@drawable/leftovers" />
-            <TextView
-                android:id="@+id/catText"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/line2"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:paddingTop="15dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp">
+
+            <EditText
+                android:layout_marginStart="5dp"
+                android:id="@+id/insertIngredient"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@android:color/transparent"
-                android:contentDescription=""
-                android:textAllCaps="true"
-                android:foregroundTint="@android:color/transparent"
-                android:lineSpacingExtra="8sp"
-                android:text="@string/leftovers"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="40sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:textSize="18sp"
+                android:paddingStart="10dp"
+                android:paddingVertical="5dp"
+                android:ems="10"
+                android:inputType="text"
+                android:hint="@string/ingredient"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="@+id/insertIngredientBlock"
+                android:background="@drawable/lightlav_border"
+                tools:ignore="RtlSymmetry" />
+
+            <ImageButton
+                android:id="@+id/addIngredientFilter"
+                android:contentDescription="@string/addIngredient"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@+id/insertIngredient"
+                app:srcCompat="@drawable/ic_plus"
+                tools:layout_editor_absoluteY="95dp"
+                android:background="@drawable/lavender_btn"
+                app:layout_constraintLeft_toRightOf="@+id/insertIngredient"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginStart="4dp"
+                android:padding="10dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/leftoverList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/insertIngredient"
+                />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.cardview.widget.CardView>
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/insertIngredientBlock"
-        android:layout_width="wrap_content"
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/headercard"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:paddingTop="15dp"
-        android:paddingStart="5dp"
-        tools:ignore="RtlSymmetry"
-        >
-
-        <EditText
-            android:inputType="text"
-            android:layout_marginStart="5dp"
-            android:id="@+id/insertIngredient"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="10dp"
-            android:paddingVertical="12dp"
-            android:ems="10"
-            android:hint="@string/ingredient"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:background="@drawable/lightlav_border"
-            />
-
-        <ImageButton
-            android:id="@+id/addIngredientFilter"
-            android:contentDescription="@string/addIngredient"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toEndOf="@+id/insertIngredient"
-            app:srcCompat="@drawable/ic_plus"
-            tools:layout_editor_absoluteY="95dp"
-            android:background="@drawable/lavender_btn"
-            app:layout_constraintLeft_toRightOf="@+id/insertIngredient"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginStart="4dp"
-            android:padding="12dp"
-            android:layout_marginBottom="50dp"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/leftoversList"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/insertIngredient"
-            android:layout_marginBottom="50dp"
-            />
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/leftoversList"
-            android:padding="20dp"
-            android:layout_margin="100dp"></androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-    </ScrollView>
+        android:id="@+id/recipeSearchView"
+        app:layout_constraintTop_toBottomOf="@id/search"
+        app:layout_constraintLeft_toLeftOf="parent"/>
     <androidx.appcompat.widget.AppCompatButton
+        android:textColor="@color/white"
         android:id="@+id/filter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/done"
-        android:textColor="@color/white"
+        android:text="@string/filter"
+        android:background="@drawable/lavender_btn"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginHorizontal="40dp"
         android:layout_marginBottom="15dp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@drawable/lavender_btn"/>
+        android:visibility="gone"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/cancel"
+        android:textColor="@color/white"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
         android:text="@string/cancel"
+        android:background="@drawable/lavender_btn"
         android:layout_marginHorizontal="40dp"
         android:layout_marginBottom="15dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:background="@drawable/lavender_btn"/>
+        android:visibility="gone"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

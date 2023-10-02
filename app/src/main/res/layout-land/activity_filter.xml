@@ -62,7 +62,7 @@
 
         <SeekBar
             android:id="@+id/timeselect"
-            android:layout_width="200dp"
+            android:layout_width="500dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
             android:layout_marginEnd="4dp"
@@ -87,209 +87,211 @@
             android:layout_marginTop="10dp"
             ></androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/chooseCategory"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chosenCat"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/line0"
-            >
-            <ImageButton
-                android:id="@+id/extendBtn1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="15dp"
-                android:padding="12dp"
-                android:background="@drawable/lavender_btn"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/arrow_down"
-                android:contentDescription="@string/unfoldCat"/>
+            app:layout_constraintTop_toBottomOf="@+id/line0" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/chosendietaryRec"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chosenCat" />
 
-            <TextView
-                android:id="@+id/categories"
-                android:layout_width="wrap_content"
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chosendietaryRec"
+            android:columnCount="2">
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="17dp"
-                android:text="@string/categories"
-                app:layout_constraintStart_toEndOf="@+id/extendBtn1"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/chosenCat"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/extendBtn1" />
-
-
-            <LinearLayout
-                android:id="@+id/catSelect"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginStart="25dp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/chosenCat"
-                android:visibility="gone"
+                android:layout_columnWeight="1"
+                app:cardCornerRadius="20dp"
+                android:layout_margin="5dp"
                 >
-                <CheckBox
-                    android:id="@+id/breakki"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/breakki"
-                    android:buttonTint="@color/lavender"
-                    />
-                <CheckBox
-                    android:id="@+id/mainmeal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/mainMeal"
-                    android:buttonTint="@color/lavender"
-                    />
-                <CheckBox
-                    android:id="@+id/snacks"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/snack"
-                    android:buttonTint="@color/lavender"
-                    />
-                <CheckBox
-                    android:id="@+id/dessert"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/dessert"
-                    android:buttonTint="@color/lavender"
-                    />
-                <CheckBox
-                    android:id="@+id/salad"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/salad"
-                    android:buttonTint="@color/lavender"
-                    />
-                <CheckBox
-                    android:id="@+id/soup"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/soup"
-                    android:buttonTint="@color/lavender"
-                    />
-            </LinearLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/line1"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:background="@color/light_lav"
-            app:layout_constraintTop_toBottomOf="@+id/chooseCategory"
-            app:layout_constraintLeft_toLeftOf="parent"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginTop="10dp"
-            ></androidx.constraintlayout.widget.ConstraintLayout>
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/choosedietaryRec"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/line1">
-            <TextView
-                android:id="@+id/dietary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="17dp"
-                android:text="@string/dietary"
-                app:layout_constraintStart_toEndOf="@+id/extendBtn2"
-                app:layout_constraintTop_toTopOf="parent"/>
-
-            <ImageButton
-                android:id="@+id/extendBtn2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="15dp"
-                android:padding="12dp"
-                android:background="@drawable/lavender_btn"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/arrow_down"
-                android:contentDescription="@string/unfoldDietary"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/chosendietaryRec"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/chooseCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/extendBtn2" />
+                app:layout_constraintTop_toBottomOf="@+id/line0"
+                android:layout_marginBottom="8dp"
+                >
+                <ImageButton
+                    android:id="@+id/extendBtn1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="15dp"
+                    android:padding="12dp"
+                    android:background="@drawable/lavender_btn"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/arrow_down"
+                    android:contentDescription="@string/unfoldCat"/>
 
-            <LinearLayout
-                android:id="@+id/diatarySelect"
+                <TextView
+                    android:id="@+id/categories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="17dp"
+                    android:text="@string/categories"
+                    app:layout_constraintStart_toEndOf="@+id/extendBtn1"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/catSelect"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginStart="25dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/extendBtn1"
+                    android:visibility="gone"
+                    >
+                    <CheckBox
+                        android:id="@+id/breakki"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/breakki"
+                        android:buttonTint="@color/lavender"
+                        />
+                    <CheckBox
+                        android:id="@+id/mainmeal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/mainMeal"
+                        android:buttonTint="@color/lavender"
+                        />
+                    <CheckBox
+                        android:id="@+id/snacks"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/snack"
+                        android:buttonTint="@color/lavender"
+                        />
+                    <CheckBox
+                        android:id="@+id/dessert"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/dessert"
+                        android:buttonTint="@color/lavender"
+                        />
+                    <CheckBox
+                        android:id="@+id/salad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/salad"
+                        android:buttonTint="@color/lavender"
+                        />
+                    <CheckBox
+                        android:id="@+id/soup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/soup"
+                        android:buttonTint="@color/lavender"
+                        />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                app:cardCornerRadius="20dp"
+                android:layout_margin="5dp">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/choosedietaryRec"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginStart="25dp"
+                android:layout_marginBottom="8dp"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/chosendietaryRec"
-                android:visibility="gone">
+                app:layout_constraintTop_toBottomOf="@+id/line1">
+                <TextView
+                    android:id="@+id/dietary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="17dp"
+                    android:text="@string/dietary"
+                    app:layout_constraintStart_toEndOf="@+id/extendBtn2"
+                    app:layout_constraintTop_toTopOf="parent"/>
 
-                <CheckBox
-                    android:id="@+id/gluten"
-                    android:layout_width="match_parent"
+                <ImageButton
+                    android:id="@+id/extendBtn2"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:buttonTint="@color/lavender"
-                    android:text="@string/glutenfree"
-                    />
+                    android:layout_marginStart="5dp"
+                    android:layout_marginTop="15dp"
+                    android:padding="12dp"
+                    android:background="@drawable/lavender_btn"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/arrow_down"
+                    android:contentDescription="@string/unfoldDietary"/>
 
-                <CheckBox
-                    android:id="@+id/lactose"
+                <LinearLayout
+                    android:id="@+id/diatarySelect"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:buttonTint="@color/lavender"
-                    android:text="@string/lactosefree"
-                    />
-                <CheckBox
-                    android:id="@+id/vegan"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:buttonTint="@color/lavender"
-                    android:text="@string/vegan" />
-                <CheckBox
-                    android:id="@+id/vege"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:buttonTint="@color/lavender"
-                    android:text="@string/vegetar" />
-                <CheckBox
-                    android:id="@+id/paleo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:buttonTint="@color/lavender"
-                    android:text="@string/paleo" />
-                <CheckBox
-                    android:id="@+id/lowfat"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:buttonTint="@color/lavender"
-                    android:text="@string/lowfat" />
-            </LinearLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/line2"
-            android:layout_width="match_parent"
-            android:layout_height="2dp"
-            android:background="@color/light_lav"
-            app:layout_constraintTop_toBottomOf="@+id/choosedietaryRec"
-            app:layout_constraintLeft_toLeftOf="parent"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginTop="10dp"
-            ></androidx.constraintlayout.widget.ConstraintLayout>
+                    android:orientation="vertical"
+                    android:layout_marginStart="25dp"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toBottomOf="@+id/extendBtn2"
+                    >
+
+                    <CheckBox
+                        android:id="@+id/gluten"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/lavender"
+                        android:text="@string/glutenfree"
+                        />
+
+                    <CheckBox
+                        android:id="@+id/lactose"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/lavender"
+                        android:text="@string/lactosefree"
+                        />
+                    <CheckBox
+                        android:id="@+id/vegan"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/lavender"
+                        android:text="@string/vegan" />
+                    <CheckBox
+                        android:id="@+id/vege"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/lavender"
+                        android:text="@string/vegetar" />
+                    <CheckBox
+                        android:id="@+id/paleo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/lavender"
+                        android:text="@string/paleo" />
+                    <CheckBox
+                        android:id="@+id/lowfat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:buttonTint="@color/lavender"
+                        android:text="@string/lowfat" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+        </GridLayout>
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.cardview.widget.CardView
         android:id="@+id/headercard"

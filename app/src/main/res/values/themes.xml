@@ -4,5 +4,6 @@
     <style name="Theme.IWMB_Cookdome.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:shadowColor">@color/transparent</item>
     </style>
 </resources>

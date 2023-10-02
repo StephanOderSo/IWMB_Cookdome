@@ -49,7 +49,7 @@ public class ShareListAdapter extends ArrayAdapter <User> {
             ImageButton remove=convertView.findViewById(R.id.share);
             Picasso.get()
                     .load(user.getPhoto())
-                    .placeholder(R.drawable.camera)
+                    .placeholder(R.drawable.image)
                     .fit()
                     .centerCrop()
                     .into(userImage);

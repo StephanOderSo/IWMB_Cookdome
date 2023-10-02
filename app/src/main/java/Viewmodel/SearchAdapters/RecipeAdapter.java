@@ -130,7 +130,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         }
         Picasso.get()
                 .load(recipe.getImage())
-                .placeholder(R.drawable.camera)
+                .placeholder(R.drawable.image)
                 .fit()
                 .centerCrop()
                 .into(holder.recipe_image);

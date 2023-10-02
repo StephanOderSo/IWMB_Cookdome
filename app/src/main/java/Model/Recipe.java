@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.bienhuels.iwmb_cookdome.R;
@@ -12,7 +13,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
@@ -28,7 +28,7 @@ public class Recipe {
     private ArrayList<Ingredient> ingredientList=new ArrayList<>();
     private String category;
     private Integer portions;
-    private ArrayList<String> stepList=new ArrayList<>();
+    private ArrayList<Step> stepList=new ArrayList<Step>();
     private ArrayList<String> dietaryRec =new ArrayList<>();
     ArrayList<String>sharedWith=new ArrayList<>();
     Boolean priv;
@@ -45,7 +45,7 @@ public class Recipe {
     public Recipe(){}
 
 
-    public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietRec,Boolean priv,String owner,ArrayList<String>sharedWith) {
+    public Recipe(String key, String image, String recipeName, String category, int prepTime, int portions, ArrayList<Ingredient> ingredientList, ArrayList<Step> stepList, ArrayList<String> dietRec, Boolean priv, String owner, ArrayList<String>sharedWith) {
        this.key=key;
         this.image=image;
         this.recipeName = recipeName;
@@ -95,7 +95,7 @@ public class Recipe {
         return category;
     }
 
-    public ArrayList<String> getStepList() {
+    public ArrayList<Step> getStepList() {
         return stepList;
     }
 
@@ -114,9 +114,9 @@ public class Recipe {
         return sharedWith;
     }
 
-    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<String> stepList, ArrayList<String> dietaryRecList, Thread nextThread, Context context, Handler handler, Boolean priv, String owner){
+    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<Step> stepList, ArrayList<String> dietaryRecList, Thread nextThread, Context context, Handler handler, Boolean priv, String owner){
         if(imageUri!=null){
-            storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
+            storageRef.child(imageUri.getLastPathSegment()).putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
                 Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
                 while(!uriTask.isComplete());
                 this.image=uriTask.getResult().toString();
@@ -215,14 +215,18 @@ public class Recipe {
         owner=snapshot.child("owner").getValue(String.class);
         String index="0";
         for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
-            String stepTry=String.valueOf(snapshot.child("stepList").child(index).getValue());
+            Step stepTry=new Step();
+            stepTry.setStep(String.valueOf(snapshot.child("stepList").child(index).child("step").getValue()));
+            if(snapshot.child("stepList").child(index).hasChild("media")){
+                stepTry.setMedia(String.valueOf(snapshot.child("stepList").child(index).child("media").getValue(String.class)));
+            }
             stepList.add(stepTry);
             int i=Integer.parseInt(index);
             i++;
             index= Integer.toString(i);
         }
         String index2="0";
-        for(DataSnapshot stepSS:snapshot.child("dietaryRec").getChildren()){
+        for(DataSnapshot sS:snapshot.child("dietaryRec").getChildren()){
             String dietTry=String.valueOf(snapshot.child("dietaryRec").child(index2).getValue());
             int i=Integer.parseInt(index2);
             i++;

@@ -208,7 +208,7 @@ public class EditProfileActivity extends AppCompatActivity {
             user=user.getUser();
             Picasso.get()
                     .load(user.getPhoto())
-                    .placeholder(R.drawable.camera)
+                    .placeholder(R.drawable.image)
                     .resize(400, 400)
                     .centerCrop()
                     .into(photo);

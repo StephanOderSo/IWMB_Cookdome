@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import Model.Ingredient;
 import Model.Recipe;
+import Model.Step;
 import Model.User;
 import Viewmodel.RecipeViewAdapters.IngrListAdapterwSLBtn;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
@@ -169,7 +170,7 @@ public class RecipeViewActivity extends AppCompatActivity {
         textView.setText(selectedRecipe.getRecipeName());
         Picasso.get()
                 .load(selectedRecipe.getImage())
-                .placeholder(R.drawable.camera)
+                .placeholder(R.drawable.image)
                 .resize(400,400)
                 .centerCrop()
                 .into(imageView);
@@ -217,7 +218,7 @@ public class RecipeViewActivity extends AppCompatActivity {
         ingredientAdapter = new IngrListAdapterwSLBtn(getApplicationContext(), 0,dBingredientList);
         ingredientList.setAdapter(ingredientAdapter);
         getListViewSize(ingredientAdapter,ingredientList);
-        ArrayList<String>dBStepList;
+        ArrayList<Step> dBStepList;
         dBStepList=selectedRecipe.getStepList();
         StepListAdapterNoBtn stepAdapter = new StepListAdapterNoBtn(getApplicationContext(), 0, dBStepList);
         stepList.setAdapter(stepAdapter);

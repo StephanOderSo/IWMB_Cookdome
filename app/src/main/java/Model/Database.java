@@ -174,7 +174,7 @@ public class Database {
             protected void onBindViewHolder(@NonNull RecyclerViewHolder holder, int position, @NonNull User model) {
                 Picasso.get()
                         .load(model.getPhoto())
-                        .placeholder(R.drawable.camera)
+                        .placeholder(R.drawable.image)
                         .fit()
                         .centerCrop()
                         .into(holder.userImage);
