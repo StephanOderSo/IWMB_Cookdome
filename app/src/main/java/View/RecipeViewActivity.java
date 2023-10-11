@@ -152,7 +152,7 @@ public class RecipeViewActivity extends AppCompatActivity {
 
        Runnable runnable= () -> {
            key = previousIntent.getStringExtra("key");
-           selectedRecipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
+           selectedRecipe.download(key,context,handler,setDataThread,fbUser);
        };
        Thread getRecipeThread=new Thread(runnable);
        getRecipeThread.start();

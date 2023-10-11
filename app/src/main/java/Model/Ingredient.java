@@ -3,13 +3,12 @@ package Model;
 public class Ingredient {
     private double amount;
     private String unit;
-    private String ingredientName;
-    public Ingredient(){}
+    private String name;
 
-    public Ingredient(double amount, String unit, String ingredientName) {
+    public Ingredient(double amount, String unit, String name) {
         this.amount = amount;
         this.unit = unit;
-        this.ingredientName = ingredientName;
+        this.name = name;
     }
 
     public double getAmount() {
@@ -28,9 +27,11 @@ public class Ingredient {
         this.unit = unit;
     }
 
-    public String getIngredientName() {
-        return ingredientName;
+    public String getName() {
+        return name;
     }
 
-
+    public void setName(String name) {
+        this.name = name;
+    }
 }

@@ -26,9 +26,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.bienhuels.iwmb_cookdome.R;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -264,7 +261,7 @@ public class FilterActivity extends AppCompatActivity {
             if(!ingredients.isEmpty()){
                 ArrayList<String>ingredientStringList=new ArrayList<>();
                 for(Ingredient ingredient:recipe.getIngredientList()){
-                    String name=ingredient.getIngredientName();
+                    String name=ingredient.getName();
                     ingredientStringList.add(name);
                 }
                 if(ingredientStringList.containsAll(ingredients)){

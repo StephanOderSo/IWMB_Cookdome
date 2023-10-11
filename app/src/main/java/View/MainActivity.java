@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> user.downloadFromFirebase(context,fbuser,userHandler,setDataThread);
+        Runnable runnable= () -> user.download(context,fbuser,userHandler,setDataThread);
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();
     }

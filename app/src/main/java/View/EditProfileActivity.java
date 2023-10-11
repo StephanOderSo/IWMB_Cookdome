@@ -164,7 +164,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     String pass=passView.getText().toString();
                     String mail=fbuser.getEmail();
                     User user=new User();
-                    user.updateOnFirebase(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
+                    user.update(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
                 }
             });
             builder.show();
@@ -217,7 +217,7 @@ public class EditProfileActivity extends AppCompatActivity {
         });
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> user.downloadFromFirebase(context,fbuser,userHandler,setDataThread);
+        Runnable runnable= () -> user.download(context,fbuser,userHandler,setDataThread);
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();
     }

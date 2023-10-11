@@ -26,7 +26,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -103,7 +102,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
 //Get current Users unique ID for database actions
         fbuser=FirebaseAuth.getInstance().getCurrentUser();
         context=getApplicationContext();
-        uID= user.getUID(fbuser,context);
+        uID= user.setID(fbuser,context);
 
 //create Arraylists for Alert Dialogs
         String[] dietArray={getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.vegan),getResources().getString(R.string.vegetar),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)};
@@ -131,7 +130,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             };
             Thread getRecipeThread=new Thread(setDataRun);
 //Thread to download Recipe from Firebase
-            Runnable runnable= () -> selectedRecipe.downloadSelectedRecipe(key,context,handler,getRecipeThread,fbuser);
+            Runnable runnable= () -> selectedRecipe.download(key,context,handler,getRecipeThread,fbuser);
             Thread downloadRThread=new Thread(runnable);
             downloadRThread.start();
 
@@ -450,7 +449,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             portions=Integer.parseInt(portionsView.getText().toString());
             Handler handler=new Handler();
             FirebaseUser fbuser= FirebaseAuth.getInstance().getCurrentUser();
-            Runnable uploadRunnable= () -> selectedRecipe.uploadUpdate(context,priv,handler,fbuser);
+            Runnable uploadRunnable= () -> selectedRecipe.upload(context,priv,handler,fbuser);
             Thread uploadThread=new Thread(uploadRunnable);
             Runnable setRun= () -> selectedRecipe.setRecipe(imageUri,recipeName,category,time,portions,ingredientList,stepList,dietaryRecList,uploadThread,context,handler,priv,uID);
             Thread setThread=new Thread(setRun);

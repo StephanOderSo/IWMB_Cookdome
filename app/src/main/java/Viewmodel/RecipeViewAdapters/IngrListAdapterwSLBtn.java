@@ -1,10 +1,7 @@
 package Viewmodel.RecipeViewAdapters;
 
-import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
-
 import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,7 +46,7 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
         String amount=Double.toString(ingredient.getAmount());
         amountView.setText(amount);
         unitView.setText(ingredient.getUnit());
-        ingredientView.setText(ingredient.getIngredientName());
+        ingredientView.setText(ingredient.getName());
         ImageButton imageButton= convertView.findViewById(R.id.removeStepBtn);
         imageButton.setImageResource(R.drawable.add_to_cart);
         imageButton.setOnClickListener(view -> addToSList(ingredient,imageButton));

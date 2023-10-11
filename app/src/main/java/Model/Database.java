@@ -78,7 +78,7 @@ public class Database {
                             ArrayList<String> leftoverList=previousIntent.getStringArrayListExtra("action");
                             ArrayList<String>ingredientStringList=new ArrayList<>();
                             for(Ingredient ingredient:selectedRecipe.getIngredientList()){
-                                String name=ingredient.getIngredientName();
+                                String name=ingredient.getName();
                                 ingredientStringList.add(name);
                             }
                             if(leftoverList!=null){
@@ -151,7 +151,7 @@ public class Database {
     }
 
 
-    public void removeRecipeFromPublic(String key, Context context, Handler handler){
+    public void removePublicRecipe(String key, Context context, Handler handler){
         recipeRef.child(key).removeValue().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 handler.post(() -> {  Toast.makeText(context, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
@@ -190,8 +190,8 @@ public class Database {
             }
         };
     }
-    public void addSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
-        String id=user.getUID(fbuser, context);
+    public void downloadSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+        String id=user.setID(fbuser, context);
         userRef.child(id).child("Shared").child("private").get().addOnCompleteListener(task -> {
             DataSnapshot snapshot=task.getResult();
             if(snapshot.exists()){
@@ -220,8 +220,8 @@ public class Database {
         });
     }
 
-    public void addSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
-        String id=user.getUID(fbuser, context);
+    public void downloadSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+        String id=user.setID(fbuser, context);
         userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(task -> {
             DataSnapshot snapshot= task.getResult();
             if(snapshot.exists()){

@@ -60,7 +60,7 @@ public class UsersActivity extends AppCompatActivity {
         Runnable setDataRun= () -> recipe=recipe.getRecipe();
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> recipe.downloadSelectedRecipe(key,context,handler,setDataThread,fbUser);
+        Runnable runnable= () -> recipe.download(key,context,handler,setDataThread,fbUser);
         Thread getRecipeThread=new Thread(runnable);
         getRecipeThread.start();
     }

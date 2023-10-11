@@ -112,7 +112,7 @@ public class RegisterActivity extends AppCompatActivity {
                     passwordView.clearComposingText();
                     passwordRepeatView.clearComposingText();
                 } else{
-                    Runnable runnable= () -> user.uploadToFirebase(imageUri,name,email,password,context,handler);
+                    Runnable runnable= () -> user.upload(imageUri,name,email,password,context,handler);
                     registerThread=new Thread(runnable);
                     registerThread.start();
                 }

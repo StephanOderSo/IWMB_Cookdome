@@ -21,10 +21,12 @@ import android.widget.Toast;
 import View.CreateRecipeActivity;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.core.app.ActivityOptionsCompat;
 
 import com.bienhuels.iwmb_cookdome.R;
 import com.squareup.picasso.Picasso;
@@ -75,6 +77,7 @@ public class EditStepAdapter extends ArrayAdapter<Step> {
                         .centerCrop()
                         .into(stepImage);
             }
+
             removeBtn.setOnClickListener(view -> {
                 Step toBeRemoved= getItem(position);
                 remove(toBeRemoved);

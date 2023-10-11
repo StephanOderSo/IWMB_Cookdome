@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import com.bienhuels.iwmb_cookdome.R;
 import java.util.List;
 import Model.Ingredient;
-import View.CreateRecipeActivity;
 
 public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
     Context contextm;
@@ -45,7 +44,7 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
             String amount = Double.toString(ingredient.getAmount());
             amountView.setText(amount);
             unitView.setText(ingredient.getUnit());
-            ingredientView.setText(ingredient.getIngredientName());
+            ingredientView.setText(ingredient.getName());
 
             removeBtn.setOnClickListener(view -> {
                 Ingredient toBeRemoved = getItem(position);
@@ -56,7 +55,7 @@ public class editIngredientAdapter extends ArrayAdapter<Ingredient> {
             String a = Double.toString(i);
             amountView.setText(a);
             unitView.setText(ingredient.getUnit());
-            ingredientView.setText(ingredient.getIngredientName());
+            ingredientView.setText(ingredient.getName());
             updateBtn.setOnClickListener(view -> {
                 Ingredient toBeUpdated = getItem(position);
                 remove(toBeUpdated);

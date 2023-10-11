@@ -43,7 +43,7 @@ public class IngredientListAdapter extends ArrayAdapter<Ingredient> {
         String amount=Double.toString(ingredient.getAmount());
         amountView.setText(amount);
         unitView.setText(ingredient.getUnit());
-        ingredientView.setText(ingredient.getIngredientName());
+        ingredientView.setText(ingredient.getName());
         removeStepBtn.setOnClickListener(view -> {
             Ingredient toBeRemoved= getItem(position);
             remove(toBeRemoved);

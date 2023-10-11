@@ -44,7 +44,7 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
         String amount=Double.toString(ingredient.getAmount());
         amountView.setText(amount);
         unitView.setText(ingredient.getUnit());
-        ingredientView.setText(ingredient.getIngredientName());
+        ingredientView.setText(ingredient.getName());
         checkBox.setOnClickListener(view -> onCheck(checkBox,ingredient));
     }else{
             Toast.makeText(getContext(), R.string.sthWrong, Toast.LENGTH_SHORT).show();

@@ -1,7 +1,5 @@
 package View;
 
-import static androidx.constraintlayout.widget.ConstraintLayoutStates.TAG;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -35,7 +33,6 @@ import java.util.ArrayList;
 import Model.Database;
 import Model.Ingredient;
 import Model.Recipe;
-import Model.Step;
 import Model.User;
 import Viewmodel.SearchAdapters.RecipeAdapter;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
@@ -98,7 +95,7 @@ public class SearchActivity extends AppCompatActivity {
             recipeSearchView.setLayoutManager(layoutManagerSearch);
         }
 
-        id=user.getUID(fbUser,context);
+        id=user.setID(fbUser,context);
 
         //Intentfilter to see which activity the user is coming from (source)
         previousIntent = getIntent();
@@ -327,7 +324,7 @@ public class SearchActivity extends AppCompatActivity {
             if(!ingredients.isEmpty()){
                 ArrayList<String>ingredientStringList=new ArrayList<>();
                 for(Ingredient ingredient:recipe.getIngredientList()){
-                    String name=ingredient.getIngredientName();
+                    String name=ingredient.getName();
                     ingredientStringList.add(name);
                 }
                 if(ingredientStringList.containsAll(ingredients)){
@@ -369,7 +366,7 @@ public class SearchActivity extends AppCompatActivity {
         };
         Thread getSharedListThread=new Thread(getSharedList);
 
-        Runnable setprivRunnable= () -> database.addSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
+        Runnable setprivRunnable= () -> database.downloadSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
         Thread setPrivThread=new Thread(setprivRunnable);
 
         Runnable listRunnable= () -> {
@@ -404,7 +401,7 @@ public class SearchActivity extends AppCompatActivity {
             }
             if(previousIntent.hasExtra("shared")){
                 source="shared";
-                database.addSharedPublRecipes(context,fbUser,handler,setPrivThread);
+                database.downloadSharedPublRecipes(context,fbUser,handler,setPrivThread);
             }
         };
         listThread=new Thread(listRunnable);

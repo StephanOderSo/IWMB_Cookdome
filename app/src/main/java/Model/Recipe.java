@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.bienhuels.iwmb_cookdome.R;
@@ -58,6 +57,38 @@ public class Recipe {
         this.priv=priv;
         this.owner=owner;
         this.sharedWith=sharedWith;
+    }
+    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<Step> stepList, ArrayList<String> dietaryRecList, Thread nextThread, Context context, Handler handler, Boolean priv, String owner){
+        if(imageUri!=null){
+            storageRef.child(imageUri.getLastPathSegment()).putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
+                Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
+                while(!uriTask.isComplete());
+                this.image=uriTask.getResult().toString();
+                this.recipeName=recipeName;
+                this.category=category;
+                this.prepTime=time;
+                this.portions=portions;
+                this.dietaryRec =dietaryRecList;
+                this.ingredientList=ingredientList;
+                this.stepList=stepList;
+                this.priv=priv;
+                this.owner=owner;
+                nextThread.start();
+            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+        }else{
+            this.recipeName=recipeName;
+            this.category=category;
+            this.prepTime=time;
+            this.portions=portions;
+            this.dietaryRec =dietaryRecList;
+            this.ingredientList=ingredientList;
+            this.stepList=stepList;
+            this.priv=priv;
+            this.owner=owner;
+            synchronized (nextThread){
+                nextThread.start();
+            }
+        }
     }
 
     public String getKey() {
@@ -114,44 +145,13 @@ public class Recipe {
         return sharedWith;
     }
 
-    public void setRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<Step> stepList, ArrayList<String> dietaryRecList, Thread nextThread, Context context, Handler handler, Boolean priv, String owner){
-        if(imageUri!=null){
-            storageRef.child(imageUri.getLastPathSegment()).putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
-                Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-                while(!uriTask.isComplete());
-                this.image=uriTask.getResult().toString();
-                this.recipeName=recipeName;
-                this.category=category;
-                this.prepTime=time;
-                this.portions=portions;
-                this.dietaryRec =dietaryRecList;
-                this.ingredientList=ingredientList;
-                this.stepList=stepList;
-                this.priv=priv;
-                this.owner=owner;
-                nextThread.start();
-            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
-        }else{
-            this.recipeName=recipeName;
-            this.category=category;
-            this.prepTime=time;
-            this.portions=portions;
-            this.dietaryRec =dietaryRecList;
-            this.ingredientList=ingredientList;
-            this.stepList=stepList;
-            this.priv=priv;
-            this.owner=owner;
-            synchronized (nextThread){
-                nextThread.start();
-            }
-        }
-    }
-    public void uploadUpdate(Context context,Boolean priv,Handler handler,FirebaseUser fbuser){
+
+    public void upload(Context context, Boolean priv, Handler handler, FirebaseUser fbuser){
         if(this.key==null){
             key=recipeRef.push().getKey();
         }
         Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec,priv,owner,sharedWith);
-        String uid=user.getUID(fbuser,context);
+        String uid=user.setID(fbuser,context);
         if(!priv){
             recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -166,10 +166,10 @@ public class Recipe {
                     user.addToOwn(context,uid,key,handler);
                 }
             });
-            database.removeRecipeFromPublic(key,context,handler);
+            database.removePublicRecipe(key,context,handler);
         }
     }
-    public void downloadSelectedRecipe(String key, Context context, Handler handler, Thread setDatathread, FirebaseUser fbUser){
+    public void download(String key, Context context, Handler handler, Thread setDatathread, FirebaseUser fbUser){
         recipeRef.child(key).get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 if (task.getResult().exists()) {
@@ -177,7 +177,7 @@ public class Recipe {
                     this.selectedRecipe=rebuildFromFirebase(snapshot);
                     setDatathread.start();
                 } else {
-                    String id=user.getUID(fbUser,context);
+                    String id=user.setID(fbUser,context);
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();
@@ -215,8 +215,7 @@ public class Recipe {
         owner=snapshot.child("owner").getValue(String.class);
         String index="0";
         for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
-            Step stepTry=new Step();
-            stepTry.setStep(String.valueOf(snapshot.child("stepList").child(index).child("step").getValue()));
+            Step stepTry=new Step (String.valueOf(snapshot.child("stepList").child(index).child("step").getValue()));
             if(snapshot.child("stepList").child(index).hasChild("media")){
                 stepTry.setMedia(String.valueOf(snapshot.child("stepList").child(index).child("media").getValue(String.class)));
             }
