@@ -66,8 +66,8 @@
     <string name="no_image_selected">No Image selected</string>
     <string name="choosePhoto">Please choose a photo</string>
     <string name="enterName">Please enter a Name</string>
-    <string name="enterMail">Please ebter an Email adress</string>
-    <string name="invalidMail">The Email-adress you entered is not valid</string>
+    <string name="enterMail">Please enter an Email address</string>
+    <string name="invalidMail">The Email-address you entered is not valid</string>
     <string name="enterPassword">Please enter a password</string>
     <string name="passwordLength">The password needs to be at least 8 characters long</string>
     <string name="repeatPasword">Please repeat the password</string>

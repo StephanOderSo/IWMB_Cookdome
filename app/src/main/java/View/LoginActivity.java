@@ -2,6 +2,7 @@ package View;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
@@ -43,22 +44,30 @@ public class LoginActivity extends AppCompatActivity {
         login=findViewById(R.id.loginBtn);
         login.setOnClickListener(view -> {
             if(enteremail.getText()==null){
-                Toast.makeText(LoginActivity.this, R.string.enterMail, Toast.LENGTH_SHORT).show();
                 enteremail.requestFocus();
                 enteremail.setError(getResources().getString(R.string.enterMail));
             }  else if (enterpassword.getText()==null) {
-                Toast.makeText(LoginActivity.this, R.string.enterPassword, Toast.LENGTH_SHORT).show();
                 enterpassword.requestFocus();
                 enterpassword.setError(getResources().getString(R.string.enterPassword));
-            }else{
-                email=enteremail.getText().toString();
-                password=enterpassword.getText().toString();
-                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    Toast.makeText(LoginActivity.this, R.string.invalidMail, Toast.LENGTH_SHORT).show();
-                    enteremail.requestFocus();
-                    enteremail.setError(getResources().getString(R.string.invalidMail));
-                }else{
-                    loginUser(email,password);
+            } else if (enteremail.getText()!=null) {
+                if(enteremail.getText().toString().equals("")){
+                enteremail.requestFocus();
+                enteremail.setError(getResources().getString(R.string.enterMail));}
+                if (enterpassword.getText()!=null) {
+                    if(enterpassword.getText().toString().equals("")){
+                        enterpassword.requestFocus();
+                        enterpassword.setError(getResources().getString(R.string.enterPassword));
+                    }else{
+                        email=enteremail.getText().toString();
+                        password=enterpassword.getText().toString();
+                        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            Toast.makeText(LoginActivity.this, R.string.invalidMail, Toast.LENGTH_SHORT).show();
+                            enteremail.requestFocus();
+                            enteremail.setError(getResources().getString(R.string.invalidMail));
+                        }else{
+                            loginUser(email,password);
+                        }
+                    }
                 }
             }
         });

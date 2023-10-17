@@ -413,9 +413,6 @@ public class SearchActivity extends AppCompatActivity {
 
     //Configuring the Recyclerview to display the given List of Recipes
     public void recyclerconfig(ArrayList<Recipe> list){
-        if(this.getResources().getConfiguration().orientation==Configuration.ORIENTATION_LANDSCAPE){
-
-        }
         recipeAdapter = new RecipeAdapter(getApplicationContext(),list,favlist,id,source);
         recipeSearchView.setAdapter(recipeAdapter);
     }
