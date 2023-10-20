@@ -219,10 +219,19 @@ public class SearchActivity extends AppCompatActivity {
         addIngredientFilter = findViewById(R.id.addIngredientFilter);
         rowsize=3;
         addIngredientFilter.setOnClickListener(view -> {
-            String lo=insertIngredient.getText().toString();
-            leftoverList.add(lo.toLowerCase());
-            loRecyclerAdapter.notifyItemInserted(leftoverList.indexOf(lo.toLowerCase()));
-            insertIngredient.setText("");
+            if(insertIngredient.getText()!=null){
+                if(!insertIngredient.getText().toString().equals("")){
+                    String lo=insertIngredient.getText().toString();
+                    leftoverList.add(lo.toLowerCase());
+                    loRecyclerAdapter.notifyItemInserted(leftoverList.indexOf(lo.toLowerCase()));
+                    insertIngredient.setText("");
+                }else{
+                    Toast.makeText(context, R.string.enterLeftover, Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                Toast.makeText(context, R.string.enterLeftover, Toast.LENGTH_SHORT).show();
+            }
+
         });
 //Filterbutton
         applyFilter = findViewById(R.id.filter);

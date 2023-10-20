@@ -174,18 +174,26 @@ public class FilterActivity extends AppCompatActivity {
         addIngredientFilter=findViewById(R.id.addIngredientFilter);
         rowsize=3;
         addIngredientFilter.setOnClickListener(view -> {
-            String lo=insertIngredient.getText().toString();
-            leftoversList.add(lo.toLowerCase());
-            int listsize= leftoversList.size();
-            int rows=gridM.getSpanCount();
-            if(listsize>rowsize&&listsize%3==1){
-                rows=rows+1;
-                gridM.setSpanCount(rows);
-                rowsize=rowsize+3;
-            }
+            if(insertIngredient.getText()!=null){
+                if(!insertIngredient.getText().toString().equals("")){
+                    String lo=insertIngredient.getText().toString();
+                    leftoversList.add(lo.toLowerCase());
+                    int listsize= leftoversList.size();
+                    int rows=gridM.getSpanCount();
+                    if(listsize>rowsize&&listsize%3==1){
+                        rows=rows+1;
+                        gridM.setSpanCount(rows);
+                        rowsize=rowsize+3;
+                    }
 
-            loRecyclerAdapter.notifyDataSetChanged();
-            insertIngredient.setText("");
+                    loRecyclerAdapter.notifyDataSetChanged();
+                    insertIngredient.setText("");
+                }else{
+                    Toast.makeText(this, R.string.enterLeftover, Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                Toast.makeText(this, R.string.enterLeftover, Toast.LENGTH_SHORT).show();
+            }
         });
 //Fertigbutton
         applyFilter=findViewById(R.id.filter);
