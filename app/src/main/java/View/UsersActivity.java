@@ -19,10 +19,9 @@ import Model.Database;
 import Model.Recipe;
 import Model.User;
 
-public class UsersActivity extends AppCompatActivity {
+public class UsersActivity extends AppCompatActivity implements  Database{
     RecyclerView recycler;
     SearchView search;
-    Database database=new Database();
     Recipe recipe=new Recipe();
     String key;
     Handler handler=new Handler();
@@ -49,7 +48,7 @@ public class UsersActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String s) {
-                FirebaseRecyclerAdapter<User,RecyclerViewHolder>adapter=database.searchUsers(s,recipe,context, fbUser.getUid());
+                FirebaseRecyclerAdapter<User,RecyclerViewHolder>adapter=searchUsers(s,recipe,context, fbUser.getUid());
                 adapter.startListening();
                 recycler.setAdapter(adapter);
                 return false;

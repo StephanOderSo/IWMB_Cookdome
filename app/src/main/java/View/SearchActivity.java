@@ -39,7 +39,7 @@ import Viewmodel.SearchAdapters.RecyclerAdapterCat;
 import Viewmodel.SearchAdapters.RecyclerAdapterDietary;
 import Viewmodel.SearchAdapters.RecyclerAdapterLo;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements  Database {
     RecyclerView recipeSearchView;
     FloatingActionButton filter;
     String id;
@@ -71,7 +71,6 @@ public class SearchActivity extends AppCompatActivity {
     Context context;
     Handler handler =new Handler();
     FirebaseUser fbUser;
-    Database database=new Database();
     Thread listThread;
     Intent previousIntent;
 
@@ -366,35 +365,35 @@ public class SearchActivity extends AppCompatActivity {
             });
         });
         Thread recyclerThread=new Thread(recyclerRunnable);
-        Runnable ownRunnable= () -> currentList=database.getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
+        Runnable ownRunnable= () -> currentList=getFavouriteOrOwnRecipes(ownlist,context,id, handler,recyclerThread);
         Thread ownThread=new Thread(ownRunnable);
 
         Runnable getSharedList= () -> {
-            currentList=database.getRecipes();
+            currentList=getRecipes();
             recyclerThread.start();
         };
         Thread getSharedListThread=new Thread(getSharedList);
 
-        Runnable setprivRunnable= () -> database.downloadSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
+        Runnable setprivRunnable= () -> downloadSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
         Thread setPrivThread=new Thread(setprivRunnable);
 
         Runnable listRunnable= () -> {
             // User clicked search Icon
             if(previousIntent.hasExtra("search")) {
-                currentList=database.getAllRecipes(context, handler,recyclerThread);
+                currentList=getAllRecipes(context, handler,recyclerThread);
             }
             //User selected a category
             if (previousIntent.hasExtra("filter")) {
                 String catFilter = previousIntent.getStringExtra("filter");
                 selectedCategoryList.add(catFilter);
                 source="categories";
-                currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
+                currentList=getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
             }
             //User clicked leftovers Button
             if (previousIntent.hasExtra("action")) {
                 source="leftovers";
                 String catFilter="";
-                currentList=database.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
+                currentList=getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
             }
             //User clicked Own-recipes/liked Recipes
             if(previousIntent.hasExtra("select")){
@@ -404,13 +403,13 @@ public class SearchActivity extends AppCompatActivity {
                         ownlist=user.getOwn(context,fbUser, handler,ownThread);
                     }
                     if(source.equals("likedRecipes")){
-                        currentList=database.getFavouriteOrOwnRecipes(favlist,context,id, handler,recyclerThread);
+                        currentList=getFavouriteOrOwnRecipes(favlist,context,id, handler,recyclerThread);
                     }
                 }
             }
             if(previousIntent.hasExtra("shared")){
                 source="shared";
-                database.downloadSharedPublRecipes(context,fbUser,handler,setPrivThread);
+                downloadSharedPublRecipes(context,fbUser,handler,setPrivThread);
             }
         };
         listThread=new Thread(listRunnable);

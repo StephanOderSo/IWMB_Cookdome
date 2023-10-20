@@ -37,7 +37,7 @@ import Viewmodel.SearchAdapters.RecyclerAdapterCat;
 import Viewmodel.SearchAdapters.RecyclerAdapterDietary;
 import Viewmodel.SearchAdapters.RecyclerAdapterLo;
 
-public class FilterActivity extends AppCompatActivity {
+public class FilterActivity extends AppCompatActivity implements  Database {
     public Integer time,rowsize;
     SeekBar seekBar;
     TextView valueView;
@@ -210,8 +210,7 @@ public class FilterActivity extends AppCompatActivity {
                 Context context=getApplicationContext();
                 Handler handler=new Handler();
                 Runnable download= () -> {
-                    Database database=new Database();
-                    dBRecipeList=database.getAllRecipes(context,handler,getRandomThread);};
+                    dBRecipeList=getAllRecipes(context,handler,getRandomThread);};
                 Thread downloadThread=new Thread(download);
                 downloadThread.start();
                 }

@@ -51,7 +51,7 @@ import Viewmodel.CreateRecipeAdapters.ShareListAdapter;
 import Viewmodel.CreateRecipeAdapters.StepListAdapter;
 import Viewmodel.CreateRecipeAdapters.editIngredientAdapter;
 
-public class CreateRecipeActivity extends AppCompatActivity {
+public class CreateRecipeActivity extends AppCompatActivity implements Database {
     private ImageView imageView;
     EditText recipeNameView;
     Uri imageUri;
@@ -506,10 +506,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
             stepList=recipe.getStepList();
             ingredientList=recipe.getIngredientList();
             //get List of Users the recipe was shared with and pass to List-adapter once activated by download-thread
-            Database database=new Database();
+
             Runnable getRun= () -> {
                 sharedList=new ArrayList<>();
-                sharedList=database.getUsers();
+                sharedList=getUsers();
                 shareAdapter=new ShareListAdapter(context,0,sharedList,recipe,handler);
                 handler.post(() -> {
                     sharedView.setAdapter(shareAdapter);
@@ -518,7 +518,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             };
             Thread getUserListThread=new Thread(getRun);
             //start new Thread to get Users the recipe was shared with from firebase
-            database.setSharedWithUsers(recipe.getSharedWith(),handler,context,getUserListThread);
+            setSharedWithUsers(recipe.getSharedWith(),handler,context,getUserListThread);
 
             //setup adapters for lists and pass acquired Lists
             editIngredientAdapter ingredientAdapter = new editIngredientAdapter(getApplicationContext(), 0,ingredientList);

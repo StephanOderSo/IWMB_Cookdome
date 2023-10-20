@@ -31,7 +31,7 @@ import View.LoginActivity;
 import View.MainActivity;
 import View.RecipeViewActivity;
 
-public class User {
+public class User implements Database{
     String name,photo,email,id;
     ArrayList<String> favourites;
     ArrayList<String> own;
@@ -300,8 +300,7 @@ public class User {
                 }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
             }
             else{
-                Database database=new Database();
-                database.removePublicRecipe(key,context,handler);
+                removePublicRecipe(key,context,handler);
             }
         });
 

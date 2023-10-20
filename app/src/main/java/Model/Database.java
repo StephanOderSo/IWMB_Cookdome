@@ -2,6 +2,7 @@ package Model;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,11 +16,14 @@ import androidx.constraintlayout.widget.ConstraintLayoutStates;
 import com.bienhuels.iwmb_cookdome.R;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.firebase.ui.database.FirebaseRecyclerOptions;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -29,16 +33,18 @@ import View.MainActivity;
 import View.RecyclerViewHolder;
 import Viewmodel.CustomComparator;
 
-public class Database {
+public interface Database {
     ArrayList<Recipe> recipes=new ArrayList<>();
     ArrayList<User>users=new ArrayList<>();
     FirebaseDatabase database=FirebaseDatabase.getInstance();
     DatabaseReference userRef=database.getReference("/Cookdome/Users");
     DatabaseReference recipeRef=database.getReference("/Cookdome/Recipes");
-    int i;
+    StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images");
+
     User user=new User();
 
-    public synchronized ArrayList<Recipe> getAllRecipes(Context context, Handler handler, Thread thread) {
+    default ArrayList<Recipe> getAllRecipes(Context context, Handler handler, Thread thread) {
+        recipes.clear();
         recipeRef.get().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 if (task.getResult().exists()) {
@@ -62,7 +68,8 @@ public class Database {
         return recipes;
     }
     //retreive recipes from firebase that meet the source criteria
-    public ArrayList<Recipe> getSelectedRecipes(String catFilter, String source, Context context, Intent previousIntent,Handler handler,Thread thread){
+    default ArrayList<Recipe> getSelectedRecipes(String catFilter, String source, Context context, Intent previousIntent,Handler handler,Thread thread){
+        recipes.clear();
         recipeRef.get().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 if (task.getResult().exists()) {
@@ -124,25 +131,31 @@ public class Database {
     }
 
     //Download and display a List of Recipes that the User either liked or created
-    public ArrayList<Recipe> getFavouriteOrOwnRecipes(ArrayList<String> keylist, Context context, String id, Handler handler,Thread thread){
-        i=keylist.size();
+    default ArrayList<Recipe> getFavouriteOrOwnRecipes(ArrayList<String> keylist, Context context, String id, Handler handler,Thread thread){
+        recipes.clear();
         for(String key:keylist){
             recipeRef.child(key).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     Recipe selectedRecipe=new Recipe().rebuildFromFirebase(snapshot);
                     recipes.add(selectedRecipe);
+                    keylist.remove(key);
+                    if(keylist.size()==1){
+                        thread.start();
+                    }
                        }else{
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot2 = task1.getResult();
                             Recipe selectedRecipe=new Recipe().rebuildFromFirebase(snapshot2);
                             recipes.add(selectedRecipe);
+                            keylist.remove(key);
+                            if(keylist.size()==0){
+                                thread.start();
+                            }
                                }
                     }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
-                }if(i==1){
-                    thread.start();
-                }i=i-1;
+                }
 
             }).addOnFailureListener(e2 -> handler.post(() -> Toast.makeText(context, e2.getMessage(), Toast.LENGTH_SHORT).show()));
         }
@@ -151,7 +164,7 @@ public class Database {
     }
 
 
-    public void removePublicRecipe(String key, Context context, Handler handler){
+    default void removePublicRecipe(String key, Context context, Handler handler){
         recipeRef.child(key).removeValue().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 handler.post(() -> {  Toast.makeText(context, R.string.deletSuccess, Toast.LENGTH_SHORT).show();
@@ -162,7 +175,7 @@ public class Database {
             }
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
-    public FirebaseRecyclerAdapter<User,RecyclerViewHolder> searchUsers(String searchInput,Recipe recipe,Context context,String uID){
+    default FirebaseRecyclerAdapter<User,RecyclerViewHolder> searchUsers(String searchInput, Recipe recipe, Context context, String uID){
         searchInput=searchInput.toLowerCase();
         Query query=userRef.orderByChild("name").startAt(searchInput).endAt(searchInput+"\uf8ff");
         FirebaseRecyclerOptions<User> options =
@@ -190,12 +203,13 @@ public class Database {
             }
         };
     }
-    public void downloadSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+    default void downloadSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+
         String id=user.setID(fbuser, context);
         userRef.child(id).child("Shared").child("private").get().addOnCompleteListener(task -> {
             DataSnapshot snapshot=task.getResult();
             if(snapshot.exists()){
-                i=1;
+                ArrayList<DataSnapshot> counter=new ArrayList<>();
                 int size=Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
                 for(DataSnapshot ss:snapshot.getChildren()){
                     String key=ss.getKey();
@@ -205,10 +219,11 @@ public class Database {
                             DataSnapshot snapshot1= task1.getResult();
                             Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
                             recipes.add(recipe);
-                            if(i==size){
+                            counter.add(snapshot);
+                            if(counter.size()==size){
                                 nextThread.start();
                             }
-                            i++;
+
                         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
                     }else{
                         handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());
@@ -220,12 +235,13 @@ public class Database {
         });
     }
 
-    public void downloadSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+    default void downloadSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+        recipes.clear();
         String id=user.setID(fbuser, context);
         userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(task -> {
             DataSnapshot snapshot= task.getResult();
             if(snapshot.exists()){
-                i=1;
+                ArrayList<DataSnapshot> counter=new ArrayList<>();
                 int size=Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
                 for(DataSnapshot ss:snapshot.getChildren()){
                     String key=ss.getValue(String.class);
@@ -235,10 +251,10 @@ public class Database {
                                 DataSnapshot snapshot1= task1.getResult();
                                 Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
                                 recipes.add(recipe);
-                                if(i==size){
+                                counter.add(ss);
+                                if(counter.size()==size){
                                     nextThread.start();
                                 }
-                                i++;
                             }
                         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
                     }else{  handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());}
@@ -248,26 +264,25 @@ public class Database {
             }
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
-    public ArrayList<Recipe> getRecipes(){
+    default ArrayList<Recipe> getRecipes(){
         return  this.recipes;
     }
 
-    public  void setSharedWithUsers(ArrayList<String> sharedWith,Handler handler,Context context,Thread nextThread){
-        i=1;
-        int size=sharedWith.size();
+    default   void setSharedWithUsers(ArrayList<String> sharedWith,Handler handler,Context context,Thread nextThread){
         for(String userID:sharedWith){
             userRef.child(userID).get().addOnCompleteListener(task -> {
                 DataSnapshot snapshot= task.getResult();
-                user=user.rebuildUser(snapshot);
+                User user=new User().rebuildUser(snapshot);
                 users.add(user);
-                if(i==size){
+                sharedWith.remove(userID);
+                if(sharedWith.size()==0){
                     nextThread.start();
                 }
-                i++;
             }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }
     }
-    public ArrayList<User> getUsers(){
+    default ArrayList<User> getUsers(){
         return  this.users;
     }
+
 }

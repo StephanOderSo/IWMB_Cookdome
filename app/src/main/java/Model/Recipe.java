@@ -19,7 +19,7 @@ import java.util.ArrayList;
 
 import View.MainActivity;
 
-public class Recipe {
+public class Recipe implements Database {
     String key;
     private String image;
     private String recipeName;
@@ -31,7 +31,6 @@ public class Recipe {
     private ArrayList<String> dietaryRec =new ArrayList<>();
     ArrayList<String>sharedWith=new ArrayList<>();
     Boolean priv;
-    Database database=new Database();
     String owner;
     DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
     DatabaseReference recipeRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");
@@ -166,7 +165,7 @@ public class Recipe {
                     user.addToOwn(context,uid,key,handler);
                 }
             });
-            database.removePublicRecipe(key,context,handler);
+            removePublicRecipe(key,context,handler);
         }
     }
     public void download(String key, Context context, Handler handler, Thread setDatathread, FirebaseUser fbUser){
