@@ -151,7 +151,7 @@ public class Recipe {
             key=recipeRef.push().getKey();
         }
         Recipe recipe=new Recipe(key,image,recipeName,category,prepTime,portions,ingredientList,stepList, dietaryRec,priv,owner,sharedWith);
-        String uid=user.setID(fbuser,context);
+        String uid=user.returnID(fbuser,context);
         if(!priv){
             recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
@@ -167,6 +167,12 @@ public class Recipe {
                 }
             });
             database.removePublicRecipe(key,context,handler);
+            if(recipe.getSharedWith()!=null){
+            for(String uID:recipe.getSharedWith()){
+                user.removeFromShared(key,uID,false,context,handler);
+                recipeRef.child(key).child("sharedWith").child(uID).removeValue().addOnCompleteListener(task -> {
+                    sharedWith.remove(uID);
+                }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));}}
         }
     }
     public void download(String key, Context context, Handler handler, Thread setDatathread, FirebaseUser fbUser){
@@ -177,7 +183,7 @@ public class Recipe {
                     this.selectedRecipe=rebuildFromFirebase(snapshot);
                     setDatathread.start();
                 } else {
-                    String id=user.setID(fbUser,context);
+                    String id=user.returnID(fbUser,context);
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();

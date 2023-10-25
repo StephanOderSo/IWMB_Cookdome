@@ -191,7 +191,7 @@ public class Database {
         };
     }
     public void downloadSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
-        String id=user.setID(fbuser, context);
+        String id=user.returnID(fbuser, context);
         userRef.child(id).child("Shared").child("private").get().addOnCompleteListener(task -> {
             DataSnapshot snapshot=task.getResult();
             if(snapshot.exists()){
@@ -221,30 +221,34 @@ public class Database {
     }
 
     public void downloadSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
-        String id=user.setID(fbuser, context);
+        String id=user.returnID(fbuser, context);
         userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(task -> {
-            DataSnapshot snapshot= task.getResult();
+            if(task.isSuccessful()){
+                DataSnapshot snapshot= task.getResult();
             if(snapshot.exists()){
-                i=1;
-                int size=Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
-                for(DataSnapshot ss:snapshot.getChildren()){
-                    String key=ss.getValue(String.class);
-                    if(key!=null){
-                        recipeRef.child(key).get().addOnCompleteListener(task1 -> {
-                            if(task1.isSuccessful()){
-                                DataSnapshot snapshot1= task1.getResult();
-                                Recipe recipe=new Recipe().rebuildFromFirebase(snapshot1);
-                                recipes.add(recipe);
-                                if(i==size){
-                                    nextThread.start();
+                if(snapshot.hasChildren()) {
+                    i = 1;
+                    int size = Integer.parseInt(String.valueOf(snapshot.getChildrenCount()));
+                    for (DataSnapshot ss : snapshot.getChildren()) {
+                        String key = ss.getValue(String.class);
+                        if (key != null) {
+                            recipeRef.child(key).get().addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    DataSnapshot snapshot1 = task1.getResult();
+                                    Recipe recipe = new Recipe().rebuildFromFirebase(snapshot1);
+                                    recipes.add(recipe);
+                                    if (i == size) {
+                                        downloadSharedPrivRecipes(context,fbuser,handler,nextThread);
+                                    }
+                                    i++;
                                 }
-                                i++;
-                            }
-                        }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
-                    }else{  handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());}
-                }
-            }else{
-                nextThread.start();
+                            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+                        } else {
+                            handler.post(() -> Toast.makeText(context, R.string.sthWrong, Toast.LENGTH_SHORT).show());
+                        }
+                    }
+                }}}else{
+                downloadSharedPrivRecipes(context,fbuser,handler,nextThread);
             }
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }

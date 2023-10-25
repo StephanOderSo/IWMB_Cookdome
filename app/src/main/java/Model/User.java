@@ -25,6 +25,7 @@ import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import View.LoginActivity;
@@ -56,16 +57,22 @@ public class User {
         this.name = name;
     }
     public String getId(){return id;}
-    public String setID(FirebaseUser fbuser, Context context){
+    public String returnID(FirebaseUser fbuser, Context context){
         if(fbuser!=null){
             id=fbuser.getUid();
         }else{
-            login(context);
+                login(context);
         }
         return id;
     }
+    public void setID(String id){
+        this.id=id;
+    }
     public String getPhoto() {
         return photo;
+    }
+    public  void setPhoto(String url){
+        this.photo=url;
     }
 
     public synchronized void upload(Uri imageUri, String name, String email, String password, Context context, Handler handler){
@@ -74,26 +81,37 @@ public class User {
             Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
             while(!uriTask.isComplete());
             Uri imageUriNew= uriTask.getResult();
+            this.photo=imageUriNew.toString();
+            this.name=name.toLowerCase();
             auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener( task -> {
                         if (task.isSuccessful()) {
                             auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task12 -> {
-                                FirebaseUser fbuser=auth.getCurrentUser();
-                                id= setID(fbuser,context);
-                                auth.signOut();
-                                User user=new User(name.toLowerCase(),imageUriNew.toString(),id);
-                                userRef.child(id).setValue(user).addOnCompleteListener(task1 -> {
-                                    if(task1.isSuccessful()){
-                                        handler.post(() -> {
-                                            Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
-                                            //dBUser.sendEmailVerification();
-                                            Intent toLoginIntent=new Intent(context, LoginActivity.class);
-                                            toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
-                                            toLoginIntent.putExtra("email",email);
-                                            context.startActivity(toLoginIntent);
-                                        });
-                                    }
-                                }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
-                            });
+                                if(task12.isSuccessful()){
+                                    while(!task12.isComplete());
+                                    FirebaseUser fbuser=auth.getCurrentUser();
+                                    this.id=fbuser.getUid();
+                                    auth.signOut();
+                                    Map<String, Object> users = new HashMap<>();
+                                    users.put("name",   name);
+                                    users.put("photo",photo);
+                                    users.put("id",id);
+                                     userRef.child(id).setValue(users).addOnCompleteListener(task1 -> {
+                                        if(task1.isSuccessful()){
+                                       handler.post(() -> {
+                                                Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show();
+                                                //dBUser.sendEmailVerification();
+                                                Intent toLoginIntent=new Intent(context, LoginActivity.class);
+                                                toLoginIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                toLoginIntent.putExtra("email",email);
+                                                context.startActivity(toLoginIntent);
+                                            });
+                                        }else{
+                                            Log.d("TAG", "failed ");
+                                        }
+                                    }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+
+                                }
+                                 }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
                         }
             }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
@@ -103,7 +121,7 @@ public class User {
     public void download(Context context, FirebaseUser fbuser, Handler userHandler, Thread nextThread){
         if(fbuser!=null) {
             email = fbuser.getEmail();
-            id = setID(fbuser,context);
+            id = returnID(fbuser,context);
             userRef.child(id).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
@@ -137,7 +155,7 @@ public class User {
     public void update(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
             if(task1.isSuccessful()){
-                    id= setID(fbuser,context);
+                    id= returnID(fbuser,context);
                     Intent toMainIntent=new Intent(context, MainActivity.class);
                     toMainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     HashMap<String,Object> update=new HashMap<>();
@@ -201,7 +219,7 @@ public class User {
     }
     //Generate a list of Keys to the Recipes the user liked
     public synchronized ArrayList<String> getFavourites(Context context, FirebaseUser currentUser, Handler handler,Thread thread) {
-            id = setID(currentUser,context);
+            id = returnID(currentUser,context);
             favourites = new ArrayList<>();
             userRef.child(id).child("Favourites").get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
@@ -226,7 +244,7 @@ public class User {
     }
 
     public synchronized ArrayList<String> updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser currentUser, Handler handler,ArrayList<String>favourites){
-        id= setID(currentUser,context);
+        id= returnID(currentUser,context);
         if (favourites.contains(recipe.getKey())) {
             userRef.child(id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
@@ -257,7 +275,7 @@ public class User {
     //Creating a list of Keys to the Recipes the user created themselves
     public synchronized ArrayList<String> getOwn(Context context, FirebaseUser currentUser, Handler handler,Thread thread){
         own =new ArrayList<>();
-        String id= setID(currentUser,context);
+        String id= returnID(currentUser,context);
             userRef.child(id).child("Own").get().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     DataSnapshot snapshot=task.getResult();
@@ -283,7 +301,7 @@ public class User {
         }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
     }
     public void removeRecipe(Recipe recipe, Context context, Handler handler, FirebaseUser fbuser){
-        String uid= setID(fbuser,context);
+        String uid= returnID(fbuser,context);
         String key=recipe.getKey();
         for(String uID:recipe.getSharedWith()){
             removeFromShared(key,uID,recipe.getPriv(),context,handler);
@@ -314,7 +332,7 @@ public class User {
 
 
     public synchronized void addToShoppingList(Context context, FirebaseUser fbuser, Handler handler, Thread thread, Ingredient ingredient){
-        String uID= setID(fbuser,context);
+        String uID= returnID(fbuser,context);
         userRef.child(uID).child("Shoppinglist").child((ingredient.getName())+":"+ingredient.getUnit()).get().addOnCompleteListener(task -> {
             if (task.getResult().exists()) {
                 DataSnapshot snapshot = task.getResult();
@@ -343,7 +361,7 @@ public class User {
         });
     }
     public synchronized void removeFromShoppingList(FirebaseUser user,Context context,Ingredient ingredient,Handler handler){
-        String uID= setID(user,context);
+        String uID= returnID(user,context);
             userRef.child(uID).child("Shoppinglist").child((ingredient.getName())+":"+ingredient.getUnit()).removeValue().addOnCompleteListener(task -> {
                 if(task.isSuccessful()){
                     handler.post(() -> Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show());

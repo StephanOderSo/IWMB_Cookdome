@@ -102,7 +102,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
 //Get current Users unique ID for database actions
         fbuser=FirebaseAuth.getInstance().getCurrentUser();
         context=getApplicationContext();
-        uID= user.setID(fbuser,context);
+        uID= user.returnID(fbuser,context);
 
 //create Arraylists for Alert Dialogs
         String[] dietArray={getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.vegan),getResources().getString(R.string.vegetar),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)};

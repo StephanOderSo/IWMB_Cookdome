@@ -95,7 +95,7 @@ public class SearchActivity extends AppCompatActivity {
             recipeSearchView.setLayoutManager(layoutManagerSearch);
         }
 
-        id=user.setID(fbUser,context);
+        id=user.returnID(fbUser,context);
 
         //Intentfilter to see which activity the user is coming from (source)
         previousIntent = getIntent();
@@ -375,9 +375,6 @@ public class SearchActivity extends AppCompatActivity {
         };
         Thread getSharedListThread=new Thread(getSharedList);
 
-        Runnable setprivRunnable= () -> database.downloadSharedPrivRecipes(context,fbUser,handler,getSharedListThread);
-        Thread setPrivThread=new Thread(setprivRunnable);
-
         Runnable listRunnable= () -> {
             // User clicked search Icon
             if(previousIntent.hasExtra("search")) {
@@ -410,7 +407,7 @@ public class SearchActivity extends AppCompatActivity {
             }
             if(previousIntent.hasExtra("shared")){
                 source="shared";
-                database.downloadSharedPublRecipes(context,fbUser,handler,setPrivThread);
+                database.downloadSharedPublRecipes(context,fbUser,handler,getSharedListThread);
             }
         };
         listThread=new Thread(listRunnable);

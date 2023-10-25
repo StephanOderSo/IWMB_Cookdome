@@ -35,7 +35,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
         context=getApplicationContext();
         auth= FirebaseAuth.getInstance();
         FirebaseUser fbUser=auth.getCurrentUser();
-        uID=user.setID(fbUser,context);
+        uID=user.returnID(fbUser,context);
 
         setupList();
         shoppinglistView=findViewById(R.id.shoppinglistView);
