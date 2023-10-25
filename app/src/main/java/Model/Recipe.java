@@ -31,7 +31,7 @@ public class Recipe {
     private ArrayList<String> dietaryRec =new ArrayList<>();
     ArrayList<String>sharedWith=new ArrayList<>();
     Boolean priv;
-    Database database=new Database();
+    Firebase database=new Firebase();
     String owner;
     DatabaseReference userRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Users");
     DatabaseReference recipeRef=FirebaseDatabase.getInstance().getReference("/Cookdome/Recipes");

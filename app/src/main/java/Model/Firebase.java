@@ -29,7 +29,7 @@ import View.MainActivity;
 import View.RecyclerViewHolder;
 import Viewmodel.CustomComparator;
 
-public class Database {
+public class Firebase implements DatabaseInterface {
     ArrayList<Recipe> recipes=new ArrayList<>();
     ArrayList<User>users=new ArrayList<>();
     FirebaseDatabase database=FirebaseDatabase.getInstance();
@@ -38,6 +38,7 @@ public class Database {
     int i;
     User user=new User();
 
+    @Override
     public synchronized ArrayList<Recipe> getAllRecipes(Context context, Handler handler, Thread thread) {
         recipeRef.get().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
@@ -62,6 +63,7 @@ public class Database {
         return recipes;
     }
     //retreive recipes from firebase that meet the source criteria
+    @Override
     public ArrayList<Recipe> getSelectedRecipes(String catFilter, String source, Context context, Intent previousIntent,Handler handler,Thread thread){
         recipeRef.get().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
@@ -124,6 +126,7 @@ public class Database {
     }
 
     //Download and display a List of Recipes that the User either liked or created
+    @Override
     public ArrayList<Recipe> getFavouriteOrOwnRecipes(ArrayList<String> keylist, Context context, String id, Handler handler,Thread thread){
         i=keylist.size();
         for(String key:keylist){
@@ -150,7 +153,7 @@ public class Database {
         return recipes;
     }
 
-
+@Override
     public void removePublicRecipe(String key, Context context, Handler handler){
         recipeRef.child(key).removeValue().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
@@ -190,6 +193,7 @@ public class Database {
             }
         };
     }
+
     public void downloadSharedPrivRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
         String id=user.returnID(fbuser, context);
         userRef.child(id).child("Shared").child("private").get().addOnCompleteListener(task -> {
@@ -219,7 +223,7 @@ public class Database {
             }
         });
     }
-
+@Override
     public void downloadSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
         String id=user.returnID(fbuser, context);
         userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(task -> {

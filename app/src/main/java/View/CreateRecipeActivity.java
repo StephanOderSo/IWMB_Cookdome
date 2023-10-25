@@ -40,7 +40,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import Model.Database;
+import Model.Firebase;
 import Model.Ingredient;
 import Model.Recipe;
 import Model.Step;
@@ -506,7 +506,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             stepList=recipe.getStepList();
             ingredientList=recipe.getIngredientList();
             //get List of Users the recipe was shared with and pass to List-adapter once activated by download-thread
-            Database database=new Database();
+            Firebase database=new Firebase();
             Runnable getRun= () -> {
                 sharedList=new ArrayList<>();
                 sharedList=database.getUsers();

@@ -30,7 +30,7 @@ import com.bienhuels.iwmb_cookdome.R;
 import java.util.ArrayList;
 import java.util.Random;
 
-import Model.Database;
+import Model.Firebase;
 import Model.Ingredient;
 import Model.Recipe;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
@@ -210,7 +210,7 @@ public class FilterActivity extends AppCompatActivity {
                 Context context=getApplicationContext();
                 Handler handler=new Handler();
                 Runnable download= () -> {
-                    Database database=new Database();
+                    Firebase database=new Firebase();
                     dBRecipeList=database.getAllRecipes(context,handler,getRandomThread);};
                 Thread downloadThread=new Thread(download);
                 downloadThread.start();

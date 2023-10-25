@@ -30,7 +30,8 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
-import Model.Database;
+import Model.DatabaseInterface;
+import Model.Firebase;
 import Model.Ingredient;
 import Model.Recipe;
 import Model.User;
@@ -71,7 +72,7 @@ public class SearchActivity extends AppCompatActivity {
     Context context;
     Handler handler =new Handler();
     FirebaseUser fbUser;
-    Database database=new Database();
+    Firebase database=new Firebase();
     Thread listThread;
     Intent previousIntent;
 
@@ -370,7 +371,7 @@ public class SearchActivity extends AppCompatActivity {
         Thread ownThread=new Thread(ownRunnable);
 
         Runnable getSharedList= () -> {
-            currentList=database.getRecipes();
+            currentList= database.getRecipes();
             recyclerThread.start();
         };
         Thread getSharedListThread=new Thread(getSharedList);

@@ -15,14 +15,14 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import Model.Database;
+import Model.Firebase;
 import Model.Recipe;
 import Model.User;
 
 public class UsersActivity extends AppCompatActivity {
     RecyclerView recycler;
     SearchView search;
-    Database database=new Database();
+    Firebase database=new Firebase();
     Recipe recipe=new Recipe();
     String key;
     Handler handler=new Handler();

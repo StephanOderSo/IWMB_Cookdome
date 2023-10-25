@@ -318,7 +318,7 @@ public class User {
                 }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
             }
             else{
-                Database database=new Database();
+                Firebase database=new Firebase();
                 database.removePublicRecipe(key,context,handler);
             }
         });
