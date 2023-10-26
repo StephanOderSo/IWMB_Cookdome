@@ -244,6 +244,70 @@
             app:layout_constraintBottom_toBottomOf="parent"
             android:visibility="gone"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingVertical="4dp"
+        android:id="@+id/languageContainer"
+        app:layout_constraintTop_toBottomOf="@+id/photoCard"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginTop="40dp">
+        <TextView
+            android:id="@+id/languageView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:padding="15dp"
+            android:background="@drawable/lavender_border"
+            android:minEms="15"
+            app:drawableStartCompat="@drawable/person" />
+
+        <ImageButton
+            android:contentDescription="@string/edit"
+            android:id="@+id/editLanguage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/lavender_btn"
+            android:padding="15dp"
+            android:src="@drawable/edit"
+            android:layout_marginLeft="5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/languageView"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:drawableStart="@drawable/person"
+            android:id="@+id/language"
+            android:hint="@string/language"
+            android:minEms="15"
+            android:inputType="textPersonName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            android:padding="15dp"
+            android:background="@drawable/lavender_border"
+            android:visibility="gone"/>
+        <ImageButton
+            android:contentDescription="@string/image"
+            android:id="@+id/languagedone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/done"
+            android:background="@drawable/lavender_btn"
+            android:padding="15dp"
+            android:layout_marginStart="5dp"
+            app:layout_constraintStart_toEndOf="@+id/language"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:visibility="gone"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/saveUserchange"
         android:layout_width="wrap_content"
