@@ -265,6 +265,15 @@
                 app:layout_constraintTop_toBottomOf="@+id/StepHeader"
                 android:divider="@null"
                 />
+        <ProgressBar
+            android:id="@+id/progressBarStep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@id/stepList"
+            app:layout_constraintEnd_toEndOf="@+id/stepList"
+            app:layout_constraintTop_toTopOf="@id/stepList"
+            app:layout_constraintBottom_toBottomOf="@+id/stepList"
+            android:visibility="gone"/>
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/addstep"

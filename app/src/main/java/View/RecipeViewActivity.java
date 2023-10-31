@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.InputType;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -25,19 +23,19 @@ import com.google.firebase.auth.FirebaseUser;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import Model.Firebase;
 import Model.Ingredient;
 import Model.Recipe;
 import Model.Step;
-import Model.User;
 import Viewmodel.RecipeViewAdapters.IngrListAdapterwSLBtn;
 import Viewmodel.RecipeViewAdapters.StepListAdapterNoBtn;
+import Viewmodel.Tools;
 
 public class RecipeViewActivity extends AppCompatActivity {
 
     FirebaseAuth auth=FirebaseAuth.getInstance();
-    ArrayList<String> favlist;
-    ArrayList<String> ownlist;
     ImageView favView,share,edit;
     Recipe selectedRecipe=new Recipe();
     int portionsOrigin;
@@ -46,14 +44,13 @@ public class RecipeViewActivity extends AppCompatActivity {
     IngrListAdapterwSLBtn ingredientAdapter;
     ArrayList<Ingredient> dBingredientList;
     String key;
-    User user=new User();
     FirebaseUser fbUser;
     Context context;
     Handler handler =new Handler();
     Thread checkFavThread,setDataThread;
     Intent previousIntent;
-
-
+    Tools tools=new Tools();
+    Firebase firebase=new Firebase();
 
 
     @Override
@@ -63,27 +60,36 @@ public class RecipeViewActivity extends AppCompatActivity {
         fbUser=auth.getCurrentUser();
         previousIntent = getIntent();
         context=getApplicationContext();
-        getData();
-
         edit=findViewById(R.id.edit);
+        favView=findViewById(R.id.favourite);
+        portionsCard=findViewById(R.id.portionsBtn);
+        portionsText=findViewById(R.id.portions);
+        share=findViewById(R.id.share);
+
         edit.setOnClickListener(view -> {
             Intent toEditIntent=new Intent(this, CreateRecipeActivity.class);
             toEditIntent.putExtra("Edit",key);
             startActivity(toEditIntent);
             finish();
         });
-        favView=findViewById(R.id.favourite);
-        favView.setOnClickListener(view -> favlist=user.updateFavourites(selectedRecipe,context,favView,fbUser, handler,favlist));
-        portionsCard=findViewById(R.id.portionsBtn);
-        portionsText=findViewById(R.id.portions);
+        favView.setOnClickListener(view -> firebase.updateFavourites(selectedRecipe,context,favView,fbUser, handler));
         portionsCard.setOnClickListener(view -> buildPortionsDialog());
-        share=findViewById(R.id.share);
         share.setOnClickListener(view -> {
             Intent toUsersIntent=new Intent(this,UsersActivity.class);
             toUsersIntent.putExtra("key",key);
             startActivity(toUsersIntent);
             finish();
         });
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        getData();
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+
     }
 
     public void buildPortionsDialog(){
@@ -125,7 +131,7 @@ public class RecipeViewActivity extends AppCompatActivity {
     }
    private void getData(){
        Runnable checkFavRunnable= () -> {
-           if(favlist.contains(key)){
+           if(firebase.getUser().getFavourites().contains(key)){
                handler.post(() -> favView.setImageResource(R.drawable.liked));
            }else{
                handler.post(() -> favView.setImageResource(R.drawable.unliked));
@@ -134,17 +140,17 @@ public class RecipeViewActivity extends AppCompatActivity {
        checkFavThread=new Thread(checkFavRunnable);
 
        Runnable checkOwnRun= () -> {
-           if(ownlist.contains(key)){handler.post(() -> edit.setVisibility(View.VISIBLE));}};
+           if(firebase.getUser().getOwn().contains(key)){handler.post(() -> edit.setVisibility(View.VISIBLE));}};
        Thread checkOwnThread=new Thread(checkOwnRun);
 
        Runnable getOwnFavRun= () -> {
-           favlist=user.getFavourites(context,fbUser, handler,checkFavThread);
-           ownlist=user.getOwn(context,fbUser, handler,checkOwnThread);
+           firebase.getFavourites(context,fbUser, handler,checkFavThread);
+           firebase.setOwnList(context,fbUser, handler,checkOwnThread);
        };
        Thread getOwnFavThread=new Thread(getOwnFavRun);
        getOwnFavThread.start();
        Runnable setDataRun= () -> {
-           selectedRecipe=selectedRecipe.getRecipe();
+           selectedRecipe=firebase.returnRecipe();
            portionsOrigin=selectedRecipe.getPortions();
            handler.post(() -> setValues(selectedRecipe));
        };
@@ -152,7 +158,7 @@ public class RecipeViewActivity extends AppCompatActivity {
 
        Runnable runnable= () -> {
            key = previousIntent.getStringExtra("key");
-           selectedRecipe.download(key,context,handler,setDataThread,fbUser);
+           firebase.downloadRecipe(key,context,handler,setDataThread,fbUser);
        };
        Thread getRecipeThread=new Thread(runnable);
        getRecipeThread.start();
@@ -179,34 +185,8 @@ public class RecipeViewActivity extends AppCompatActivity {
         time.setText(String.format(Integer.toString(tempPrepTime)));
         Integer tempPortions=selectedRecipe.getPortions();
         portionsText.setText(String.format(tempPortions.toString()));
-        StringBuilder dietaryTxt=new StringBuilder();
-        for(String diet: selectedRecipe.getDietaryRec()){
-            String dietShort = "";
-            if (diet.equals(getResources().getString(R.string.vegetar))) {
-                dietShort = "VT";
-            }
-            if (diet.equals(getResources().getString(R.string.vegan))) {
-                dietShort = "V";
-            }
-            if (diet.equals(getResources().getString(R.string.glutenfree))) {
-                dietShort = "GF";
-            }
-            if (diet.equals(getResources().getString(R.string.lactosefree))) {
-                dietShort = "LF";
-            }
-            if (diet.equals(getResources().getString(R.string.paleo))) {
-                dietShort = "P";
-            }
-            if (diet.equals(getResources().getString(R.string.lowfat))) {
-                dietShort = "LF";
-            }
-            dietaryTxt.append(dietShort);
-            int i;
-            i=selectedRecipe.getDietaryRec().indexOf(diet);
-            if(i!=selectedRecipe.getDietaryRec().size()-1){
-                dietaryTxt.append(" | ");
-            }
-        }
+        ArrayList<String> arrayList=new ArrayList<>(Arrays.asList(getResources().getString(R.string.vegetar),getResources().getString(R.string.vegan),getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)));
+        StringBuilder dietaryTxt=tools.setDietString(selectedRecipe,arrayList);
         if(dietaryTxt.toString().equals("")){
             dietary.setVisibility(View.GONE);
             ImageView dietaryIcon=findViewById(R.id.dietaryIcon);
@@ -217,30 +197,14 @@ public class RecipeViewActivity extends AppCompatActivity {
         dBingredientList= selectedRecipe.getIngredientList();
         ingredientAdapter = new IngrListAdapterwSLBtn(getApplicationContext(), 0,dBingredientList);
         ingredientList.setAdapter(ingredientAdapter);
-        getListViewSize(ingredientAdapter,ingredientList);
+        tools.getListViewSize(ingredientAdapter,ingredientList,handler);
         ArrayList<Step> dBStepList;
         dBStepList=selectedRecipe.getStepList();
         StepListAdapterNoBtn stepAdapter = new StepListAdapterNoBtn(getApplicationContext(), 0, dBStepList);
         stepList.setAdapter(stepAdapter);
-        getListViewSize(stepAdapter,stepList);
+        tools.getListViewSize(stepAdapter,stepList,handler);
     }
-    public void getListViewSize(ArrayAdapter adapter, ListView view){
-        int totalHeight=0;
-        for ( int i=0;i<adapter.getCount();i++) {
-            View mView=adapter.getView(i,null,view);
-            mView.measure(
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-            totalHeight += mView.getMeasuredHeight();
-        }
-        int newTotal=totalHeight;
-        handler.post(() -> {
-            ViewGroup.LayoutParams params=view.getLayoutParams();
-            params.height=newTotal+view.getDividerHeight()*adapter.getCount();
-            view.setLayoutParams(params);
-        });
 
-    }
 
     @Override
     public void onBackPressed() {

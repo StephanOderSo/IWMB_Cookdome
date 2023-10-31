@@ -19,6 +19,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import Model.Firebase;
 import Model.Recipe;
 import Model.User;
 
@@ -26,6 +27,7 @@ public class ShareListAdapter extends ArrayAdapter <User> {
     Recipe recipe;
     ArrayList<User>list;
     Handler handler;
+    Firebase firebase=new Firebase();
 
 
     public ShareListAdapter(@NonNull Context context, int resource, ArrayList<User> list,Recipe selectedRecipe,Handler handler) {
@@ -70,8 +72,8 @@ public class ShareListAdapter extends ArrayAdapter <User> {
                Context context=getContext();
 
                Runnable run= () -> {
-                   recipe.removeUserFromShareList(uid, recipe.getKey(), context, recipe.getOwner(), recipe.getPriv(), handler, updateThread);
-                   user.removeFromShared(recipe.getKey(), uid,recipe.getPriv(),context,handler);
+                   firebase.removeUserFromShareList(uid, recipe.getKey(), context, recipe.getOwner(), recipe.getPriv(), handler, updateThread);
+                   firebase.unshareRecipe(recipe.getKey(), uid,recipe.getPriv(),context,handler);
                };
                Thread thread=new Thread(run);
                thread.start();

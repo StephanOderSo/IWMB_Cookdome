@@ -28,6 +28,7 @@ public class UsersActivity extends AppCompatActivity {
     Handler handler=new Handler();
     Context context;
     FirebaseUser fbUser;
+    Firebase firebase=new Firebase();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +58,10 @@ public class UsersActivity extends AppCompatActivity {
         });
     }
     private void getRecipe(){
-        Runnable setDataRun= () -> recipe=recipe.getRecipe();
+        Runnable setDataRun= () -> recipe=firebase.returnRecipe();
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> recipe.download(key,context,handler,setDataThread,fbUser);
+        Runnable runnable= () -> firebase.downloadRecipe(key,context,handler,setDataThread,fbUser);
         Thread getRecipeThread=new Thread(runnable);
         getRecipeThread.start();
     }

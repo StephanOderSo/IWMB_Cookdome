@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Patterns;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -22,6 +23,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import Model.Firebase;
 import Model.User;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -36,6 +38,9 @@ public class RegisterActivity extends AppCompatActivity {
      User user=new User();
      Thread registerThread;
      Handler handler=new Handler();
+     ActivityResultLauncher<Intent>activityResultLauncher;
+     Context context;
+     Firebase firebase=new Firebase();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,8 +48,7 @@ public class RegisterActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         databaseReference=database.getReference("Cookdome");
         auth=FirebaseAuth.getInstance();
-
-        Context context=getApplicationContext();
+        context=getApplicationContext();
         setContentView(R.layout.activity_register);
         nameView=findViewById(R.id.name);
         emailView=findViewById(R.id.email);
@@ -54,7 +58,7 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar=findViewById(R.id.progressBarRegister);
 //Profilephoto
         photo=findViewById(R.id.photo);
-        ActivityResultLauncher<Intent> activityResultLauncher= registerForActivityResult(
+        activityResultLauncher= registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if(result.getResultCode()== Activity.RESULT_OK){
@@ -70,6 +74,8 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 }
         );
+
+//Add image buton
         photo.setOnClickListener(view -> {
             Intent photoPicker = new Intent();
             photoPicker.setAction(Intent.ACTION_GET_CONTENT);
@@ -112,16 +118,19 @@ public class RegisterActivity extends AppCompatActivity {
                     passwordView.clearComposingText();
                     passwordRepeatView.clearComposingText();
                 } else{
-                    Runnable runnable= () -> user.upload(imageUri,name,email,password,context,handler);
+                    progressBar.setVisibility(View.VISIBLE);
+                    Runnable runnable= () -> firebase.uploadUser(imageUri,name,email,password,context,handler,progressBar);
                     registerThread=new Thread(runnable);
                     registerThread.start();
                 }
 
             }
         });
-
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
 
-
+    }
 }

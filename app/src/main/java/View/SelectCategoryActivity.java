@@ -16,49 +16,61 @@ public class SelectCategoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category_select);
         main=findViewById(R.id.main);
+        brekki=findViewById(R.id.brekki);
+        dessert=findViewById(R.id.dessert);
+        soup=findViewById(R.id.soup);
+        snack=findViewById(R.id.snack);
+        salad=findViewById(R.id.salad);
+
         main.setOnClickListener(view -> {
             Intent intent = new Intent(SelectCategoryActivity.this, SearchActivity.class);
             intent.putExtra("filter",getResources().getString(R.string.mainMeal));
             startActivity(intent);
             finish();
         });
-        brekki=findViewById(R.id.brekki);
+
         brekki.setOnClickListener(view -> {
             Intent intent = new Intent(SelectCategoryActivity.this, SearchActivity.class);
             intent.putExtra("filter",getResources().getString(R.string.breakki));
             startActivity(intent);
             finish();
         });
-        dessert=findViewById(R.id.dessert);
+
         dessert.setOnClickListener(view -> {
             Intent intent = new Intent(SelectCategoryActivity.this, SearchActivity.class);
             intent.putExtra("filter",getResources().getString(R.string.dessert));
             startActivity(intent);
             finish();
         });
-        soup=findViewById(R.id.soup);
+
         soup.setOnClickListener(view -> {
             Intent intent = new Intent(SelectCategoryActivity.this, SearchActivity.class);
             intent.putExtra("filter",getResources().getString(R.string.soup));
             startActivity(intent);
             finish();
         });
-        snack=findViewById(R.id.snack);
+
         snack.setOnClickListener(view -> {
             Intent intent = new Intent(SelectCategoryActivity.this, SearchActivity.class);
             intent.putExtra("filter",getResources().getString(R.string.snack));
             startActivity(intent);
             finish();
         });
-        salad=findViewById(R.id.salad);
+
         salad.setOnClickListener(view -> {
             Intent intent = new Intent(SelectCategoryActivity.this, SearchActivity.class);
             intent.putExtra("filter",getResources().getString(R.string.salad));
             startActivity(intent);
             finish();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
     }
+
     @Override
     public void onBackPressed() {
         Intent toMainIntent=new Intent(SelectCategoryActivity.this,MainActivity.class);

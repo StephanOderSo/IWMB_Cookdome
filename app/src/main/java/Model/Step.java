@@ -30,13 +30,6 @@ public class Step {
     public void setMedia(String media) {
         this.media = media;
     }
-    public void setMediaUri(Uri media,Thread thread) {
-        storageRef.child(media.getLastPathSegment()).putFile(media).addOnSuccessListener(taskSnapshot -> {
-            Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-            while(!uriTask.isComplete());
-            this.media = uriTask.getResult().toString();
-            thread.start();
-        });
-    }
+
 
 }
