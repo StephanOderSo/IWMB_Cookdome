@@ -16,7 +16,7 @@ public interface DatabaseInterface {
 
 
     //Recipe-Step Images
-    void setStepMedia(Uri media, Thread thread, Step step, ProgressBar progressBar);
+    void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar progressBar);
 
     //Recipes
     void saveRecipe(Uri imageUri, String recipeName, String category, int time, int portions, ArrayList<Ingredient> ingredientList, ArrayList<Step> stepList, ArrayList<String> dietaryRecList, Context context, Handler handler, Boolean priv, String owner, FirebaseUser fbuser);

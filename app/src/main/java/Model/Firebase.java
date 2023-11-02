@@ -59,7 +59,7 @@ public class Firebase implements DatabaseInterface {
 
 //Recipe-Step Images
     @Override
-public void setStepMedia(Uri media, Thread thread, Step step, ProgressBar progressBar) {
+public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar progressBar) {
     progressBar.setVisibility(View.VISIBLE);
     storageRef.child(user.getId()).child("StepImages").child(media.getLastPathSegment()).putFile(media).addOnSuccessListener(taskSnapshot -> {
         Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();

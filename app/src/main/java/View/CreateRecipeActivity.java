@@ -375,12 +375,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 enterStepView.setText("");
                 if(stepBitmap!=null){
                     Uri uri=tools.getImageUri(getApplicationContext(),stepBitmap);
-                    firebase.setStepMedia(uri,addStepThread,step,progressBar);
+                    firebase.uploadStepMedia(uri,addStepThread,step,progressBar);
                     stepBitmap=null;
                     stepImage.setImageBitmap(null);
                     addStepImage.setVisibility(View.VISIBLE);
                 }else if(stepImageUri!=null){
-                    firebase.setStepMedia(stepImageUri,addStepThread,step,progressBar);
+                    firebase.uploadStepMedia(stepImageUri,addStepThread,step,progressBar);
                     stepImageUri=null;
                     stepImage.setImageBitmap(null);
                     addStepImage.setVisibility(View.VISIBLE);
@@ -446,7 +446,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         if(stepsView.getCount()==0){
             Toast.makeText(CreateRecipeActivity.this,R.string.addSteps,Toast.LENGTH_SHORT).show();
         }
-
         else {
             progressBar.setVisibility(View.VISIBLE);
             recipeName= recipeNameView.getText().toString();
