@@ -122,6 +122,7 @@
     <string name="chooseSource">Wähle eine Quelle</string>
     <string name="enterLeftover">Trage Rest ein</string>
     <string name="language">Sprache</string>
+    <string name="chooseLanguage">Wähle Sprache</string>
 
 
 </resources>

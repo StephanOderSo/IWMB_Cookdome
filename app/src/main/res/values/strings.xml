@@ -122,6 +122,7 @@
     <string name="chooseSource">Choose source</string>
     <string name="enterLeftover">enter leftover name</string>
     <string name="language">language</string>
+    <string name="chooseLanguage">Select language</string>
 
 
 </resources>

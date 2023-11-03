@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import Helper.LocaleHelper;
 import Model.User;
 
 public class EditProfileActivity extends AppCompatActivity {
@@ -35,7 +36,7 @@ public class EditProfileActivity extends AppCompatActivity {
     FirebaseDatabase database;
     String newname,newemail,newpass,newpassrepeat;
     TextView nameView,emailView,passwordView;
-    ImageButton editname,editemail,editpassword,namedone,emaildone,passworddone;
+    ImageButton editname,editemail,editpassword,namedone,emaildone,passworddone, editLanguage;
     Button saveUserchange,cancelUserchange;
     EditText nameEditor,emailEditor,passEditor,repeatPassEditor;
     Uri imageUri;
@@ -54,6 +55,7 @@ public class EditProfileActivity extends AppCompatActivity {
         emailView=findViewById(R.id.emailView);
         passwordView=findViewById(R.id.passwordView);
         editname=findViewById(R.id.editname);
+        editLanguage=findViewById(R.id.editLanguage);
         editemail=findViewById(R.id.editemail);
         editpassword=findViewById(R.id.editpassword);
         namedone=findViewById(R.id.namedone);
@@ -115,6 +117,22 @@ public class EditProfileActivity extends AppCompatActivity {
             passEditor.setVisibility(View.VISIBLE);
             repeatPassEditor.setVisibility(View.VISIBLE);
             passworddone.setVisibility(View.VISIBLE);
+        });
+        editLanguage.setOnClickListener(view -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(EditProfileActivity.this);
+            builder.setTitle(R.string.chooseLanguage);
+            builder.setCancelable(true);
+            String[] languageArray ={"###eng###", "###ger###"};
+            //final String  language;
+            final String[] language = new String[1];
+            builder.setSingleChoiceItems(languageArray, -1, (dialogInterface, i) -> language[0] = languageArray[i]);
+            builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+               if(language[0] == languageArray[0])
+                    context = LocaleHelper.setLocale(EditProfileActivity.this, "en");
+               else if(language[0] == languageArray[i])
+                   context = LocaleHelper.setLocale(EditProfileActivity.this, "de");
+            });
+            builder.show();
         });
         namedone.setOnClickListener(view -> {
             if(!nameEditor.getText().toString().equals("")){

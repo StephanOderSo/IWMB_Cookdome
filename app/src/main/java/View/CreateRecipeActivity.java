@@ -177,7 +177,7 @@ public class CreateRecipeActivity extends AppCompatActivity {
             builder.setCancelable(false);
             builder.setSingleChoiceItems(unitArray, -1, (dialogInterface, i) -> unit=unitArray[i]);
             //when OK is clicked the selection is applied to button-text
-            builder.setPositiveButton("OK", (dialogInterface, i) -> {
+            builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                 if(unit!=null&&!unit.equals("")){
                     unitBtn.setText(unit);}
                 //if nothing is selected user is requested to choose a Unit
@@ -192,10 +192,10 @@ public class CreateRecipeActivity extends AppCompatActivity {
         catBtn=findViewById(R.id.category);
         catBtn.setOnClickListener(view -> {
             AlertDialog.Builder builder=new AlertDialog.Builder(CreateRecipeActivity.this);
-            builder.setTitle("Choose category");
+            builder.setTitle(R.string.chooseCat);
             builder.setCancelable(false);
             builder.setSingleChoiceItems(catArray, -1, (dialogInterface, i) -> category=catArray[i]);
-            builder.setPositiveButton("OK", (dialogInterface, i) -> {
+            builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                 //when OK is clicked the selection is applied to button-text
                 if(category!=null){
                     catBtn.setText(category);}
