@@ -65,6 +65,8 @@ public class FilterActivity extends AppCompatActivity {
     CheckBox checkBox1,checkBox2,checkBox3,checkBox4,checkBox5,cbGluten,cbLactose,cbVegan,cbVege,cbPaleo,cbFettarm;
     StaggeredGridLayoutManager gridM;
     Intent previousIntent;
+    Firebase database=new Firebase();
+    Handler handler=new Handler();
 
 
 
@@ -73,7 +75,7 @@ public class FilterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
         previousIntent=getIntent();
-        if(previousIntent.hasExtra("action")){
+        if(previousIntent.hasExtra("leftovers")){
             ConstraintLayout subContainer=findViewById(R.id.subContainer);
             subContainer.setVisibility(GONE);
             CardView headerCard=findViewById(R.id.headercard);
@@ -182,7 +184,6 @@ public class FilterActivity extends AppCompatActivity {
                         gridM.setSpanCount(rows);
                         rowsize=rowsize+3;
                     }
-
                     loRecyclerAdapter.notifyDataSetChanged();
                     insertIngredient.setText("");
                 }else{
@@ -194,19 +195,20 @@ public class FilterActivity extends AppCompatActivity {
         });
 //Apply filter button
         applyFilter.setOnClickListener(view -> {
-            if(previousIntent.hasExtra("action")){
+            if(previousIntent.hasExtra("leftovers")){
                 Intent newIntent=new Intent(FilterActivity.this,SearchActivity.class);
-                newIntent.putExtra("action", leftoversList);
+                newIntent.putExtra("leftovers", leftoversList);
                 startActivity(newIntent);
                 finish();
             }else{
-                Runnable getRandomRun= () -> filterAndGetRandom(time,selectedCategoryList,selectedDietaryRecList,leftoversList);
+                Runnable getRandomRun= () -> {
+                    dBRecipeList=database.returnRecipes();
+                    filterAndGetRandom(time,selectedCategoryList,selectedDietaryRecList,leftoversList);
+                };
                 Thread getRandomThread=new Thread(getRandomRun);
                 Context context=getApplicationContext();
                 Handler handler=new Handler();
-                Runnable download= () -> {
-                    Firebase database=new Firebase();
-                    dBRecipeList=database.getAllRecipes(context,handler,getRandomThread);};
+                Runnable download= () -> database.getAllRecipes(context,handler,getRandomThread);
                 Thread downloadThread=new Thread(download);
                 downloadThread.start();
             }
@@ -280,7 +282,12 @@ public class FilterActivity extends AppCompatActivity {
 
         }
         if(filteredRecipes.isEmpty()){
-            Toast.makeText(this, R.string.noMatch, Toast.LENGTH_SHORT).show();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), R.string.noMatch, Toast.LENGTH_SHORT).show();
+                }
+            });
         }else{
             Random random_method = new Random();
             int index = random_method.nextInt(filteredRecipes.size());

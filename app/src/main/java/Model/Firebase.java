@@ -41,6 +41,7 @@ import java.util.Objects;
 
 import View.MainActivity;
 import View.LoginActivity;
+import View.FilterActivity;
 import View.RecipeViewActivity;
 import View.RecyclerViewHolder;
 import Viewmodel.CustomComparator;
@@ -57,9 +58,13 @@ public class Firebase implements DatabaseInterface {
     User user=new User();
     Recipe recipe=new Recipe();
 
+    public User getUser(){
+        return user;
+    }
+
 //Recipe-Step Images
     @Override
-public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar progressBar) {
+public void uploadStepImage(Uri media, Thread thread, Step step, ProgressBar progressBar) {
     progressBar.setVisibility(View.VISIBLE);
     storageRef.child(user.getId()).child("StepImages").child(media.getLastPathSegment()).putFile(media).addOnSuccessListener(taskSnapshot -> {
         Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
@@ -86,14 +91,14 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
                 recipeRef.child(key).setValue(recipe).addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
                         handler.post(() -> Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show());
-                        addToOwn(context,uid,key,handler);
+                        addToOwnRecipes(context,uid,key,handler);
                     }
                 }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
             }else{
                 userRef.child(uid).child("Privates").child(key).setValue(recipe).addOnCompleteListener(task -> {
                     if(task.isSuccessful()){
                         handler.post(() -> Toast.makeText(context,R.string.uploadSuccess,Toast.LENGTH_SHORT).show());
-                        addToOwn(context,uid,key,handler);
+                        addToOwnRecipes(context,uid,key,handler);
                     }
                 });
                 removePublicRecipe(key,context,handler);
@@ -146,14 +151,14 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
             if (task.isSuccessful()) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    rebuildRecipe(snapshot);
+                    reconstructRecipe(snapshot);
                     setDatathread.start();
                 } else {
                     String id=returnID(fbUser,context);
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot = task1.getResult();
-                            rebuildRecipe(snapshot);
+                            reconstructRecipe(snapshot);
                             setDatathread.start();
                         }else{
                             handler.post(() -> {
@@ -172,6 +177,7 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
     public Recipe returnRecipe(){
         return recipe;
     }
+
     @Override
     public void sharepublicRecipe(String userID, String key, Context context){
         ArrayList<String>sharedWith=recipe.getSharedWith();
@@ -197,13 +203,9 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
     @Override
     public void removeUserFromShareList(String userID, String key, Context context, String owner, Boolean priv, Handler handler, Thread nextThread){
         if(priv){
-            userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> {
-                nextThread.start();
-            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+            userRef.child(owner).child("Privates").child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> nextThread.start()).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }else{
-            recipeRef.child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> {
-                nextThread.start();
-            }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
+            recipeRef.child(key).child("sharedWith").child(userID).removeValue().addOnCompleteListener(task -> nextThread.start()).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
         }
         ArrayList<String>sharedWith=recipe.getSharedWith();
         sharedWith.remove(userID);
@@ -212,8 +214,7 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
 
 
     //Mapping the firebase Data structure of a Recipe back to a recipe-Object
-    @Override
-    public Recipe rebuildRecipe(DataSnapshot snapshot) {
+    public Recipe reconstructRecipe(DataSnapshot snapshot) {
         Recipe selectedRecipe=new Recipe();
         selectedRecipe.setKey(snapshot.child("key").getValue(String.class));
         selectedRecipe.setRecipeName(String.valueOf(snapshot.child("recipeName").getValue()));
@@ -227,6 +228,7 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
         ArrayList<Step>stepList= new ArrayList<>();
         for(DataSnapshot stepSS:snapshot.child("stepList").getChildren()){
             Step stepTry=new Step (String.valueOf(snapshot.child("stepList").child(index).child("step").getValue()));
+
             if(snapshot.child("stepList").child(index).hasChild("media")){
                 stepTry.setMedia(String.valueOf(snapshot.child("stepList").child(index).child("media").getValue(String.class)));
             }
@@ -247,6 +249,7 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
             selectedRecipe.setDietaryRec(dietaryRec);
         }
         ArrayList<Ingredient>ingredientList=new ArrayList<>();
+
         for(DataSnapshot IngSS:snapshot.child("ingredientList").getChildren()){
             Double amount;
             if(IngSS.child("amount").getValue(Double.class)!=null){
@@ -255,9 +258,8 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
                 amount=0.0;
             }
             String unit=IngSS.child("unit").getValue(String.class);
-            String ingredientName=IngSS.child("ingredientName").getValue(String.class);
+            String ingredientName=IngSS.child("name").getValue(String.class);
             if (amount == null) { amount=0.0;}
-
             Ingredient ingredient=new Ingredient(amount,unit,ingredientName);
             ingredientList.add(ingredient);
             selectedRecipe.setIngredientList(ingredientList);
@@ -272,7 +274,6 @@ public void uploadStepMedia(Uri media, Thread thread, Step step, ProgressBar pro
         return selectedRecipe;
     }
 //User
-@Override
 public String returnID(FirebaseUser fbuser, Context context){
     if(fbuser!=null){
         user.setID(fbuser.getUid());
@@ -282,7 +283,7 @@ public String returnID(FirebaseUser fbuser, Context context){
     return user.getId();
 }
     @Override
-public synchronized void uploadUser(Uri imageUri, String name, String email, String password, Context context, Handler handler, ProgressBar progressBar){
+public synchronized void registerUser(Uri imageUri, String name, String email, String password, Context context, Handler handler, ProgressBar progressBar){
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener( task -> {
             if (task.isSuccessful()) {
                 auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task12 -> {
@@ -329,7 +330,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
 }
 
     @Override
-    public void downloadUser(Context context, FirebaseUser fbuser, Handler userHandler, Thread nextThread){
+    public void downloadUser(Context context, FirebaseUser fbuser, Handler userHandler, Thread nextThread,User user){
         if(fbuser!=null) {
             user.setEmail(fbuser.getEmail());
             user.setID(returnID(fbuser,context));
@@ -340,7 +341,6 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                     user.setPhoto(snapshot.child("photo").getValue(String.class));
                     nextThread.start();
                 } else {
-
                     userHandler.post(() -> {
                         Toast.makeText(context, R.string.noMatch, Toast.LENGTH_SHORT).show();
                         Intent toLoginIntent=new Intent(context, LoginActivity.class);
@@ -349,9 +349,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                     });
                 }
             }).addOnFailureListener(e -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show());
-
         }else{
-
             userHandler.post(() -> {
                 Toast.makeText(context, R.string.signedOut, Toast.LENGTH_SHORT).show();
                 Intent toLoginIntent=new Intent(context, LoginActivity.class);
@@ -360,12 +358,9 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
             });
         }
     }
+
     @Override
-    public  User  getUser(){
-        return user;
-    }
-    @Override
-    public void update(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
+    public void updateUser(FirebaseUser fbuser, String newname, String newemail, String newpass, Uri imageUri, Context context, String email, String password) {
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task1 -> {
             if(task1.isSuccessful()){
                 user.setID(returnID(fbuser,context));
@@ -432,7 +427,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
     }
     @Override
     //Generate a list of Keys to the Recipes the user liked
-    public synchronized void getFavourites(Context context, FirebaseUser fbuser, Handler handler, Thread thread) {
+    public synchronized void setFavouriteRecipeKeys(Context context, FirebaseUser fbuser, Handler handler, Thread thread) {
         user.setID(returnID(fbuser,context));
         userRef.child(user.getId()).child("Favourites").get().addOnCompleteListener(task -> {
             if (task.getResult().exists()) {
@@ -441,12 +436,12 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                 for (DataSnapshot dsS : snapshot.getChildren()) {
                     String favkey = dsS.getKey();
                     favourites.add(favkey);
-                    user.setFavourites(favourites);
+                    user.setFavouriteRecipes(favourites);
                 }
                 thread.start();
             }else{
                 ArrayList<String>favourites=new ArrayList<>();
-                user.setFavourites(favourites);
+                user.setFavouriteRecipes(favourites);
                 thread.start();
             }
         }).addOnFailureListener(e -> handler.post(() -> {
@@ -458,14 +453,14 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
 
     }
     @Override
-    public synchronized void updateFavourites(Recipe recipe, Context context, ImageView favView, FirebaseUser fbuser, Handler handler){
-        ArrayList<String>favourites=user.getFavourites();
+    public synchronized void updateFavouriteRecipes(Recipe recipe, Context context, ImageView favView, FirebaseUser fbuser, Handler handler){
+        ArrayList<String>favourites=user.getFavouriteRecipes();
         user.setID(returnID(fbuser,context));
         if (favourites.contains(recipe.getKey())) {
             userRef.child(user.id).child("Favourites").child(recipe.getKey()).removeValue().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     favourites.remove(recipe.getKey());
-                    user.setFavourites(favourites);
+                    user.setFavouriteRecipes(favourites);
                     handler.post(() -> {
                         favView.setImageResource(R.drawable.unliked);
                         Toast.makeText(context, R.string.removed, Toast.LENGTH_SHORT).show();
@@ -478,7 +473,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
             userRef.child(user.id).child("Favourites").child(recipe.getKey()).setValue(recipe.getKey()).addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     favourites.add(recipe.getKey());
-                    user.setFavourites(favourites);
+                    user.setFavouriteRecipes(favourites);
                     handler.post(() -> {
                         favView.setImageResource(R.drawable.liked);
                         Toast.makeText(context, R.string.added, Toast.LENGTH_SHORT).show();
@@ -492,7 +487,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
     }
     //Creating a list of Keys to the Recipes the user created themselves
     @Override
-    public synchronized void setOwnList(Context context, FirebaseUser currentUser, Handler handler, Thread thread){
+    public synchronized void setOwnRecipeKeys(Context context, FirebaseUser currentUser, Handler handler, Thread thread){
         String id= returnID(currentUser,context);
         userRef.child(id).child("Own").get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
@@ -502,7 +497,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                     String key1 =ss.getKey();
                     own.add(key1);
                     if(own.size()== snapshot.getChildrenCount()-1){
-                        user.setOwn(own);
+                        user.setOwnRecipes(own);
                         thread.start();
                     }
                 }
@@ -510,7 +505,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show()));
     }
     @Override
-    public void addToOwn(Context context, String uid, String key, Handler handler){
+    public void addToOwnRecipes(Context context, String uid, String key, Handler handler){
         userRef.child(uid).child("Own").child(key).setValue(key).addOnCompleteListener(task1 -> {
             if(task1.isSuccessful()){
                 handler.post(() -> {Intent toRecipeViewIntent=new Intent(context, RecipeViewActivity.class);
@@ -587,7 +582,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
     @Override
-    public synchronized ArrayList<Ingredient>getShoppingList(Context context, String uID, Thread thread){
+    public synchronized void getShoppingList(Context context, String uID, Thread thread){
         userRef.child(uID).child("Shoppinglist").get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
                 DataSnapshot snapshot=task.getResult();
@@ -613,7 +608,6 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
             Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
             thread.start();
         });
-        return user.shoppingList;
     }
     @Override
     public  void unshareRecipe(String key, String id, Boolean priv, Context context, Handler handler){
@@ -671,13 +665,13 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
     }
 
     @Override
-    public synchronized ArrayList<Recipe> getAllRecipes(Context context, Handler handler, Thread thread) {
+    public synchronized void getAllRecipes(Context context, Handler handler, Thread thread) {
         recipeRef.get().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     for(DataSnapshot dsS:snapshot.getChildren()){
-                        Recipe recipe= rebuildRecipe(dsS);
+                        Recipe recipe= reconstructRecipe(dsS);
                         recipes.add(recipe);
                     }
                     Collections.sort(recipes,new CustomComparator());
@@ -692,24 +686,24 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                 handler.post(() -> Toast.makeText(context,R.string.dataRetrievalFailed,Toast.LENGTH_SHORT).show());
             }
         });
-        return recipes;
     }
     //retreive recipes from firebase that meet the source criteria
     @Override
-    public ArrayList<Recipe> getSelectedRecipes(String catFilter, String source, Context context, Intent previousIntent,Handler handler,Thread thread){
+    public void getSelectedRecipes(String catFilter, String source, Context context, Intent previousIntent,Handler handler,Thread thread){
         recipeRef.get().addOnCompleteListener(task -> {
             if(task.isSuccessful()) {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
                     for(DataSnapshot dsS:snapshot.getChildren()){
-                        recipe= rebuildRecipe(dsS);
+                        recipe= reconstructRecipe(dsS);
                         if(source.equals("categories")){
                             if (recipe.getCategory().equals(catFilter)) {
                                 recipes.add(recipe);
                             }
                         }
                         if(source.equals("leftovers")){
-                            ArrayList<String> leftoverList=previousIntent.getStringArrayListExtra("action");
+                            ArrayList<String> leftoverList=previousIntent.getStringArrayListExtra("leftovers");
+
                             ArrayList<String>ingredientStringList=new ArrayList<>();
                             for(Ingredient ingredient:recipe.getIngredientList()){
                                 String name=ingredient.getName();
@@ -723,8 +717,8 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                             }else{
                                 handler.post(() -> {
                                     Toast.makeText(context, R.string.noLeftoversSelected, Toast.LENGTH_SHORT).show();
-                                    Intent backToLeftverIntent=new Intent(context, LayoutInflater.Filter.class);
-                                    backToLeftverIntent.putExtra("action","");
+                                    Intent backToLeftverIntent=new Intent(context, FilterActivity.class);
+                                    backToLeftverIntent.putExtra("leftovers",0);
                                     backToLeftverIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK| Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                     context.startActivity(backToLeftverIntent);
                                 });
@@ -754,24 +748,23 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                     }
             thread.start();
         });
-        return recipes;
     }
 
     //Download and display a List of Recipes that the User either liked or created
     @Override
-    public ArrayList<Recipe> getFavouriteOrOwnRecipes(ArrayList<String> keylist, Context context, String id, Handler handler,Thread thread){
+    public void getFavouriteOrOwnRecipes(ArrayList<String> keylist, Context context, String id, Handler handler,Thread thread){
         i=keylist.size();
         for(String key:keylist){
             recipeRef.child(key).get().addOnCompleteListener(task -> {
                 if (task.getResult().exists()) {
                     DataSnapshot snapshot = task.getResult();
-                    recipe= rebuildRecipe(snapshot);
+                    recipe= reconstructRecipe(snapshot);
                     recipes.add(recipe);
                        }else{
                     userRef.child(id).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                         if (task1.getResult().exists()) {
                             DataSnapshot snapshot2 = task1.getResult();
-                            recipe= rebuildRecipe(snapshot2);
+                            recipe= reconstructRecipe(snapshot2);
                             recipes.add(recipe);
                                }
                     }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
@@ -782,7 +775,6 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
             }).addOnFailureListener(e2 -> handler.post(() -> Toast.makeText(context, e2.getMessage(), Toast.LENGTH_SHORT).show()));
         }
         Collections.sort(recipes,new CustomComparator());
-        return recipes;
     }
 
 @Override
@@ -839,7 +831,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                     if(key!=null&&userID!=null){
                         userRef.child(userID).child("Privates").child(key).get().addOnCompleteListener(task1 -> {
                             DataSnapshot snapshot1= task1.getResult();
-                            recipe= rebuildRecipe(snapshot1);
+                            recipe= reconstructRecipe(snapshot1);
                             recipes.add(recipe);
                             if(i==size){
                                 nextThread.start();
@@ -856,7 +848,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
         });
     }
 @Override
-    public void downloadSharedPublRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
+    public void getSharedRecipes(Context context, FirebaseUser fbuser, Handler handler, Thread nextThread){
         String id=returnID(fbuser, context);
         userRef.child(id).child("Shared").child("public").get().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
@@ -871,7 +863,7 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
                             recipeRef.child(key).get().addOnCompleteListener(task1 -> {
                                 if (task1.isSuccessful()) {
                                     DataSnapshot snapshot1 = task1.getResult();
-                                    recipe = rebuildRecipe(snapshot1);
+                                    recipe = reconstructRecipe(snapshot1);
                                     recipes.add(recipe);
                                     if (i == size) {
                                         downloadSharedPrivRecipes(context,fbuser,handler,nextThread);
@@ -888,7 +880,8 @@ public synchronized void uploadUser(Uri imageUri, String name, String email, Str
             }
         }).addOnFailureListener(e -> handler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_SHORT).show()));
     }
-    public ArrayList<Recipe> getRecipes(){
+
+    public ArrayList<Recipe> returnRecipes(){
         return  this.recipes;
     }
 

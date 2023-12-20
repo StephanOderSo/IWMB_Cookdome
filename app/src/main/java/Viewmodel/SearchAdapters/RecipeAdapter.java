@@ -78,7 +78,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         }
         holder.favourite.setOnClickListener(view -> {
             auth = FirebaseAuth.getInstance();
-            Runnable favRunnable= () -> firebase.updateFavourites(recipe,context,holder.favourite,fbUser,handler);
+            Runnable favRunnable= () -> firebase.updateFavouriteRecipes(recipe,context,holder.favourite,fbUser,handler);
             Thread favThread=new Thread(favRunnable);
             favThread.start();
         });
@@ -90,13 +90,11 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             holder.recipe_diet.setVisibility(GONE);
             holder.diet_show.setVisibility(GONE);
         } else {
-            Runnable textbuild=new Runnable() {
-                @Override
-                public void run() {
-                    Tools tools=new Tools();
-                    StringBuilder dietaryTxt = tools.setDietString(recipe,stringArray);
-                    holder.recipe_diet.setText(dietaryTxt.toString());
-                }
+            Runnable textbuild= () -> {
+                Tools tools=new Tools();
+                StringBuilder dietaryTxt = tools.setDietString(recipe,stringArray);
+                handler.post(() -> holder.recipe_diet.setText(dietaryTxt.toString()));
+
             };
             Thread textBuildThread=new Thread(textbuild);
             textBuildThread.start();
@@ -118,7 +116,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             holder.removeRecipe.setVisibility(View.VISIBLE);
             holder.removeRecipe.setImageResource(R.drawable.remove_filled);
             holder.removeRecipe.setOnClickListener(view -> {
-                Runnable dataRun=()->{ handler.post(() -> notifyItemRemoved(position));};
+                Runnable dataRun=()-> handler.post(() -> notifyItemRemoved(position));
                 Thread updateDataThread=new Thread(dataRun);
 
                 Runnable run= () -> {

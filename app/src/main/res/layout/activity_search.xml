@@ -5,8 +5,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="View.SearchActivity"
-    android:id="@+id/constraintLayout">
+    tools:context="View.SearchActivity">
 
     <androidx.appcompat.widget.SearchView
         android:id="@+id/search"
@@ -69,7 +68,6 @@
 
         <TextView
             android:textSize="17sp"
-            android:id="@+id/minutes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
@@ -129,7 +127,6 @@
                 android:contentDescription="@string/unfoldCat"/>
 
             <TextView
-                android:id="@+id/categories"
                 android:textSize="17sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

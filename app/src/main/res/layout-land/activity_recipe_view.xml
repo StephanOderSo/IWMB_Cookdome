@@ -16,7 +16,7 @@
                 android:columnCount="2"
                 android:rowCount="2">
             <androidx.cardview.widget.CardView
-                android:id="@+id/image"
+                android:id="@+id/imageCard"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_columnWeight="1"
@@ -128,7 +128,6 @@
                     <TextView
                         android:id="@+id/portions"
                         android:textSize="19sp"
-                        android:drawableLeft="@drawable/personwhite"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/portions"
@@ -137,7 +136,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                       />
+                        app:drawableLeftCompat="@drawable/personwhite" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
@@ -217,7 +216,6 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.cardview.widget.CardView>
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/steps"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnSpan="2"

@@ -1,42 +1,13 @@
 package Model;
 
-import static android.content.ContentValues.TAG;
-
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Handler;
-import android.util.Log;
-import android.widget.ImageView;
-import android.widget.Toast;
-
-import com.bienhuels.iwmb_cookdome.R
-        ;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import View.LoginActivity;
-import View.MainActivity;
-import View.RecipeViewActivity;
 
 public class User {
     String name,photo,email,id;
-    ArrayList<String> favourites;
-    ArrayList<String> own;
+    ArrayList<String> favouriteRecipes;
+    ArrayList<String> ownRecipes;
     ArrayList<Ingredient>shoppingList=new ArrayList<>();
+    ArrayList<String>sharedRecipes=new ArrayList<>();
 
 
 
@@ -81,20 +52,20 @@ public class User {
         this.id = id;
     }
 
-    public ArrayList<String> getFavourites() {
-        return favourites;
+    public ArrayList<String> getFavouriteRecipes() {
+        return favouriteRecipes;
     }
 
-    public void setFavourites(ArrayList<String> favourites) {
-        this.favourites = favourites;
+    public void setFavouriteRecipes(ArrayList<String> favouriteRecipes) {
+        this.favouriteRecipes = favouriteRecipes;
     }
 
-    public ArrayList<String> getOwn() {
-        return own;
+    public ArrayList<String> getOwnRecipes() {
+        return ownRecipes;
     }
 
-    public void setOwn(ArrayList<String> own) {
-        this.own = own;
+    public void setOwnRecipes(ArrayList<String> ownRecipes) {
+        this.ownRecipes = ownRecipes;
     }
 
     public ArrayList<Ingredient> getShoppingList() {
@@ -103,5 +74,13 @@ public class User {
 
     public void setShoppingList(ArrayList<Ingredient> shoppingList) {
         this.shoppingList = shoppingList;
+    }
+
+    public ArrayList<String> getSharedRecipes() {
+        return sharedRecipes;
+    }
+
+    public void setSharedRecipes(ArrayList<String> sharedRecipes) {
+        this.sharedRecipes = sharedRecipes;
     }
 }

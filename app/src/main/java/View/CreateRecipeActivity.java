@@ -63,7 +63,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
     ArrayList<Ingredient> ingredientList=new ArrayList<>();
     ArrayList<Step> stepList=new ArrayList<>();
     FloatingActionButton addIngredientBtn,addStepBtn;
-    ConstraintLayout image;
     TextView dietaryBtn;
     boolean[] selectedDiet;
     ArrayList<Integer> dietIntList =new ArrayList<>();
@@ -165,7 +164,6 @@ public class CreateRecipeActivity extends AppCompatActivity {
         enterStepView=findViewById(R.id.step);
         addStepBtn=findViewById(R.id.addStepbtn);
         addIngredientBtn=findViewById(R.id.addIngredientBtn);
-        image=findViewById(R.id.uploadImageBorder);
         unitBtn=findViewById(R.id.unit);
         privateswitch=findViewById(R.id.privateswitch);
         catBtn=findViewById(R.id.category);
@@ -375,12 +373,12 @@ public class CreateRecipeActivity extends AppCompatActivity {
                 enterStepView.setText("");
                 if(stepBitmap!=null){
                     Uri uri=tools.getImageUri(getApplicationContext(),stepBitmap);
-                    firebase.uploadStepMedia(uri,addStepThread,step,progressBar);
+                    firebase.uploadStepImage(uri,addStepThread,step,progressBar);
                     stepBitmap=null;
                     stepImage.setImageBitmap(null);
                     addStepImage.setVisibility(View.VISIBLE);
                 }else if(stepImageUri!=null){
-                    firebase.uploadStepMedia(stepImageUri,addStepThread,step,progressBar);
+                    firebase.uploadStepImage(stepImageUri,addStepThread,step,progressBar);
                     stepImageUri=null;
                     stepImage.setImageBitmap(null);
                     addStepImage.setVisibility(View.VISIBLE);

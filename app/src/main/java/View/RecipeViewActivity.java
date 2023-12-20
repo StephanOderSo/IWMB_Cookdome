@@ -72,7 +72,7 @@ public class RecipeViewActivity extends AppCompatActivity {
             startActivity(toEditIntent);
             finish();
         });
-        favView.setOnClickListener(view -> firebase.updateFavourites(selectedRecipe,context,favView,fbUser, handler));
+        favView.setOnClickListener(view -> firebase.updateFavouriteRecipes(selectedRecipe,context,favView,fbUser, handler));
         portionsCard.setOnClickListener(view -> buildPortionsDialog());
         share.setOnClickListener(view -> {
             Intent toUsersIntent=new Intent(this,UsersActivity.class);
@@ -131,7 +131,7 @@ public class RecipeViewActivity extends AppCompatActivity {
     }
    private void getData(){
        Runnable checkFavRunnable= () -> {
-           if(firebase.getUser().getFavourites().contains(key)){
+           if(firebase.getUser().getFavouriteRecipes().contains(key)){
                handler.post(() -> favView.setImageResource(R.drawable.liked));
            }else{
                handler.post(() -> favView.setImageResource(R.drawable.unliked));
@@ -140,12 +140,12 @@ public class RecipeViewActivity extends AppCompatActivity {
        checkFavThread=new Thread(checkFavRunnable);
 
        Runnable checkOwnRun= () -> {
-           if(firebase.getUser().getOwn().contains(key)){handler.post(() -> edit.setVisibility(View.VISIBLE));}};
+           if(firebase.getUser().getOwnRecipes().contains(key)){handler.post(() -> edit.setVisibility(View.VISIBLE));}};
        Thread checkOwnThread=new Thread(checkOwnRun);
 
        Runnable getOwnFavRun= () -> {
-           firebase.getFavourites(context,fbUser, handler,checkFavThread);
-           firebase.setOwnList(context,fbUser, handler,checkOwnThread);
+           firebase.setFavouriteRecipeKeys(context,fbUser, handler,checkFavThread);
+           firebase.setOwnRecipeKeys(context,fbUser, handler,checkOwnThread);
        };
        Thread getOwnFavThread=new Thread(getOwnFavRun);
        getOwnFavThread.start();

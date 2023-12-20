@@ -119,7 +119,7 @@ public class RegisterActivity extends AppCompatActivity {
                     passwordRepeatView.clearComposingText();
                 } else{
                     progressBar.setVisibility(View.VISIBLE);
-                    Runnable runnable= () -> firebase.uploadUser(imageUri,name,email,password,context,handler,progressBar);
+                    Runnable runnable= () -> firebase.registerUser(imageUri,name,email,password,context,handler,progressBar);
                     registerThread=new Thread(runnable);
                     registerThread.start();
                 }

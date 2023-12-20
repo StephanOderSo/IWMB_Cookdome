@@ -329,6 +329,7 @@ public class SearchActivity extends AppCompatActivity {
     //pass entered String to Method typeFilter() at each text-change
     public void setUpList(){
         Runnable recyclerRunnable= () -> handler.post(() -> {
+            currentList=firebase.returnRecipes();
             recyclerconfig(currentList);
             searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                 @Override
@@ -344,12 +345,11 @@ public class SearchActivity extends AppCompatActivity {
             });
         });
         Thread recyclerThread=new Thread(recyclerRunnable);
-        Runnable ownRunnable= (() -> {currentList= firebase.getFavouriteOrOwnRecipes(firebase.getUser().getOwn(),context,id, handler,recyclerThread);
-            Log.d("OWNLIST", firebase.getUser().getOwn().toString());});
+        Runnable ownRunnable= (() -> {firebase.getFavouriteOrOwnRecipes(firebase.getUser().getOwnRecipes(),context,id, handler,recyclerThread);});
         Thread ownThread=new Thread(ownRunnable);
 
         Runnable getSharedList= () -> {
-            currentList= firebase.getRecipes();
+            currentList= firebase.returnRecipes();
             recyclerThread.start();
         };
         Thread getSharedListThread=new Thread(getSharedList);
@@ -357,42 +357,44 @@ public class SearchActivity extends AppCompatActivity {
         Runnable listRunnable= () -> {
             // User clicked search Icon
             if(previousIntent.hasExtra("search")) {
-                currentList= firebase.getAllRecipes(context, handler,recyclerThread);
+                firebase.getAllRecipes(context, handler,recyclerThread);
             }
             //User selected a category
             if (previousIntent.hasExtra("filter")) {
                 String catFilter = previousIntent.getStringExtra("filter");
                 selectedCategoryList.add(catFilter);
                 source="categories";
-                currentList= firebase.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
+                firebase.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
             }
             //User clicked leftovers Button
-            if (previousIntent.hasExtra("action")) {
+            if (previousIntent.hasExtra("leftovers")) {
                 source="leftovers";
+                ArrayList<String> lo=previousIntent.getStringArrayListExtra("leftovers");
+                Log.d("TAG", lo.toString());
                 String catFilter="";
-                currentList= firebase.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
+                firebase.getSelectedRecipes(catFilter,source,context,previousIntent, handler,recyclerThread);
             }
             //User clicked Own-recipes/liked Recipes
             if(previousIntent.hasExtra("select")){
                 source=previousIntent.getStringExtra("select");
                 if(source!=null){
                     if(source.equals("ownRecipes")){
-                        firebase.setOwnList(context,fbUser, handler,ownThread);
+                        firebase.setOwnRecipeKeys(context,fbUser, handler,ownThread);
 
                     }
                     if(source.equals("likedRecipes")){
-                        currentList= firebase.getFavouriteOrOwnRecipes(firebase.getUser().getFavourites(),context,id, handler,recyclerThread);
+                        firebase.getFavouriteOrOwnRecipes(firebase.getUser().getFavouriteRecipes(),context,id, handler,recyclerThread);
                     }
                 }
             }
             if(previousIntent.hasExtra("shared")){
                 source="shared";
-                firebase.downloadSharedPublRecipes(context,fbUser,handler,getSharedListThread);
+                firebase.getSharedRecipes(context,fbUser,handler,getSharedListThread);
             }
         };
         listThread=new Thread(listRunnable);
 
-        Runnable favRunnable= () -> firebase.getFavourites(context,fbUser, handler,listThread);
+        Runnable favRunnable= () -> firebase.setFavouriteRecipeKeys(context,fbUser, handler,listThread);
         Thread favThread=new Thread(favRunnable);
         favThread.start();
     }
@@ -400,7 +402,7 @@ public class SearchActivity extends AppCompatActivity {
     //Configuring the Recyclerview to display the given List of Recipes
     public void recyclerconfig(ArrayList<Recipe> list){
         ArrayList<String> stringArray=new ArrayList<>(Arrays.asList(getResources().getString(R.string.vegetar),getResources().getString(R.string.vegan),getResources().getString(R.string.glutenfree),getResources().getString(R.string.lactosefree),getResources().getString(R.string.paleo),getResources().getString(R.string.lowfat)));
-        recipeAdapter = new RecipeAdapter(getApplicationContext(),list,firebase.getUser().getFavourites(),id,source,stringArray,firebase);
+        recipeAdapter = new RecipeAdapter(getApplicationContext(),list,firebase.getUser().getFavouriteRecipes(),id,source,stringArray,firebase);
         recipeSearchView.setAdapter(recipeAdapter);
     }
     //If user presses return on their phone he is lead back to the main activity

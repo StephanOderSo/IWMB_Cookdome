@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //Search Button (Click leads to Search activity with comment "search" to indicate source-activity)
         search.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-            intent.putExtra("search","search");
+            intent.putExtra("search",0);
             startActivity(intent);
             finish();
         });
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //Leftovers  Button
         restcard.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, FilterActivity.class);
-            intent.putExtra("action","action");
+            intent.putExtra("leftovers",0);
             startActivity(intent);
             finish();
         });
@@ -121,7 +121,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void setData(){
         Runnable setDataRun= () -> userHandler.post(() -> {
-            user=firebase.getUser();
             Picasso.get()
                     .load(user.getPhoto())
                     .placeholder(R.drawable.image)
@@ -133,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> firebase.downloadUser(context,fbuser,userHandler,setDataThread);
+        Runnable runnable= () -> firebase.downloadUser(context,fbuser,userHandler,setDataThread,user);
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();
     }
@@ -179,7 +178,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             finish();}
         if(item.getItemId()==R.id.sharedRecipes){
             Intent toSlIntent = new Intent(MainActivity.this, SearchActivity.class);
-            toSlIntent.putExtra("shared","");
+            toSlIntent.putExtra("shared",0);
             startActivity(toSlIntent);
             finish();
         }

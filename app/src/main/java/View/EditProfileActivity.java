@@ -168,7 +168,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     String pass=passView.getText().toString();
                     String mail=fbuser.getEmail();
                     User user=new User();
-                    firebase.update(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
+                    firebase.updateUser(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
                 }
             });
             builder.show();
@@ -215,7 +215,6 @@ public class EditProfileActivity extends AppCompatActivity {
     public void setUserData(){
 
         Runnable setDataRun= () -> userHandler.post(() -> {
-            user=firebase.getUser();
             Picasso.get()
                     .load(user.getPhoto())
                     .placeholder(R.drawable.image)
@@ -227,7 +226,7 @@ public class EditProfileActivity extends AppCompatActivity {
         });
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> firebase.downloadUser(context,fbuser,userHandler,setDataThread);
+        Runnable runnable= () -> firebase.downloadUser(context,fbuser,userHandler,setDataThread,user);
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();
     }

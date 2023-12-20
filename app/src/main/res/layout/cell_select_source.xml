@@ -17,7 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:minHeight="90dp"
-            android:src="@drawable/camera_lav"/>
+            android:src="@drawable/camera_lav"
+            android:contentDescription="@string/image" />
     </androidx.cardview.widget.CardView>
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
@@ -29,7 +30,8 @@
             android:id="@+id/image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/image"/>
+            android:src="@drawable/image"
+            android:contentDescription="@string/image" />
     </androidx.cardview.widget.CardView>
     <androidx.cardview.widget.CardView
         android:layout_width="0dp"
@@ -41,7 +43,8 @@
             android:id="@+id/video"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/video"/>
+            android:src="@drawable/video"
+            android:contentDescription="@string/image" />
     </androidx.cardview.widget.CardView>
 
 </GridLayout>

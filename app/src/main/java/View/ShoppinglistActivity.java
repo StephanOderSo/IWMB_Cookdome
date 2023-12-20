@@ -46,6 +46,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
 
     public void setupList(){
         Runnable setListRunnable= () -> handler.post(() -> {
+            shoppingList=user.getShoppingList();
             ShoppinglistAdapter adapter=new ShoppinglistAdapter(getApplicationContext(),0,shoppingList);
             shoppinglistView.setAdapter(adapter);
             if(shoppingList.isEmpty()){
@@ -56,7 +57,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
         });
         Thread setListThread=new Thread(setListRunnable);
 
-        Runnable getListRunnable= () -> shoppingList=firebase.getShoppingList(context,uID,setListThread);
+        Runnable getListRunnable= () -> firebase.getShoppingList(context,uID,setListThread);
         Thread getListThread=new Thread(getListRunnable);
         getListThread.start();
     }

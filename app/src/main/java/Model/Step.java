@@ -10,7 +10,6 @@ public class Step {
 
     String step;
     String media;
-    StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images/");
 
     public Step(String step){
         this.step=step;
