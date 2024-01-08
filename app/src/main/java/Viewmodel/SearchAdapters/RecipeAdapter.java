@@ -22,10 +22,11 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
+import Model.Firebase;
 import Model.Recipe;
-import Model.User;
 import View.RecipeViewActivity;
 import View.RecyclerViewHolder;
+import Viewmodel.Tools;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     private final Context context;
@@ -38,13 +39,17 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
     String liked="liked";
     String unliked="unliked";
     String source;
+    ArrayList<String>stringArray;
+    Firebase firebase;
 
-    public RecipeAdapter(Context context, ArrayList<Recipe> list, ArrayList<String>favlist, String id,String source) {
+    public RecipeAdapter(Context context, ArrayList<Recipe> list, ArrayList<String>favlist, String id,String source,ArrayList<String>stringArray,Firebase firebase) {
         this.context = context;
         this.list = list;
         this.favlist=favlist;
         this.id=id;
         this.source=source;
+        this.stringArray=stringArray;
+        this.firebase=firebase;
     }
 
     @NonNull
@@ -73,12 +78,11 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         }
         holder.favourite.setOnClickListener(view -> {
             auth = FirebaseAuth.getInstance();
-            User user=new User();
-            Runnable favRunnable= () -> user.updateFavourites(recipe,context,holder.favourite,fbUser,handler,favlist);
+            Runnable favRunnable= () -> firebase.updateFavouriteRecipes(recipe,context,holder.favourite,fbUser,handler);
             Thread favThread=new Thread(favRunnable);
             favThread.start();
         });
-        StringBuilder dietaryTxt = new StringBuilder();
+
         if (recipe.getDietaryRec() == null) {
             holder.recipe_diet.setVisibility(GONE);
             holder.diet_show.setVisibility(GONE);
@@ -86,44 +90,11 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             holder.recipe_diet.setVisibility(GONE);
             holder.diet_show.setVisibility(GONE);
         } else {
-            Runnable textbuild=new Runnable() {
-                @Override
-                public void run() {
-                    for (String diet : recipe.getDietaryRec()) {
-                        String dietShort = "";
+            Runnable textbuild= () -> {
+                Tools tools=new Tools();
+                StringBuilder dietaryTxt = tools.setDietString(recipe,stringArray);
+                handler.post(() -> holder.recipe_diet.setText(dietaryTxt.toString()));
 
-                        if (diet.equals(context.getResources().getString(R.string.vegetar))) {
-                            dietShort = "VT";
-                        }
-                        if (diet.equals(context.getResources().getString(R.string.vegan))) {
-                            dietShort = "V";
-                        }
-                        if (diet.equals(context.getResources().getString(R.string.glutenfree))) {
-                            dietShort = "GF";
-                        }
-                        if (diet.equals(context.getResources().getString(R.string.lactosefree))) {
-                            dietShort = "LF";
-                        }
-                        if (diet.equals(context.getResources().getString(R.string.paleo))) {
-                            dietShort = "P";
-                        }
-                        if (diet.equals(context.getResources().getString(R.string.lowfat))) {
-                            dietShort = "LF";
-                        }
-                        if (diet.equals(context.getResources().getString(R.string.none))) {
-                            holder.recipe_diet.setVisibility(GONE);
-                            holder.diet_show.setVisibility(GONE);
-                            break;
-                        }
-                        dietaryTxt.append(dietShort);
-                        int i;
-                        i = recipe.getDietaryRec().indexOf(diet);
-                        if (i != recipe.getDietaryRec().size() - 1) {
-                            dietaryTxt.append(" | ");
-                        }
-                    }
-                    holder.recipe_diet.setText(dietaryTxt);
-                }
             };
             Thread textBuildThread=new Thread(textbuild);
             textBuildThread.start();
@@ -145,13 +116,12 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
             holder.removeRecipe.setVisibility(View.VISIBLE);
             holder.removeRecipe.setImageResource(R.drawable.remove_filled);
             holder.removeRecipe.setOnClickListener(view -> {
-                Runnable dataRun=()->{ handler.post(() -> notifyItemRemoved(position));};
+                Runnable dataRun=()-> handler.post(() -> notifyItemRemoved(position));
                 Thread updateDataThread=new Thread(dataRun);
 
                 Runnable run= () -> {
-                    User user=new User();
-                    user.removeFromShared(recipe.getKey(),id,recipe.getPriv(),context,handler);
-                    recipe.removeUserFromShareList(id, recipe.getKey(),context,recipe.getOwner(),recipe.getPriv(),handler,updateDataThread);
+                    firebase.unshareRecipe(recipe.getKey(),id,recipe.getPriv(),context,handler);
+                    firebase.removeUserFromShareList(id, recipe.getKey(),context,recipe.getOwner(),recipe.getPriv(),handler,updateDataThread);
                     list.remove(recipe);
                 };
                 Thread removeThread=new Thread(run);

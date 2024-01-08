@@ -19,12 +19,14 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
+import Model.Firebase;
 import Model.Ingredient;
 import Model.User;
 
 
 public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
     Handler handler=new Handler();
+    Firebase firebase=new Firebase();
     public ShoppinglistAdapter(@NonNull Context context, int ressource, ArrayList<Ingredient> shoppingList) {
         super(context,ressource,shoppingList);
     }
@@ -61,12 +63,11 @@ public class ShoppinglistAdapter extends ArrayAdapter<Ingredient> {
             FirebaseUser fbuser=auth.getCurrentUser();
             User user=new User();
             Context context=getContext();
-
             if(checkbox.isChecked()){
-                user.removeFromShoppingList(fbuser,context,ingredient,handler);
+                firebase.removeIngredientFromShoppingList(fbuser,context,ingredient,handler);
             }
             else{
-                user.addToShoppingList(context,fbuser,handler,dummyThread,ingredient);
+                firebase.addToShoppingList(context,fbuser,handler,dummyThread,ingredient);
             }
         };
         Thread thread=new Thread(run);

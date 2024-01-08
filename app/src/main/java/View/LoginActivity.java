@@ -31,7 +31,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         databaseReference=database.getReference("/Cookdome/Users");
         enteremail=findViewById(R.id.editTextTextEmailAddress);
@@ -42,6 +41,9 @@ public class LoginActivity extends AppCompatActivity {
         }
         enterpassword=findViewById(R.id.editTextTextPassword);
         login=findViewById(R.id.loginBtn);
+        register=findViewById(R.id.registerBtn);
+
+        //login button
         login.setOnClickListener(view -> {
             if(enteremail.getText()==null){
                 enteremail.requestFocus();
@@ -51,8 +53,8 @@ public class LoginActivity extends AppCompatActivity {
                 enterpassword.setError(getResources().getString(R.string.enterPassword));
             } else if (enteremail.getText()!=null) {
                 if(enteremail.getText().toString().equals("")){
-                enteremail.requestFocus();
-                enteremail.setError(getResources().getString(R.string.enterMail));}
+                    enteremail.requestFocus();
+                    enteremail.setError(getResources().getString(R.string.enterMail));}
                 if (enterpassword.getText()!=null) {
                     if(enterpassword.getText().toString().equals("")){
                         enterpassword.requestFocus();
@@ -71,12 +73,13 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-        register=findViewById(R.id.registerBtn);
+        //register button, end user to register
         register.setOnClickListener(view -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
             startActivity(intent);
             finish();
         });
+
     }
     @Override
     protected void onStart(){
@@ -89,7 +92,13 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void loginUser(String email,String password){
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    private void loginUser(String email, String password){
         auth= FirebaseAuth.getInstance();
         auth.signInWithEmailAndPassword(email,password).addOnCompleteListener(task -> {
             if(task.isSuccessful()){

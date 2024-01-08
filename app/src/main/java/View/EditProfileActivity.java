@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import Model.Firebase;
 import Model.User;
 
 public class EditProfileActivity extends AppCompatActivity {
@@ -41,8 +42,11 @@ public class EditProfileActivity extends AppCompatActivity {
     Uri imageUri;
     User user=new User();
     Context context;
+    Intent toMainIntent,toLoginIntent;
+    ActivityResultLauncher<Intent> activityResultLauncher;
 
     Handler userHandler=new Handler();
+    Firebase firebase=new Firebase();
 
 
     @Override
@@ -69,13 +73,13 @@ public class EditProfileActivity extends AppCompatActivity {
         auth=FirebaseAuth.getInstance();
         fbuser=auth.getCurrentUser();
         context=getApplicationContext();
-        Intent toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
-        Intent toLoginIntent=new Intent(EditProfileActivity.this,LoginActivity.class);
+        toMainIntent=new Intent(EditProfileActivity.this,MainActivity.class);
+        toLoginIntent=new Intent(EditProfileActivity.this,LoginActivity.class);
         setUserData();
 
 
-//Edit photo
-        ActivityResultLauncher<Intent> activityResultLauncher= registerForActivityResult(
+//Register Launcher for User Image
+        activityResultLauncher= registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if(result.getResultCode()== Activity.RESULT_OK){
@@ -164,7 +168,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     String pass=passView.getText().toString();
                     String mail=fbuser.getEmail();
                     User user=new User();
-                    user.update(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
+                    firebase.updateUser(fbuser,newname,newemail,newpass,imageUri,context,mail,pass);
                 }
             });
             builder.show();
@@ -178,8 +182,14 @@ public class EditProfileActivity extends AppCompatActivity {
             imageUri=null;
             startActivity(toMainIntent);
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
 
     }
+
     public void checkPassword(){
         if(!passEditor.getText().toString().equals("")){
             if(!repeatPassEditor.getText().toString().equals("")){
@@ -205,7 +215,6 @@ public class EditProfileActivity extends AppCompatActivity {
     public void setUserData(){
 
         Runnable setDataRun= () -> userHandler.post(() -> {
-            user=user.getUser();
             Picasso.get()
                     .load(user.getPhoto())
                     .placeholder(R.drawable.image)
@@ -217,7 +226,7 @@ public class EditProfileActivity extends AppCompatActivity {
         });
         Thread setDataThread=new Thread(setDataRun);
 
-        Runnable runnable= () -> user.download(context,fbuser,userHandler,setDataThread);
+        Runnable runnable= () -> firebase.downloadUser(context,fbuser,userHandler,setDataThread,user);
         Thread getUserThread=new Thread(runnable);
         getUserThread.start();
     }

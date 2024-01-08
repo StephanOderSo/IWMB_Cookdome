@@ -36,6 +36,7 @@ import Model.Recipe;
 import Viewmodel.SearchAdapters.RecyclerAdapterCat;
 import Viewmodel.SearchAdapters.RecyclerAdapterDietary;
 import Viewmodel.SearchAdapters.RecyclerAdapterLo;
+import Viewmodel.Tools;
 
 public class FilterActivity extends AppCompatActivity {
     public Integer time,rowsize;
@@ -49,7 +50,7 @@ public class FilterActivity extends AppCompatActivity {
     RecyclerView restelistView;
     EditText insertIngredient;
     CheckBox checkBox;
-    Button applyFilter;
+    Button applyFilter,cancel;
     LinearLayout diatarySelect;
     LinearLayout catSelect;
     RecyclerView chosenCat;
@@ -61,6 +62,11 @@ public class FilterActivity extends AppCompatActivity {
     public ArrayList<String> selectedDietaryRecList= new ArrayList<>();
     public static ArrayList<String> leftoversList = new ArrayList<>();
     ArrayList<Recipe> dBRecipeList;
+    CheckBox checkBox1,checkBox2,checkBox3,checkBox4,checkBox5,cbGluten,cbLactose,cbVegan,cbVege,cbPaleo,cbFettarm;
+    StaggeredGridLayoutManager gridM;
+    Intent previousIntent;
+    Firebase database=new Firebase();
+    Handler handler=new Handler();
 
 
 
@@ -68,8 +74,8 @@ public class FilterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
-        Intent previousIntent=getIntent();
-        if(previousIntent.hasExtra("action")){
+        previousIntent=getIntent();
+        if(previousIntent.hasExtra("leftovers")){
             ConstraintLayout subContainer=findViewById(R.id.subContainer);
             subContainer.setVisibility(GONE);
             CardView headerCard=findViewById(R.id.headercard);
@@ -78,25 +84,51 @@ public class FilterActivity extends AppCompatActivity {
 //Timepicker
         seekBar= findViewById(R.id.timeselect);
         valueView= findViewById(R.id.valueView);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
-                valueView.setText(String.valueOf(progress));
-                time=progress;
-            }
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
 
-//KategorienCheckliste entfalten
-
+//Category Checkboxes and List
         extendBtn1=findViewById(R.id.extendBtn1);
         extendBtn2=findViewById(R.id.extendBtn2);
         catSelect= findViewById(R.id.catSelect);
+        GridLayoutManager layoutManager=new GridLayoutManager(this,3);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        chosenCat=findViewById(R.id.chosenCat);
+        chosenCat.setLayoutManager(layoutManager);
+        catRecyclerAdapter=new RecyclerAdapterCat(getApplicationContext(),selectedCategoryList);
+        chosenCat.setAdapter(catRecyclerAdapter);
+        checkBox=findViewById(R.id.breakki);
+        checkBox1=findViewById(R.id.soup);
+        checkBox2=findViewById(R.id.snacks);
+        checkBox3=findViewById(R.id.mainmeal);
+        checkBox4=findViewById(R.id.salad);
+        checkBox5=findViewById(R.id.dessert);
+
+// diet checkboxes and list
+        GridLayoutManager layoutManagerDietary=new GridLayoutManager(this,3);
+        layoutManagerDietary.setOrientation(LinearLayoutManager.VERTICAL);
+        chosendietaryRec=findViewById(R.id.chosendietaryRec);
+        chosendietaryRec.setLayoutManager(layoutManagerDietary);
+        dietaryRecyclerAdapter=new RecyclerAdapterDietary(getApplicationContext(),selectedDietaryRecList);
+        chosendietaryRec.setAdapter(dietaryRecyclerAdapter);
+        checkBox=findViewById(R.id.breakki);
+        cbGluten=findViewById(R.id.gluten);
+        cbLactose=findViewById(R.id.lactose);
+        cbVegan=findViewById(R.id.vegan);
+        cbVege=findViewById(R.id.vege);
+        cbPaleo=findViewById(R.id.paleo);
+        cbFettarm=findViewById(R.id.lowfat);
+
+//Leftover list
+        restelistView= findViewById(R.id.leftoversList);
+        gridM=new StaggeredGridLayoutManager(1,StaggeredGridLayoutManager.HORIZONTAL);
+        restelistView.setLayoutManager(gridM);
+        loRecyclerAdapter=new RecyclerAdapterLo(getApplicationContext(), leftoversList);
+        restelistView.setAdapter(loRecyclerAdapter);
+        insertIngredient=findViewById(R.id.insertIngredient);
+        addIngredientFilter=findViewById(R.id.addIngredientFilter);
+
+        applyFilter=findViewById(R.id.filter);
+        cancel=findViewById(R.id.cancel);
+        //Unfolod Category checkboxes
         extendBtn1.setOnClickListener(view -> {
             extendBtn1.setImageResource(R.drawable.arrow_up);
             if (clickCount2%2 !=0){
@@ -107,8 +139,10 @@ public class FilterActivity extends AppCompatActivity {
             }
             clickCount2++;
         });
-//ErnaehrungsCheckliste entfalten
+
         diatarySelect= findViewById(R.id.diatarySelect);
+
+        //Unfold Diet Checkboxes
         extendBtn2.setOnClickListener(view -> {
             if (clickCount%2 !=0){
                 extendBtn2.setImageResource(R.drawable.arrow_up);
@@ -120,58 +154,23 @@ public class FilterActivity extends AppCompatActivity {
             }
             clickCount++;
         });
+        //Category checkboxes
+        Tools tools=new Tools();
+        checkBox.setOnClickListener(view -> tools.onCheck(checkBox,getResources().getString(R.string.breakki),catRecyclerAdapter,selectedCategoryList));
+        checkBox1.setOnClickListener(view -> tools.onCheck(checkBox1,getResources().getString(R.string.soup),catRecyclerAdapter,selectedCategoryList));
+        checkBox2.setOnClickListener(view -> tools.onCheck(checkBox2, getResources().getString(R.string.snack),catRecyclerAdapter,selectedCategoryList));
+        checkBox3.setOnClickListener(view -> tools.onCheck(checkBox3,getResources().getString(R.string.mainMeal),catRecyclerAdapter,selectedCategoryList));
+        checkBox4.setOnClickListener(view -> tools.onCheck(checkBox4,getResources().getString(R.string.salad),catRecyclerAdapter,selectedCategoryList));
+        checkBox5.setOnClickListener(view -> tools.onCheck(checkBox5,getResources().getString(R.string.dessert),catRecyclerAdapter,selectedCategoryList));
+        //diet checkboxes
 
-//Kategorie Checkboxen
-        GridLayoutManager layoutManager=new GridLayoutManager(this,3);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        chosenCat=findViewById(R.id.chosenCat);
-        chosenCat.setLayoutManager(layoutManager);
-        catRecyclerAdapter=new RecyclerAdapterCat(getApplicationContext(),selectedCategoryList);
-        chosenCat.setAdapter(catRecyclerAdapter);
-        checkBox=findViewById(R.id.breakki);
-        CheckBox checkBox1=findViewById(R.id.soup);
-        CheckBox checkBox2=findViewById(R.id.snacks);
-        CheckBox checkBox3=findViewById(R.id.mainmeal);
-        CheckBox checkBox4=findViewById(R.id.salad);
-        CheckBox checkBox5=findViewById(R.id.dessert);
-        checkBox.setOnClickListener(view -> onCheck(checkBox,getResources().getString(R.string.breakki),catRecyclerAdapter));
-        checkBox1.setOnClickListener(view -> onCheck(checkBox1,getResources().getString(R.string.soup),catRecyclerAdapter));
-        checkBox2.setOnClickListener(view -> onCheck(checkBox2, getResources().getString(R.string.snack),catRecyclerAdapter));
-        checkBox3.setOnClickListener(view -> onCheck(checkBox3,getResources().getString(R.string.mainMeal),catRecyclerAdapter));
-        checkBox4.setOnClickListener(view -> onCheck(checkBox4,getResources().getString(R.string.salad),catRecyclerAdapter));
-        checkBox5.setOnClickListener(view -> onCheck(checkBox5,getResources().getString(R.string.dessert),catRecyclerAdapter));
-
-
-// Ernaehrungsselektion und Checkboxen
-        GridLayoutManager layoutManagerDietary=new GridLayoutManager(this,3);
-        layoutManagerDietary.setOrientation(LinearLayoutManager.VERTICAL);
-        chosendietaryRec=findViewById(R.id.chosendietaryRec);
-        chosendietaryRec.setLayoutManager(layoutManagerDietary);
-        dietaryRecyclerAdapter=new RecyclerAdapterDietary(getApplicationContext(),selectedDietaryRecList);
-        chosendietaryRec.setAdapter(dietaryRecyclerAdapter);
-        checkBox=findViewById(R.id.breakki);
-        CheckBox cbGluten=findViewById(R.id.gluten);
-        CheckBox cbLactose=findViewById(R.id.lactose);
-        CheckBox cbVegan=findViewById(R.id.vegan);
-        CheckBox cbVege=findViewById(R.id.vege);
-        CheckBox cbPaleo=findViewById(R.id.paleo);
-        CheckBox cbFettarm=findViewById(R.id.lowfat);
-        cbGluten.setOnClickListener(view -> onCheckDietary(cbGluten,getResources().getString(R.string.glutenfree),dietaryRecyclerAdapter));
-        cbLactose.setOnClickListener(view -> onCheckDietary(cbLactose,getResources().getString(R.string.lactosefree),dietaryRecyclerAdapter));
-        cbVegan.setOnClickListener(view -> onCheckDietary(cbVegan,getResources().getString(R.string.vegan),dietaryRecyclerAdapter));
-        cbVege.setOnClickListener(view -> onCheckDietary(cbVege,getResources().getString(R.string.vegetar),dietaryRecyclerAdapter));
-        cbFettarm.setOnClickListener(view -> onCheckDietary(cbFettarm,getResources().getString(R.string.lowfat),dietaryRecyclerAdapter));
-        cbPaleo.setOnClickListener(view -> onCheckDietary(cbPaleo,getResources().getString(R.string.paleo),dietaryRecyclerAdapter));
-
-//Leftover list
-
-        restelistView= findViewById(R.id.leftoversList);
-        StaggeredGridLayoutManager gridM=new StaggeredGridLayoutManager(1,StaggeredGridLayoutManager.HORIZONTAL);
-        restelistView.setLayoutManager(gridM);
-        loRecyclerAdapter=new RecyclerAdapterLo(getApplicationContext(), leftoversList);
-        restelistView.setAdapter(loRecyclerAdapter);
-        insertIngredient=findViewById(R.id.insertIngredient);
-        addIngredientFilter=findViewById(R.id.addIngredientFilter);
+        cbGluten.setOnClickListener(view -> tools.onCheck(cbGluten,getResources().getString(R.string.glutenfree),dietaryRecyclerAdapter,selectedDietaryRecList));
+        cbLactose.setOnClickListener(view -> tools.onCheck(cbLactose,getResources().getString(R.string.lactosefree),dietaryRecyclerAdapter,selectedDietaryRecList));
+        cbVegan.setOnClickListener(view -> tools.onCheck(cbVegan,getResources().getString(R.string.vegan),dietaryRecyclerAdapter,selectedDietaryRecList));
+        cbVege.setOnClickListener(view -> tools.onCheck(cbVege,getResources().getString(R.string.vegetar),dietaryRecyclerAdapter,selectedDietaryRecList));
+        cbFettarm.setOnClickListener(view -> tools.onCheck(cbFettarm,getResources().getString(R.string.lowfat),dietaryRecyclerAdapter,selectedDietaryRecList));
+        cbPaleo.setOnClickListener(view -> tools.onCheck(cbPaleo,getResources().getString(R.string.paleo),dietaryRecyclerAdapter,selectedDietaryRecList));
+        //Leftover list
         rowsize=3;
         addIngredientFilter.setOnClickListener(view -> {
             if(insertIngredient.getText()!=null){
@@ -185,7 +184,6 @@ public class FilterActivity extends AppCompatActivity {
                         gridM.setSpanCount(rows);
                         rowsize=rowsize+3;
                     }
-
                     loRecyclerAdapter.notifyDataSetChanged();
                     insertIngredient.setText("");
                 }else{
@@ -195,54 +193,58 @@ public class FilterActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.enterLeftover, Toast.LENGTH_SHORT).show();
             }
         });
-//Fertigbutton
-        applyFilter=findViewById(R.id.filter);
+//Apply filter button
         applyFilter.setOnClickListener(view -> {
-            if(previousIntent.hasExtra("action")){
+            if(previousIntent.hasExtra("leftovers")){
                 Intent newIntent=new Intent(FilterActivity.this,SearchActivity.class);
-                newIntent.putExtra("action", leftoversList);
+                newIntent.putExtra("leftovers", leftoversList);
                 startActivity(newIntent);
                 finish();
             }else{
-                Runnable getRandomRun= () -> filterAndGetRandom(time,selectedCategoryList,selectedDietaryRecList,leftoversList);
+                Runnable getRandomRun= () -> {
+                    dBRecipeList=database.returnRecipes();
+                    filterAndGetRandom(time,selectedCategoryList,selectedDietaryRecList,leftoversList);
+                };
                 Thread getRandomThread=new Thread(getRandomRun);
-
                 Context context=getApplicationContext();
                 Handler handler=new Handler();
-                Runnable download= () -> {
-                    Firebase database=new Firebase();
-                    dBRecipeList=database.getAllRecipes(context,handler,getRandomThread);};
+                Runnable download= () -> database.getAllRecipes(context,handler,getRandomThread);
                 Thread downloadThread=new Thread(download);
                 downloadThread.start();
-                }
+            }
         });
-
-//Cancel Button
-        Button cancel=findViewById(R.id.cancel);
+        super.onResume();
+        //Cancel Button
         cancel.setOnClickListener(view -> {
             Intent toMainIntent=new Intent(FilterActivity.this,MainActivity.class);
             startActivity(toMainIntent);
         });
+
     }
-    private void onCheck(CheckBox checkbox, String selectedFilter, RecyclerAdapterCat recyclerAdapter){
-        if(checkbox.isChecked()){
-            selectedCategoryList.add(selectedFilter);
-            recyclerAdapter.notifyItemInserted(selectedCategoryList.indexOf(selectedFilter));
-        }
-        else{
-            selectedCategoryList.remove(selectedFilter);
-            recyclerAdapter.notifyDataSetChanged();
-        }
+
+    @Override
+    protected void onStart() {
+        // pass seekbar values to textview
+        super.onStart();
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+                valueView.setText(String.valueOf(progress));
+                time=progress;
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
     }
-    private void onCheckDietary(CheckBox checkbox,String selectedFilter,RecyclerAdapterDietary recyclerAdapter){
-        if(checkbox.isChecked()){
-            selectedDietaryRecList.add(selectedFilter);
-            recyclerAdapter.notifyItemInserted(selectedDietaryRecList.indexOf(selectedFilter));
-        }
-        else{
-            selectedDietaryRecList.remove(selectedFilter);
-            recyclerAdapter.notifyDataSetChanged();
-        }
+
+    @Override
+    protected void onResume() {
+
+       super.onResume();
     }
 
     private void filterAndGetRandom(Integer time, ArrayList<String> categories, ArrayList<String> dietary, ArrayList<String> ingredients) {
@@ -280,7 +282,12 @@ public class FilterActivity extends AppCompatActivity {
 
         }
         if(filteredRecipes.isEmpty()){
-            Toast.makeText(this, R.string.noMatch, Toast.LENGTH_SHORT).show();
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getApplicationContext(), R.string.noMatch, Toast.LENGTH_SHORT).show();
+                }
+            });
         }else{
             Random random_method = new Random();
             int index = random_method.nextInt(filteredRecipes.size());

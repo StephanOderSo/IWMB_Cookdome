@@ -15,6 +15,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
+import Model.Firebase;
 import Model.Ingredient;
 import Model.User;
 import Viewmodel.ShoppinglistAdapter;
@@ -26,6 +27,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
     Context context;
     Handler handler=new Handler();
     ListView shoppinglistView;
+    Firebase firebase=new Firebase();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +37,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
         context=getApplicationContext();
         auth= FirebaseAuth.getInstance();
         FirebaseUser fbUser=auth.getCurrentUser();
-        uID=user.returnID(fbUser,context);
+        uID=firebase.returnID(fbUser,context);
 
         setupList();
         shoppinglistView=findViewById(R.id.shoppinglistView);
@@ -44,6 +46,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
 
     public void setupList(){
         Runnable setListRunnable= () -> handler.post(() -> {
+            shoppingList=user.getShoppingList();
             ShoppinglistAdapter adapter=new ShoppinglistAdapter(getApplicationContext(),0,shoppingList);
             shoppinglistView.setAdapter(adapter);
             if(shoppingList.isEmpty()){
@@ -54,7 +57,7 @@ public class ShoppinglistActivity extends AppCompatActivity {
         });
         Thread setListThread=new Thread(setListRunnable);
 
-        Runnable getListRunnable= () -> shoppingList=user.getShoppingList(context,uID,setListThread);
+        Runnable getListRunnable= () -> firebase.getShoppingList(context,uID,setListThread);
         Thread getListThread=new Thread(getListRunnable);
         getListThread.start();
     }

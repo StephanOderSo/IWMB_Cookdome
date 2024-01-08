@@ -29,7 +29,6 @@
                 android:layout_height="match_parent">
                 <ImageView
                     android:contentDescription="@string/mainMeal"
-                    android:id="@+id/mainImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:srcCompat="@drawable/gnocci"
@@ -39,7 +38,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/mainText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/mainMeal"
@@ -72,7 +70,6 @@
                 android:layout_height="match_parent">
                 <ImageView
                     android:contentDescription="@string/breakki"
-                    android:id="@+id/brekkiImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_centerInParent="true"
@@ -83,7 +80,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/brekkiText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/lavender_btn"
@@ -115,7 +111,6 @@
                 android:layout_height="match_parent">
                 <ImageView
                     android:contentDescription="@string/soup"
-                    android:id="@+id/soupImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_centerInParent="true"
@@ -126,7 +121,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/soupText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/lavender_btn"
@@ -159,7 +153,6 @@
                 android:layout_height="match_parent">
                 <ImageView
                     android:contentDescription="@string/snack"
-                    android:id="@+id/snackImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:srcCompat="@drawable/snack"
@@ -169,7 +162,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/snackText"
                     android:background="@drawable/lavender_btn"
                     android:padding="5dp"
                     android:layout_width="wrap_content"
@@ -201,7 +193,6 @@
                 android:layout_height="match_parent">
                 <ImageView
                     android:contentDescription="@string/snack"
-                    android:id="@+id/dessertImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:srcCompat="@drawable/macarons"
@@ -211,7 +202,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/dessertText"
                     android:background="@drawable/lavender_btn"
                     android:padding="5dp"
                     android:layout_width="wrap_content"
@@ -244,7 +234,6 @@
                 android:layout_height="match_parent">
                 <ImageView
                     android:contentDescription="@string/salad"
-                    android:id="@+id/saladImage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     app:srcCompat="@drawable/greensalad"
@@ -254,7 +243,6 @@
                     />
 
                 <TextView
-                    android:id="@+id/saladText"
                     android:background="@drawable/lavender_btn"
                     android:padding="5dp"
                     android:layout_width="wrap_content"

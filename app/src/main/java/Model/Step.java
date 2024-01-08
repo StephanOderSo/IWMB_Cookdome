@@ -10,7 +10,6 @@ public class Step {
 
     String step;
     String media;
-    StorageReference storageRef= FirebaseStorage.getInstance().getReference().child("Images/");
 
     public Step(String step){
         this.step=step;
@@ -30,13 +29,6 @@ public class Step {
     public void setMedia(String media) {
         this.media = media;
     }
-    public void setMediaUri(Uri media,Thread thread) {
-        storageRef.child(media.getLastPathSegment()).putFile(media).addOnSuccessListener(taskSnapshot -> {
-            Task<Uri> uriTask=taskSnapshot.getStorage().getDownloadUrl();
-            while(!uriTask.isComplete());
-            this.media = uriTask.getResult().toString();
-            thread.start();
-        });
-    }
+
 
 }

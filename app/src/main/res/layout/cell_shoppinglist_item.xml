@@ -18,7 +18,6 @@
         android:rowCount="1">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/amountCard"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_columnWeight="1"
@@ -39,7 +38,6 @@
     </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/unitCard"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="0.5"
@@ -61,7 +59,6 @@
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/ingrCard"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_columnWeight="1"
@@ -83,7 +80,6 @@
 
         </androidx.cardview.widget.CardView>
         <androidx.cardview.widget.CardView
-            android:id="@+id/btnCard"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_columnWeight="0.3"
@@ -105,7 +101,6 @@
 
 
     <TableLayout
-        android:id="@+id/table"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
@@ -114,14 +109,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-
-
-
-        </TableRow>
     </TableLayout>
 
 

@@ -19,6 +19,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 
+import Model.Firebase;
 import Model.Ingredient;
 import Model.User;
 
@@ -26,6 +27,7 @@ import Model.User;
 public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
     FirebaseAuth auth=FirebaseAuth.getInstance();
     Context context;
+    Firebase firebase=new Firebase();
     public IngrListAdapterwSLBtn(@NonNull Context context, int resource, @NonNull ArrayList<Ingredient> ingredientList) {
         super(context, resource,ingredientList);
     }
@@ -71,7 +73,7 @@ public class IngrListAdapterwSLBtn extends ArrayAdapter<Ingredient> {
         };
         Thread viewThread=new Thread(viewRunnable);
 
-        Runnable slRunnable= () -> user.addToShoppingList(context,fbUser,handler,viewThread,ingredient);
+        Runnable slRunnable= () -> firebase.addToShoppingList(context,fbUser,handler,viewThread,ingredient);
         Thread slThread=new Thread(slRunnable);
         slThread.start();
     }

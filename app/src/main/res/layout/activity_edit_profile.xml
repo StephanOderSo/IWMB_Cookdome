@@ -36,7 +36,6 @@
 
             <ImageView
                 android:contentDescription="@string/image"
-                android:id="@+id/editphoto"
                 android:minWidth="80dp"
                 android:minHeight="80dp"
                 android:scaleType="centerCrop"
@@ -80,7 +79,7 @@
             android:background="@drawable/lavender_btn"
             android:padding="15dp"
             android:src="@drawable/edit"
-            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/nameView"
             app:layout_constraintTop_toTopOf="parent" />
