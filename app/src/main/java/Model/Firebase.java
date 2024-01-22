@@ -496,7 +496,7 @@ public synchronized void registerUser(Uri imageUri, String name, String email, S
                 for(DataSnapshot ss:snapshot.getChildren()){
                     String key1 =ss.getKey();
                     own.add(key1);
-                    if(own.size()== snapshot.getChildrenCount()-1){
+                    if(own.size()== snapshot.getChildrenCount()){
                         user.setOwnRecipes(own);
                         thread.start();
                     }
