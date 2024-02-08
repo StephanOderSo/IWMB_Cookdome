@@ -650,8 +650,8 @@ public synchronized void registerUser(Uri imageUri, String name, String email, S
     }
 
     public User rebuildUser(DataSnapshot snapshot){
-        user.setPhoto(Objects.requireNonNull(snapshot.child("name").getValue(String.class)).toLowerCase());
-        user.setName(snapshot.child("photo").getValue(String.class));
+        user.setName(snapshot.child("name").getValue(String.class));
+        user.setPhoto(Objects.requireNonNull(snapshot.child("photo").getValue(String.class)).toLowerCase());
         user.setID(snapshot.child("id").getValue(String.class));
         return user;
     }
@@ -808,6 +808,7 @@ public synchronized void registerUser(Uri imageUri, String name, String email, S
                 holder.userName.setText(model.getName());
                 holder.share.setImageResource(R.drawable.share);
                 holder.share.setOnClickListener(view -> shareRecipe(recipe,model,context,uID));
+                Log.d(TAG, model.getPhoto());
             }
             @NonNull
             @Override
